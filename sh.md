@@ -251,6 +251,26 @@ tcpdump命令解析一下：
 port: 指定监听端口是80
 host:指定监听的主机名
 
+### 查看tcp的连接状态
+netstat -napt
+
+### tcp连接
+建立一个TCP连接是需要客户端和服务端达成三个信息的共识：
+1. sockets;由ip和地址组成
+2. 序列号；解决乱序问题；
+3. 窗口大小；解决流量控制；
+
+
+### 为什么需要三次握手？
+#### 防止旧的重复连接初始化造成混乱；
+#### 同步双方的初始化序列号；
+#### 避免资源浪费；
+两次握手会造成消息滞留情况下，服务端重复接受无用的连接请求 SYN 报文，而造成重复分配资源。
+
+
+#### 如果第一次握手丢失了，客户端会触发超时重传SYN包；
+#### 如果第二次握手丢失了，客户端会触发超时重传SYN包，服务端会触发超时重传SYN+ACK包；
+#### 如果第三次握手丢失了，服务端会触发超时重传SYN+ACK包；
 
 ## 证书
 CA 证书文件（ssl_cacert.pem）---即根证书；
@@ -515,4 +535,31 @@ kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboar
 
 
 
+## http
 
+### http常见字段
+#### host
+客户端发送请求时，用来指定服务器的域名。
+
+#### context-length
+服务器在返回数据时，会有 Content-Length 字段，表明本次回应的数据长度。
+
+#### connection
+Connection 字段最常用于客户端要求服务器使用「HTTP 长连接」机制，以便其他请求复用。
+Connection: Keep-Alive
+
+#### Context-Type
+用于服务器回应时，告诉客户端，本次数据是什么格式；
+客户端请求的时候，可以使用 Accept 字段声明自己可以接受哪些数据格式。Accept: */*
+
+#### Context-Encoding
+Content-Encoding 字段说明数据的压缩方法。表示服务器返回的数据使用了什么压缩格式
+
+
+## websocket
+http/1.1 101 Switching Protocols\r\n     # 101状态码，表示协议转换
+Connection: Upgrade    # 浏览器想升级协议
+Upgrade: WebSocket     # 想升级成WebSocket协议
+Sec-WebSocket-Key: T2a6wZlAwhgQNqruZ2YUyg==\r\n         # 随机生成的base64码
+
+websocket只有在建立连接时才用到http,升级完后就和http没有关系了。
