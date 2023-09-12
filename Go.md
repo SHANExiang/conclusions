@@ -802,6 +802,7 @@ warmMapedFileEnable=true
 
 
 # Go packages
-1. http请求池包 github.com/panjf2000/ants
+1. goroutine池包 github.com/panjf2000/ants
 2. 单元测试包 github.com/smartystreets/goconvey
 3. 权限访问控制库 github.com/casbin/casbin/v2
+4. 错误处理 github.com/pkg/errors

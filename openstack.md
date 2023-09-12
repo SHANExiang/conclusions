@@ -772,6 +772,9 @@ create_backup
 5. 删除临时卷；
 
 
+## ceph osd
+查看ceph集群---->ceph osd status
+
 
 
 

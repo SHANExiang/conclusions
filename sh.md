@@ -370,6 +370,7 @@ CA 证书文件（ssl_cacert.pem）---即根证书；
 ## docker
 1. Dockerfile中COPY将本地文件拷贝到容器中；ADD本地自动解压文档文件到容器中；
 2. Docker image是由一系列Docker只读层创建出来的；Docker layer在Dockerfile配置文件中完成一条配置指令即表示一个Docker layer；
+3. docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/service/logs/dev/nonick/nonick-notifier-service -v /etc/localtime:/etc/localtime -p 8081 notifier:0912 bash
 
 
 ### 容器化技术在底层的运行原理
@@ -643,3 +644,10 @@ Upgrade: WebSocket     # 想升级成WebSocket协议
 Sec-WebSocket-Key: T2a6wZlAwhgQNqruZ2YUyg==\r\n         # 随机生成的base64码
 
 websocket只有在建立连接时才用到http,升级完后就和http没有关系了。
+
+
+
+## sar
+怀疑CPU存在瓶颈，可用 sar -u 和 sar -q 等来查看
+怀疑内存存在瓶颈，可用 sar -B、sar -r 和 sar -W 等来查看
+怀疑I/O存在瓶颈，可用 sar -b、sar -u 和 sar -d 等来查看
