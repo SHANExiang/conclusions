@@ -9,7 +9,7 @@ openstack server restore <server>    # 将软删除的虚机进行恢复
 
 重装系统rebuild--->三个过程power_off/rebuild/power_on
 
-
+1. nova的反亲和机制指的是创建一组虚拟机实例，确保他们不会被调度到同一物理主机上；
 
 
 
@@ -157,6 +157,13 @@ https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 3. 计算节点16509端口用于libvirtd的tcp连接监听；
 
 
+## kvm
+1. 虚机支持kvm虚拟化  nova_compute/nova.conf中
+[DEFAULT]
+cpu_mode = host-passthrough
+2. kvm内核是否加载
+lsmod | grep kvm 
+
 
 
 # neutron
@@ -269,7 +276,10 @@ default via 10.250.48.1 dev qg-564ac24f-e7 proto static
 
 ## floatingip
 1. 创建floatingip可以指定subnet，是指定的network下的subnet，内部逻辑是将传的subnet_id放到port中，去创建port；如果不传subnet_id返回时不带subnet_id；
-2. 限速测试：服务端iperf3 -s -i 10 -p 5201--设置监控时间10s，端口为5201，防火墙端口要放行；客户端iperf3 -c x.x.x.x -p 5201 -t 5 -P 10 -R---指定-c测速服务器IPx.x.x.x，-p指定端口为5201，-t测速时间5s，-P指定发送连接数10，-R表示下载测速  
+2. 限速测试：服务端iperf3 -s -i 10 -p 5201--设置监控时间10s，端口为5201，防火墙端口要放行；客户端iperf3 -c x.x.x.x -p 5201 -t 5 -P 10 -R---指定-c测速服务器IPx.x.x.x，-p指定端口为5201，-t测速时间5s，-P指定发送连接数10，-R表示下载测速
+    iperf3 -c 192.168.3.250 -i 1 -t 10          测试上行
+    iperf3 -c 192.168.3.250 -i 1 -t 10 -R       测试下行
+    iperf -s -i 1 -p 5201
 3. 限速可以限速floatingip出外网和端口转发；
 
 
@@ -439,12 +449,6 @@ target-project指的是要共享的项目id；action--access_as_shared表示可�
 2. 当创建network，指定字段external为True，表示此network可以作为外部网络使用，等价于创建network,然后创建rbac policy指定参数action为access_as_external；
 
 
-## lbaas
-1. amphora是实现lb功能的云主机，负载均衡的载体，包含amphora-agent服务和实现底层lb功能的haproxy和keepalived；
-
-
-### l7 policy
-
 
 
 ## quota
@@ -462,8 +466,67 @@ target-project指的是要共享的项目id；action--access_as_shared表示可�
 5. Amphora云主机，作为负载均衡器软件Haproxy和高可用支持Keepalived的运行载体，同时也运行着amphora-agent service对外提供REST API。
 
 ### 资源操作
-1. 创建loadbalancer；
-    会创建
+#### 创建loadbalancer
+1. 数据库创建loadbalancer+vip记录；
+2. 调用amphora driver创建vip port；如果指定了vip_port_id则将port转成vip；否则就调neutronclient接口创建port转成vip；
+3. 发送消息到MQ,octavia_worker监听消息进行create_load_balancer；
+
+#### 创建listener
+haproxy 只有在创建了 listener 之后才会启动。
+Lisenter 含有的协议及端口信息都需要被更新到 VIP 的安全组规则中
+1. 先生成haproxy配置文件，向amp发送消息，生成对应该 listener 的 haproxy 服务脚本。
+2. 再次向 amphorae 发送消息启动 haproxy 服务：
+先确定listener的配置目录（/var/lib/octavia/{listener-id}/）在不在
+如果是active standby，更新keepalived对各个haproxy的check脚本，
+　　/var/lib/octavia/vrrp/check_scripts/haproxy_check_script.sh
+3. 启动haproxy服务，service haproxy-{listener_id} start
+
+
+#### 创建pool
+在haproxy的配置文件中增加backend配置；
+
+
+
+### devstack打通本地网络的指令
+Devstack 打通本地网络的指令：
+$ neutron port-create --name octavia-health-manager-standalone-listen-port \
+  --security-group <lb-health-mgr-sec-grp> \
+  --device-owner Octavia:health-mgr \
+  --binding:host_id=<hostname> lb-mgmt-net \
+  --tenant-id <octavia service>
+
+$ ovs-vsctl --may-exist add-port br-int o-hm0 \
+  -- set Interface o-hm0 type=internal \
+  -- set Interface o-hm0 external-ids:iface-status=active \
+  -- set Interface o-hm0 external-ids:attached-mac=<Health Manager Listen Port MAC> \
+  -- set Interface o-hm0 external-ids:iface-id=<Health Manager Listen Port ID>
+  
+$ # /etc/octavia/dhcp/dhclient.conf
+request subnet-mask,broadcast-address,interface-mtu;
+do-forward-updates false;
+
+$ ip link set dev o-hm0 address <Health Manager Listen Port MAC>
+$ dhclient -v o-hm0 -cf /etc/octavia/dhcp/dhclient.conf
+
+o-hm0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
+        inet 192.168.0.4  netmask 255.255.255.0  broadcast 192.168.0.255
+        inet6 fe80::f816:3eff:fef0:b9ee  prefixlen 64  scopeid 0x20<link>
+        ether fa:16:3e:f0:b9:ee  txqueuelen 1000  (Ethernet)
+        RX packets 1240893  bytes 278415460 (265.5 MiB)
+        RX errors 0  dropped 45  overruns 0  frame 0
+        TX packets 417078  bytes 75842972 (72.3 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+
+
+
+
+
+
+
+
+
+
 
 
 
