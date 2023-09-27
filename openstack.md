@@ -87,6 +87,9 @@ AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主
 
 ## 虚机创建
 1. 虚机创建报错Port 0d1f4c34-2dc8-43e6-a769-9569cb68902f not usable for instance，由于虚机和port不属于同一个租户；
+2. nova_api.request_specs表---虚拟机调度需要的信息，如虚拟机个数,uuid,类型,安全组等;
+3. nova_api.build_requests表---初始化数据；
+4. nova_api.instance_mappings---实例映射表，不同cell之间的实例映射；
 
 
 ## 虚机重建
@@ -98,6 +101,22 @@ AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主
 6. 原数据盘attach;
 7. 虚机重建成功。
 
+
+## 挂载网卡
+/v2.1/servers/f8ff90f2-ea91-4364-b6ea-23deebcb05cb/os-interface/3086a848-b523-45fc-9845-c3bbf18da9b4
+1. 先创建port；
+2. 更新port进行bound;
+3. 将新的网卡信息更新到instance_info_cache中；
+4. 构造vif对象，然后调用nova.virt.libvirt.driver进行attach_interface;
+5. 通过os_vif将plug vif VIFOPenvSwitch；
+6. 构建虚机的网卡元数据；
+
+
+
+## 卸载网卡
+DELETE /v2.1/servers/f8ff90f2-ea91-4364-b6ea-23deebcb05cb/os-interface/084dbf71-9beb-4955-9d0e-480d68b7f220
+先unplug，然后delete port；
+虚机在删除中再调用卸载网卡接口，报错cannot detach_interface instance <instance_uuid> while it is in task_state deleting
 
 
 
@@ -126,6 +145,7 @@ openstack flavor create 4c4g16g.3090 --ram 4096 --disk 16 --vcpus 4 --public --p
 1. 先通过/servers/{server_id}/remote-consoles创建一个console；
 2. 然后拿着这个console通过浏览器访问；
 3. 实际通信过程通过websocket---ws://10.50.1.251:6080/?token=<token>。
+console日志在var/lib/nova/instances/<instance_uuid>
 
 
 ## 给实例注入一个密钥对并通过密钥对来访问实例
@@ -163,6 +183,25 @@ https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 cpu_mode = host-passthrough
 2. kvm内核是否加载
 lsmod | grep kvm 
+
+
+## 169.254.169.254
+1. 虚机内部执行curl -i http://169.254.169.254/openstack/latest；
+包括meta_data.json/user_data/password/network_data.json
+2. curl -i http://169.254.169.254/latest/meta-data 包括instance-id/instance-type/local-hostname/security-groups
+云主机访问169.254.169.254时，数据包走到网关(自己所在dhcp命名空间)，然后neutron-ns-metadata-proxy 将请求通过 unix domain socket 发给 neutron-metadata-agent，后者再通过管理网络发给 nova-api-metadata。
+
+## cloud-init
+自动配置虚拟机初始配置的工具；
+虚拟机通过两种方式获得用户传递的配置信息；一种是config driver；一种是metadata restful服务；
+有两种方法可以启用config drive：
+1. 启动 instance 时指定 --config-drive true(下面实验是采用的这种方法)。
+2. 在计算节点的 /etc/nova/nova.conf 中配置 force_config_drive = true，这样部署到此计算节点的 instance 都会使用 config drive
+
+
+## nova-api-metadata
+nova-api的子服务，metadata的提供者，instance可以通过其restful接口获取metadata信息；
+服务端口为8775；
 
 
 
@@ -279,7 +318,7 @@ default via 10.250.48.1 dev qg-564ac24f-e7 proto static
 2. 限速测试：服务端iperf3 -s -i 10 -p 5201--设置监控时间10s，端口为5201，防火墙端口要放行；客户端iperf3 -c x.x.x.x -p 5201 -t 5 -P 10 -R---指定-c测速服务器IPx.x.x.x，-p指定端口为5201，-t测速时间5s，-P指定发送连接数10，-R表示下载测速
     iperf3 -c 192.168.3.250 -i 1 -t 10          测试上行
     iperf3 -c 192.168.3.250 -i 1 -t 10 -R       测试下行
-    iperf -s -i 1 -p 5201
+    iperf3 -s -i 1 -p 5201
 3. 限速可以限速floatingip出外网和端口转发；
 
 
@@ -305,6 +344,9 @@ Chain neutron-meter-r-ecca93c6-8d1 (1 references)
     pkts      bytes target     prot opt in     out     source               destination
       89    16839 neutron-meter-l-ecca93c6-8d1  all  --  qg-3a26535b-91 *       0.0.0.0/0            44.44.44.184
     1094    80015 neutron-meter-l-ecca93c6-8d1  all  --  *      qg-3a26535b-91  44.44.44.184         0.0.0.0/0
+
+#### 端口转发
+当进行端口转发时，虚机要放开指定端口（也就是目标端口）的安全组规则；
 
 
 
@@ -401,6 +443,7 @@ neutron-l3-agent-ov4a24248cf - [0:0]
 3. 创建一条安全组，自动添加两条默认规则，egress ipv6和egress ipv4（禁止所有的流量访问，允许所有的流量出去）。
 4. 只有当安全组被关联到port时才会真正创建对应的iptables规则。
 5. 安全组规则支持批量创建；请求体 {"security_group_rules": [{}]}
+6. remote_group_id只影响本条规则，其它规则不影响；只允许绑定remote_sg的虚机通；如果remote_group_id为自己，同样只有绑定本sg的虚机能够互通；
 
 
 Openstack中的安全组的实现有以下几种：

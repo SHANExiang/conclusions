@@ -204,7 +204,7 @@ MySQL 集群的主从复制过程梳理成 3 个阶段：
 
 # 快捷键
 1. 从后往前删除   ctrl+w；
-2. 从后往前删除   ctrl+k；
+2. 从前往后删除   ctrl+k；
 3. 光标从前调到末尾  ctrl+e;  vim内部为删除光标所在行；
 
 
@@ -226,8 +226,14 @@ server {
         proxy_set_header Host $host;
     }
 }
-这个配置将带有/socket前缀的WebSocket请求转发到ws://backend.example.com/socket，
+当客户端通过浏览器或其他方式发送请求到 yourdomain.com 这个域名时，Nginx 将监听 HTTP 请求的端口 80 ，
+将带有/socket前缀的WebSocket请求转发到ws://backend.example.com/socket，
 同时将带有/api前缀的HTTP请求转发到http://backend.example.com/api。
+
+proxy_set_header Host $host; 将客户端请求中的 Host 头部信息传递给目标服务器。这是正常的 HTTP 头部信息传递，不涉及客户端 IP 地址。
+proxy_set_header X-Real-IP $remote_addr;将客户端的真实 IP 地址作为 X-Real-IP 头部信息传递给目标服务器。这意味着目标服务器可以访问到客户端的真实 IP 地址。
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 将客户端的 IP 地址添加到 X-Forwarded-For 头部信息中，并传递给目标服务器。这是为了记录代理请求的前几个客户端的 IP 地址，通常包括客户端的真实 IP 地址。
+
 
 
 
@@ -345,10 +351,16 @@ TCP 的 Keepalive 也叫 TCP 保活机制，该功能是由「内核」实现的
 带宽：链路的最大传输速率，b/s；
 吞吐量：单位事件内成功传输的数据量；b/s(比特/s)或B/s(字节/s)
 
+
+
 ### socket信息查看
 netstat -nlp
 ss -ltnp
 
+
+### TLS
+一般情况下，不管 TLS 握手次数如何，都得先经过 TCP 三次握手后才能进行，
+因为 HTTPS 都是基于 TCP 传输协议实现的，得先建立完可靠的 TCP 连接才能做 TLS 握手的事情。
 
 
 
@@ -612,7 +624,16 @@ kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboar
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 ```
 
+
+
 ### k8s源码
+
+#### kube-apiserver
+对外提供api的方式与其它组件进行交互；
+
+
+
+
 
 
 
@@ -635,6 +656,11 @@ Connection: Keep-Alive
 
 #### Context-Encoding
 Content-Encoding 字段说明数据的压缩方法。表示服务器返回的数据使用了什么压缩格式
+
+
+#### 错误码
+504 错误码是网关超时错误，通常是nginx将请求代理到后端应用时，后端应用没有在规定的时间返回数据；
+
 
 
 ## websocket
