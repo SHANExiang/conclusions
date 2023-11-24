@@ -7,7 +7,7 @@ rescue用指定的image作为系统启动盘引导instance，而把instance原�
 相当于把故障电脑磁盘拿出，插到另一台正在运行的电脑上，进而再进行一些拯救工作。
 openstack server restore <server>    # 将软删除的虚机进行恢复
 
-重装系统rebuild--->三个过程power_off/rebuild/power_on
+
 
 1. nova的反亲和机制指的是创建一组虚拟机实例，确保他们不会被调度到同一物理主机上；
 
@@ -65,6 +65,13 @@ openstack server create
 
 
 从PXE或者UEFI启动裸机需要在ironic-conductor节点配置TFTP服务器;
+### provision network
+1. 通过DHCP获得tftp-server地址；
+2. 从tftp-server下载启动文件；
+3. 根据下载的文件进行启动；
+
+
+
 
 ### 裸金属节点clean
 openstack baremetal node clean <node>   --clean-steps '[{"interface": "deploy", "step": "erase_devices_metadata"}]'
@@ -73,6 +80,48 @@ openstack baremetal node clean <node>   --clean-steps '[{"interface": "deploy", 
 3. provision state先从deleting变成cleaning；
 4. 最终clean完毕的状态是available；
 
+
+### 裸金属虚机创建流程
+PUT /v1/nodes/17d1f5b7-feca-44c2-bbb8-4977b026000e/states/provision
+{
+    "target": "active",
+    "deploy_steps": [
+        {
+            "interface": "deploy",
+            "step": "deploy",
+            "args": {
+                "force": "True"
+            },
+            "priority": 100
+        }
+    ]
+}
+1. node的provision_state从availabe置成deploying
+2. 根据租户网络创建port；tenant_port--fa:16:3e:24:9f:c9
+2023-11-10 11:11:27.349 30 DEBUG neutron.api.v2.base [req-04e18759-5338-4d28-8bbf-ebcec52d6b66 8f8255c9a7bf4da2b2fd2d4398a6c510 125e20b258f548f1aea581d10d73a482 - default default] [None] Request body: {u'port': {u'network_id': u'e3c00e34-3520-43e9-b746-f1568e2345ce', u'port_security_enabled': True, u'name': u'ceshidandugoumai', u'security_groups': [u'0ca325a7-3ef6-4c15-8ff1-0a90488eb71d'], u'qos_policy_id': u'4081904e-4bde-47ad-97ee-a4bf540e93d1'}} prepare_request_body /var/lib/kolla/venv/lib/python2.7/site-packages/neutron/api/v2/base.py:726
+tenant_port
+2023-11-10 11:11:31.760 30 DEBUG neutron.api.v2.base [req-9c58fcf0-0718-4c3d-852f-6667b4edb2bb 174971a889b344dea163dfd828445cea fc7d407eaa3e45c1b35f523abbb6e0a9 - default default] [req-e56abbe1-931e-4ed2-a645-b945bc4e03f2] Request body: {u'port': {u'device_owner': u'compute:nova', u'binding:host_id': None, u'device_id': u'24800c87-bda6-417c-80ed-dc64fbf38606'}}
+tenant_port
+2023-11-10 11:11:38.218 31 DEBUG neutron.api.v2.base [req-5e417416-d892-4e08-bcba-6dc73d777314 7ceb97a1bbac4095916c939c7c828c8d fc7d407eaa3e45c1b35f523abbb6e0a9 - default default] [req-27d0df23-b877-4b9e-be71-8532b5d60f5a] Request body: {u'port': {u'mac_address': u'78:17:be:71:97:cb'}}
+tenant_port
+2023-11-10 11:11:48.283 31 DEBUG neutron.api.v2.base [req-de81c526-c35d-4f6a-9e67-91bea5113cd6 7ceb97a1bbac4095916c939c7c828c8d fc7d407eaa3e45c1b35f523abbb6e0a9 - default default] [req-7b08c2fc-30dc-46b3-90dc-56a50c5f695b] Request body: {u'port': {u'binding:profile': {}, u'binding:host_id': u''}} prepare_request_body /var/lib/kolla/venv/lib/python2.7/site-packages/neutron/api/v2/base.py:726
+tenant_port
+
+3. 根据provision network创建port；
+2023-11-10 11:11:49.518 31 DEBUG neutron.api.v2.base [req-d7f6cc7c-ed5e-403d-b1a0-592d9ef28b67 7ceb97a1bbac4095916c939c7c828c8d fc7d407eaa3e45c1b35f523abbb6e0a9 - default default] [req-7b08c2fc-30dc-46b3-90dc-56a50c5f695b] Request body: {u'port': {u'mac_address': None}} prepare_request_body /var/lib/kolla/venv/lib/python2.7/site-packages/neutron/api/v2/base.py:726
+provision_port e52ee445-0d37-4a72-971e-1bf200ece536
+2023-11-10 11:11:54.456 31 DEBUG neutron.api.v2.base [req-eaaa870f-5690-47c7-b949-bfa4b3181c21 7ceb97a1bbac4095916c939c7c828c8d fc7d407eaa3e45c1b35f523abbb6e0a9 - default default] [req-7b08c2fc-30dc-46b3-90dc-56a50c5f695b] Request body: {u'port': {u'binding:host_id': u'17d1f5b7-feca-44c2-bbb8-4977b026000e', u'admin_state_up': True, u'network_id': u'289a327a-1625-4dab-bd5b-29c32d4b3fb0', u'binding:vnic_type': u'baremetal', u'device_owner': u'baremetal:none', u'mac_address': u'78:17:be:71:97:cb', u'binding:profile': {u'local_link_information': [{u'port_id': u'10GE1/0/8', u'switch_id': u'c8:33:e5:a2:52:a1'}]}, u'device_id': u'24800c87-bda6-417c-80ed-dc64fbf38606'}}
+provision_port
+2023-11-10 11:11:57.666 31 DEBUG neutron.api.v2.base [req-31478585-1ea9-41b8-8919-d236cc9ad4c2 7ceb97a1bbac4095916c939c7c828c8d fc7d407eaa3e45c1b35f523abbb6e0a9 - default default] [req-7b08c2fc-30dc-46b3-90dc-56a50c5f695b] Request body: {u'port': {u'extra_dhcp_opts': [{u'opt_value': u'undionly.kpxe', u'ip_version': 4, u'opt_name': u'tag:!ipxe,67'}, {u'opt_value': u'http://10.50.31.1:8089/boot.ipxe', u'ip_version': 4, u'opt_name': u'tag:ipxe,67'}, {u'opt_value': u'10.50.31.1', u'ip_version': 4, u'opt_name': u'66'}, {u'opt_value': u'10.50.31.1', u'ip_version': 4, u'opt_name': u'150'}, {u'opt_value': u'10.50.31.1', u'ip_version': 4, u'opt_name': u'server-ip-address'}]}} prepare_request_body /var/lib/kolla/venv/lib/python2.7/site-packages/neutron/api/v2/base.py:726
+4. 在node上执行deploy Executing {'priority': 100, 'interface': 'deploy', 'step': 'deploy', 'argsinfo': None}
+5. 从deploying状态置成wait call-back
+POST /v1/heartbeat/17d1f5b7-feca-44c2-bbb8-4977b026000e
+6. 将config driver文件拷贝到node分区/dev/disk/by-path/ip-10.50.102.213:3260-iscsi-iqn.2008-10.org.openstack:17d1f5b7-feca-44c2-bbb8-4977b026000e-lun-1-part2
+7. 移除node上的网络Removing provisioning network
+删除provision_port
+2023-11-10 11:20:16.827 Deleting port e52ee445-0d37-4a72-971e-1bf200ece536
+8. 配置租户网络；{u'port': {u'binding:profile': {u'local_link_information': [{u'port_id': u'10GE1/0/8', u'switch_id': u'c8:33:e5:a2:52:a1'}]}, u'binding:vnic_type': u'baremetal', u'binding:host_id': u'17d1f5b7-feca-44c2-bbb8-4977b026000e', u'mac_address': u'78:17:be:71:97:cb'}}
+9. 在node上deploy虚机Executing deploying on node 17d1f5b7-feca-44c2-bbb8-4977b026000e, remaining steps: []
 
 
 
@@ -95,11 +144,26 @@ AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主
 ## 虚机重建
 1. 原系统盘volume先detach（带attachment in-use）;
 2. 数据盘detach;
-3. 创建新系统盘volume
+3. 创建新系统盘volume;
 4. 原系统盘volume删除;
 5. 新系统盘volume attach;
 6. 原数据盘attach;
 7. 虚机重建成功。
+
+
+重装系统rebuild--->三个过程power_off/rebuild/power_on
+
+openstack server rebuild <server_uuid> --image <image>
+1. 根据bdm的boot_index==0判断虚机是否是volume_backend；
+2. image是必传项；
+3. 可以实现密码、key-name、属性、镜像的更换；
+4. 
+
+
+
+## 虚机创建快照
+1. 如果根据虚机生成的镜像快照创建虚机时报错Volume is smaller than the minimum size specified in image，则将镜像快照的min_disk设置成0，即无限制；
+
 
 
 ## 挂载网卡
@@ -145,7 +209,9 @@ openstack flavor create 4c4g16g.3090 --ram 4096 --disk 16 --vcpus 4 --public --p
 1. 先通过/servers/{server_id}/remote-consoles创建一个console；
 2. 然后拿着这个console通过浏览器访问；
 3. 实际通信过程通过websocket---ws://10.50.1.251:6080/?token=<token>。
-console日志在var/lib/nova/instances/<instance_uuid>
+console日志在var/lib/nova/instances/<instance_uuid>或
+xml路径/var/lib/docker/volumes/nova_libvirt_qemu/_data
+
 
 
 ## 给实例注入一个密钥对并通过密钥对来访问实例
@@ -177,6 +243,21 @@ https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 3. 计算节点16509端口用于libvirtd的tcp连接监听；
 
 
+## 软重启
+软重启是通过向虚拟机发送重启指令实现的，类似于操作系统的正常重启。
+在软重启期间，虚拟机的虚拟硬件设备不会被关闭或重置。
+软重启尝试保留虚拟机的网络连接和内存状态，以便恢复到重启前的状态。
+软重启通常比硬重启快速，因为它只涉及到虚拟机的操作系统层面并避免了关机和启动的过程。
+
+
+## 硬重启
+硬重启是通过直接重启虚拟机的底层实例实现的，类似于物理计算机的冷启动。
+在硬重启期间，虚拟机的虚拟硬件设备会被关闭，并从头开始引导启动。
+硬重启会中断虚拟机的所有网络连接和内存状态，相当于完全关闭和重新启动虚拟机。
+硬重启可能需要较长时间，在底层重新启动虚拟机的整个过程中，可能需要重新分配资源、加载虚拟硬盘和重启操作系统。
+
+
+
 ## kvm
 1. 虚机支持kvm虚拟化  nova_compute/nova.conf中
 [DEFAULT]
@@ -191,12 +272,28 @@ lsmod | grep kvm
 2. curl -i http://169.254.169.254/latest/meta-data 包括instance-id/instance-type/local-hostname/security-groups
 云主机访问169.254.169.254时，数据包走到网关(自己所在dhcp命名空间)，然后neutron-ns-metadata-proxy 将请求通过 unix domain socket 发给 neutron-metadata-agent，后者再通过管理网络发给 nova-api-metadata。
 
+
+
 ## cloud-init
 自动配置虚拟机初始配置的工具；
 虚拟机通过两种方式获得用户传递的配置信息；一种是config driver；一种是metadata restful服务；
 有两种方法可以启用config drive：
 1. 启动 instance 时指定 --config-drive true(下面实验是采用的这种方法)。
 2. 在计算节点的 /etc/nova/nova.conf 中配置 force_config_drive = true，这样部署到此计算节点的 instance 都会使用 config drive
+3. /etc/cloud/cloud.cfg中network: {config: disabled}则cloud-init不会进行网络配置；
+4. 四个阶段
+Local
+（这个阶段，会寻找本地的data source， 并配置本机网络，以便后续获取user data等信息， 网络配置可以来源于本地的data source，如果获取不到，会启用dhcp。 
+当然，如果在/etc/cloud/cloud.cfg定义 ‘network: {config: disabled}‘.， 会放弃配置网络）
+作为 cloud-init 执行的第一个阶段，此时 instance 还不知道该如何配置网卡，cloud-init 的任务就是从 config drive 中获取配置信息，
+然后写入 /etc/network/interfaces 文件（如果是 centos 则写入 /etc/sysconfig/network-scripts/ifcfg-xxx）。
+如果没有 config drive，则将所有网卡配置成 dhcp 模式。这是非常关键的一步，只有当网卡正确配置后，才能获取到 metadata。
+Network
+Config
+Final
+
+
+
 
 
 ## nova-api-metadata
@@ -213,7 +310,7 @@ ip route解释
 default via 172.16.0.1 dev ens192 proto static metric 100 # 表示去任何地方，都发送给网卡ens192，并经过网关172.16.0.1发出；
 172.16.0.0/16 dev ens192 proto kernel scope link src 172.16.1.11 metric 100 # 表示发往172.16.0.0/26网段的包都由网卡ens192发出，src表示ens192的网卡ip是172.16.1.11，metric表示路由距离，到达指定网络所需的中转数；
 默认路由（Default route），是对IP数据包中的目的地址找不到存在的其他路由时，路由器所选择的路由。
-
+添加默认路由 ip route add default via <网关IP地址> dev <网络接口>
 
 
 
@@ -280,12 +377,13 @@ ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables -t nat -S   
 ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables-save  # 命名空间内将iptables规则打印
 iptables -t nat -nvL
 iptables-save
-neutron l3-agent-list-hosting-router 1658595a-ee11-4a53-bd6f-34a49ce86b61    # 查看router关联的l3-agent所在的host
+
 
 ## router
 neutron l3-agent-list-hosting-router <router_id>     # 查看router所在的namespace节点
 namespace里中qg和qr没有ip时，通过neutron router-update --admin-state-up False，再者neutron router-update --admin-state-up True恢复；
 
+neutron l3-agent-list-hosting-router 1658595a-ee11-4a53-bd6f-34a49ce86b61    # 查看router关联的l3-agent所在的host
 
 ### 在命名空间内抓包tcpdump -i qr-xxx/qg-xxx -n icmp
 [root@SCDA0052 scadmin]# ip netns exec qrouter-3feea37e-5a67-4396-90af-56ab85698e4d tcpdump -i qg-564ac24f-e7 -n icmp
@@ -347,6 +445,8 @@ Chain neutron-meter-r-ecca93c6-8d1 (1 references)
 
 #### 端口转发
 当进行端口转发时，虚机要放开指定端口（也就是目标端口）的安全组规则；
+openstack floating ip port forwarding list 10.50.98.165
+openstack floating ip port forwarding delete 10.50.98.165 <id>
 
 
 
@@ -642,6 +742,7 @@ volume.detach.end--->available
 
 
 
+
 ## 创建snapshot
 snapshot.create.end--->available
 1. 创建快照，volume状态必须是available，error_deleting不行；
@@ -658,6 +759,9 @@ volume.retype--->available/in-use
 
 1. Retype needs volume to be in available or in-use state, not be part of an active migration or a consistency group, 
 requested type has to be different that the one from the volume, and for in-use volumes front-end qos specs cannot change.
+
+
+
 
 ## 配置文件支持多个后端
 cinder.conf
@@ -683,7 +787,8 @@ cinder backup支持将元数据序列化导出（export record)，这样即使�
 ## cinder备份实现rdb和s3共存
 S3 Simple Storage Service 简单存储服务
 Amazon
-通过 S3 存储和检索的资产被称为对象。对象存储在存储段（bucket）中。您可以用硬盘进行类比：对象就像是文件，存储段就像是文件夹（或目录）。与硬盘一样，对象和存储段也可以通过统一资源标识符（Uniform Resource Identifier，URI）查找。
+通过 S3 存储和检索的资产被称为对象。对象存储在存储段（bucket）中。您可以用硬盘进行类比：对象就像是文件，存储段就像是文件夹（或目录）。
+与硬盘一样，对象和存储段也可以通过统一资源标识符（Uniform Resource Identifier，URI）查找。
 S3 还提供了指定存储段和对象的所有者和权限的能力，就像对待硬件的文件和文件夹一样。
 
 backup_driver = cinder.backup.drivers.s3.S3BackupDriver
@@ -1020,4 +1125,90 @@ Add a new extension api "reset volume attach state" which defaults to admin
 only. It will clean up the records about the attachment and reset the
 attachment state of the volume in nova side. Then call force detach api in
 cinder to make consistent state between nova and cinder.
+
+
+
+
+# keystone
+## LDAP
+轻量目录访问协议
+### openstack集成ldap
+1. 开启openstack多域支持
+/etc/kolla/keystone/keystone.conf
+[identity]
+domain_specific_drivers_enabled = True
+domain_config_dir = /etc/keystone/domains
+2. 创建多域支持配置文件目录与配置文件
+mkdir /etc/keystone/domains
+chown -R keystone:keystone /etc/keystone/domains
+在/etc/keystone/domains下创建AD对应的配置文件：keystone.{DOMAIN_NAME}.conf。
+{DOMAIN_NAME}需要和真正的domain name保持一致，比如我们实验环境中的test.com,那么配置文件应该为keystone.test.conf
+配置内容如下：
+[identity]
+#认证使用ldap
+driver = ldap
+[assignment]
+#鉴权使用sql
+driver = sql
+[ldap]
+url = ldap://10.50.7.108:389
+#这里绑定管理员信息（理论上其他用户也应该性）
+user = CN=Manager,DC=my-domain,DC=com
+password = 123123
+suffix = DC=my-domain,DC=com
+#use_dumb_member和allow_subtree_delete在新版配置中不存在
+use_dumb_member = False
+allow_subtree_delete = False
+
+query_scope = sub
+#让openstack从ldap openstack的组织单位中同步用户
+user_tree_dn = ou=openstack,dc=my-domain,dc=com
+user_objectclass = organizationalPerson
+user_id_attribute = cn
+#user_name_attribute = sAMAccountName
+user_name_attribute = cn
+user_mail_attribute = mail
+#user_filter = (&(objectClass=user)(cn=*))
+
+user_enabled_attribute = userAccountControl
+user_enabled_default = 512
+#openstack的用户中有一个用户激活的属性，在AD中并没有对应的feild与之对应，需要使用user_enabled_mask = 2来支持，并配置user_enabled_emulation。user_enabled_emulation是一个work round，当用户的LDAP system没有提供 enabled这个属性的时候，可以用这个做为work round，方法就是创建一个cn，专门用来放那些user是enabled。
+user_enabled_mask = 2
+user_enabled_emulation = False
+
+group_tree_dn = ou=openstack,dc=my-domain,dc=com
+group_objectclass = groupOfNames
+#group_filter = (&(objectClass=group)(cn=*))
+group_id_attribute = cn
+group_name_attribute = ou
+group_member_attribute = member
+
+#open all debug log for ldap driver
+debug_level = -1
+
+3. 创建domain 
+openstack domain create my-domain
+4. 重启keystone
+重启后openstack user list --domain my-domain即可看到在ldap服务中新建的用户
+5. 创建project
+openstack project create --domain my-domain test_project
+6. 为用户赋予角色
+openstack role add --project test_project --user 2039fc8d3fe5990db555b4ddeed83078f3b50ae387cb6f144fc6354c062b0a51 admin
+此时即可使用此user。
+
+
+### keystone to keystone idp
+
+
+
+
+# 状态机nonick-notifier-service
+## dev环境构建
+docker build -t notifier:0921 . 
+docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/service/logs/dev/nonick/nonick-notifier-service -v /etc/localtime:/etc/localtime -p 8081 notifier:0921 bash
+
+
+
+
+
 

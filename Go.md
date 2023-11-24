@@ -80,13 +80,12 @@ range: 0 to 18446744073709551615
 uint : represents 32 or 64 bit unsigned integers depending on the underlying platform.
 size : 32 bits in 32 bit systems and 64 bits in 64 bit systems.
 range : 0 to 4294967295 in 32 bit systems and 0 to 18446744073709551615 in 64 bit systems
-
 ```
 14. byte 其实被 alias 到 uint8 上了;
 15. golang语言中没有继承概念，只有组合，也没有虚方法，更没有重载。因此，不会覆写被组合的结构体的方法。
 16. Go 程序会在两个地方为变量分配内存，一个是全局的堆上，另一个是函数调用栈；
-    Go 中声明一个函数内局部变量时，当编译器发现变量的作用域没有逃出函数范围时，就会在栈上分配内存，反之则分配在堆上，逃逸分析由编译器完成，作用于编译阶段。
-17. 
+Go 中声明一个函数内局部变量时，当编译器发现变量的作用域没有逃出函数范围时，就会在栈上分配内存，反之则分配在堆上，逃逸分析由编译器完成，作用于编译阶段。
+17. strconv.Itoa(num)数字转字符串；strconv.Atoi(str)字符串转数字
 
 
 
@@ -102,6 +101,14 @@ go 源码通过上述几个步骤生成可执行文件后，二进制文件在�
 3、为主线程分配栈空间；
 4、把由用户在命令行输入的参数拷贝到主线程的栈；
 5、把主线程放入操作系统的运行队列等待被调度执起来运行；
+
+
+### Go在windows环境下build生成linux程序
+go env -w GOARCH=amd64
+go env -w GOOS=linux
+
+windows就是
+go env -w GOOS=linux
 
 
 
@@ -293,7 +300,7 @@ M：线程想运行任务就得获取 P，从 P 的本地队列获取 G，P 队�
 7. 返回给M；
 
 
-## RWMutex
+## sync.RWMutex
 它保护对内存的访问；你可以请求锁定进行读取，在这种情况下，你将被授予读取权限，除非锁定正在进行写入操作。
 这意味着，只要没有别的东西占用写操作，任意数量的读取者就可以进行读取操作。
 sync.RWMutex`类型有三个方法：
@@ -304,10 +311,55 @@ sync.RWMutex`类型有三个方法：
 RWMutex 在读锁占用的情况下，会阻止写，但不阻止读RWMutex。 
 在写锁占用情况下，会阻止任何其他Goroutine（无论读和写）进来，整个锁相当于由该 Goroutine独占。
 
-## cond
+### 实现原理
+一个 writer goroutine 获得了内部的互斥锁，就会反转 readerCount 字段，把它从原来的正整数 readerCount(>=0)
+修改为负数（readerCount - rwmutexMaxReaders），让这个字段保持两个含义（既保存了 reader 的数量，又表示当前有 writer）。
+也就是说当readerCount为负数的时候表示当前writer goroutine持有写锁中，reader goroutine会进行阻塞。
+
+当一个 writer 释放锁的时候，它会再次反转 readerCount 字段。可以肯定的是，因为当前锁由 writer 持有，
+所以，readerCount 字段是反转过的，并且减去了 rwmutexMaxReaders 这个常数，变成了负数。
+所以，这里的反转方法就是给它增加 rwmutexMaxReaders 这个常数值。
+
+在正常模式下，锁的等待者会按照先进先出的顺序获取锁。但是刚被唤起的 Goroutine 与新创建的 Goroutine 竞争时，大概率会获取不到锁，在这种情况下，这个被唤醒的 Goroutine 会加入到等待队列的前面。 如果一个等待的 Goroutine 超过1ms 没有获取锁，那么它将会把锁转变为饥饿模式。
+Go在1.9中引入优化，目的保证互斥锁的公平性。在饥饿模式中，互斥锁会直接交给等待队列最前面的 Goroutine。新的 Goroutine 在该状态下不能获取锁、也不会进入自旋状态，它们只会在队列的末尾等待。如果一个 Goroutine 获得了互斥锁并且它在队列的末尾或者它等待的时间少于 1ms，那么当前的互斥锁就会切换回正常模式。
+
+
+
+## sync.Cond
 Broadcast()   唤醒所有等待cond的goroutine
 Signal()      唤醒一个等待cond的goroutine
 Wait()会自动释放c.L锁，并挂起调用者的 goroutine。之后恢复执行，Wait()会在返回时对 c.L 加锁。 除非被 Signal 或者 Broadcast 唤醒，否则 Wait()不会返回
+```Go
+func main() {
+    c := sync.NewCond(&sync.Mutex{})
+    var ready int
+
+    for i := 0; i < 10; i++ {
+        go func(i int) {
+            time.Sleep(time.Duration(rand.Int63n(10)) * time.Second)
+
+            // 加锁更改等待条件
+            c.L.Lock()
+            ready++
+            c.L.Unlock()
+
+            log.Printf("运动员#%d 已准备就绪\n", i)
+            // 广播唤醒所有的等待者
+            c.Broadcast()
+        }(i)
+    }
+
+    c.L.Lock()
+    for ready != 10 {
+        c.Wait()
+        log.Println("裁判员被唤醒一次")
+    }
+    c.L.Unlock()
+
+    //所有的运动员是否就绪
+    log.Println("所有运动员都准备就绪。比赛开始，3，2，1, ......")
+}
+```
 
 
 ## WaitGroup
@@ -328,6 +380,9 @@ WaitGroup 主要维护了2 个计数器，一个是请求计数器 v，一个是
 9. 给一个已经关闭的 channel发送数据，引起panic
 10. 从一个已经关闭的 channel 接收数据，如果缓冲区中为空，则返回一个零值
 11. 无缓冲的channel是同步的，而有缓冲的channel是非同步的
+12. 无缓冲的channel发送操作会阻塞；
+13. 使用锁的情景：1. 访问共享数据结构中的缓存信息；2. 保存应用程序上下文和状态信息数据。
+14. 使用通道的情景：1. 与异步操作的结果进行交互; 2. 分发任务; 3. 传递数据所有权
 
 ### channel底层结构
 用来保存goroutine之间传递数据的循环链表。=====> buf。
@@ -390,8 +445,7 @@ case <- ctx.Done():
 2. 即使方法允许，也不要传入一个nil的context，如果不确定需要什么context的时候，传入一个context.TODO
 3. 使用context的Value相关方法应该传递和请求相关的元数据，不要用它来传递一些可选参数
 4. 同样的context可以传递到多个goroutine中，Context在多个goroutine中是安全的
-5. 在子context传入goroutine中后，应该在子goroutine中对该子context的Done channel进行监控，
-    一旦该channel被关闭，应立即终止对当前请求的处理，并释放资源。
+5. 在子context传入goroutine中后，应该在子goroutine中对该子context的Done channel进行监控，一旦该channel被关闭，应立即终止对当前请求的处理，并释放资源。
 
 ### withCancel
 WithCancel 返回带有新 Done 通道的父级副本。当调用返回的 cancel 函数或关闭父上下文的 Done 通道时，返回的 ctx 的 Done 通道将关闭。
@@ -483,29 +537,32 @@ sc query etcd
 一个存在的key，在缓存过期的一刻，同时有大量的请求，这些请求都会击穿到 DB ，造成瞬时DB请求量大、压力骤增。
 解决：
 有两种方案可以解决：
-1）方案一，使用互斥锁。请求发现缓存不存在后，去查询 DB 前，使用分布式
-锁，保证有且只有一个线程去查询 DB ，并更新到缓存。
-2）方案二，手
-动过期。缓存上从不设置过期时间，功能上将过期时间存在 KEY 对应的 VALUE
-里。流程如下：
- 1、获取缓存。通过 VALUE 的过期时间，判断是否过期。如果未过期，则
-直接返回；如果已过期，继续往下执行。
- 2、通过一个后台的异步线程进行缓存的构建，也就是“手动”过期。通过
-后台的异步线程，保证有且只有一个线程去查询 DB。
- 3、同时，虽然 VALUE 已经过期，还是直接返回。通过这样的方式，保证
-服务的可用性，虽然损失了一定的时效性。
+1）方案一，使用互斥锁。请求发现缓存不存在后，去查询DB前，使用分布式锁，保证有且只有一个线程去查询DB ，并更新到缓存。
+2）方案二，手动过期。缓存上从不设置过期时间，功能上将过期时间存在KEY对应的VALUE里。流程如下：
+ 1、获取缓存。通过VALUE的过期时间，判断是否过期。如果未过期，则直接返回；如果已过期，继续往下执行。
+ 2、通过一个后台的异步线程进行缓存的构建，也就是“手动”过期。通过后台的异步线程，保证有且只有一个线程去查询DB。
+ 3、同时，虽然 VALUE 已经过期，还是直接返回。通过这样的方式，保证服务的可用性，虽然损失了一定的时效性。
 
 
 ### 缓存穿透
 查询一个不存在的数据，因为不存在则不会写到缓存中，所以每次都会去请求 DB，如果瞬间流量过大，穿透到 DB，导致宕机。
 解决方案：
 方案一，缓存空对象。
-当从 DB 查询数据为空，我们仍然将这个空结果进行缓存，具体的值需要使用
-特殊的标识，能和真正缓存的数据区分开。另外，需要设置较短的过期时间，
-一般建议不要超过5分钟。
+当从 DB 查询数据为空，我们仍然将这个空结果进行缓存，具体的值需要使用特殊的标识，能和真正缓存的数据区分开。另外，需要设置较短的过期时间， 一般建议不要超过5分钟。
 方案二，BloomFilter布隆过滤器。
-在缓存服务的基础上，构建BloomFilter数据结构，在BloomFilter中存储对应的
-KEY是否存在，如果存在，说明该KEY对应的值不为空。
+在缓存服务的基础上，构建BloomFilter数据结构，在BloomFilter中存储对应的KEY是否存在，如果存在，说明该KEY对应的值不为空。
+
+### 一致性hash
+一致性哈希算法将 key 映射到 2^32 的空间中，将这个数字首尾相连，形成一个环。
+1. 计算节点/机器(通常使用节点的名称、编号和 IP 地址)的哈希值，放置在环上。
+2. 计算 key 的哈希值，放置在环上，顺时针寻找到的第一个节点，就是应选取的节点/机器。
+3. 
+数据倾斜问题
+如果服务器的节点过少，容易引起 key 的倾斜。例如上面例子中的 peer2，peer4，peer6 分布在环的上半部分，下半部分是空的。那么映射到环下半部分的 key 都会被分配给 peer2，key 过度向 peer2 倾斜，缓存节点间负载不均。
+为了解决这个问题，引入了虚拟节点的概念，一个真实节点对应多个虚拟节点。
+假设 1 个真实节点对应 3 个虚拟节点，那么 peer1 对应的虚拟节点是 peer1-1、 peer1-2、 peer1-3（通常以添加编号的方式实现），其余节点也以相同的方式操作。
+第一步，计算虚拟节点的 Hash 值，放置在环上。
+第二步，计算 key 的 Hash 值，在环上顺时针寻找到应选取的虚拟节点，例如是 peer2-1，那么就对应真实节点 peer2。
 
 
 ## redis
@@ -515,6 +572,15 @@ KEY是否存在，如果存在，说明该KEY对应的值不为空。
     用len属性记录字符串长度，所以获得字符串长度的时间复杂度是O(1)；
     拼接字符串之前会检查SDS空间是否满足，能够自动扩容，不会造成缓存区溢出；
 2. Redis 单线程指的是「接收客户端请求->解析请求 ->进行数据读写等操作->发送数据给客户端」这个过程是由一个线程（主线程）来完成的，这也是我们常说 Redis 是单线程的原因。
+
+
+### 数据类型
+1. strings         key value形式的字符串；
+2. hashes          操作一个没有嵌套其它对象的对象的属性；
+3. lists           有序列表，可以是粉丝列表、文章评论列表、分页查询；
+4. sets            无序集合，分布式系统下，使用redis做全局去重、查看共同好友；
+5. sorted set      排序的set；
+6. 
 
 
 ### redis持久化
@@ -530,9 +596,31 @@ KEY是否存在，如果存在，说明该KEY对应的值不为空。
 
 
 ### redis主从复制
-所有数据读写在主服务器上，然后将最新的数据同步非从服务器，从服务器一般是只读；
+所有数据读写在主服务器上，然后将最新的数据同步到从服务器，从服务器一般是只读；
+1. Redis 采用异步方式复制数据到 slave 节点，不过 Redis2.8 开始，slave node 会周期性地确认自己每次复制的数据量；
+2. 一个 master node 是可以配置多个 slave node 的；
+3. slave node 也可以连接其他的 slave node；
+4. slave node 做复制的时候，不会 block master node 的正常工作；
+5. slave node 在做复制的时候，也不会 block 对自己的查询操作，它会用旧的数据集来提供服务；但是复制完成的时候，需要删除旧数据集，加载新数据集，这个时候就会暂停对外服务了；
+6. slave node 主要用来进行横向扩容，做读写分离，扩容的 slave node 可以提高读的吞吐量。
+
+#### 主从复制核心原理
+当启动一个 slave node 的时候，它会发送一个 PSYNC 命令给 master node。
+如果这是 slave node 初次连接到 master node，那么会触发一次 full resynchronization 全量复制。
+此时 master 会启动一个后台线程，开始生成一份 RDB 快照文件，同时还会将从客户端 client 新收到的所有写命令缓存在内存中。 
+RDB 文件生成完毕后， master 会将这个 RDB 发送给 slave，slave 会先写入本地磁盘，然后再从本地磁盘加载到内存中，
+接着 master 会将内存中缓存的写命令发送到 slave，slave 也会同步这些数据。slave node 如果跟 master node 有网络故障，断开了连接，会自动重连，
+连接之后 master node 仅会复制给 slave 部分缺少的数据。
+
+
 
 ### 哨兵模式
+哨兵是 Redis 集群架构中非常重要的一个组件，主要有以下功能：
+集群监控：负责监控 Redis master 和 slave 进程是否正常工作。
+消息通知：如果某个 Redis 实例有故障，那么哨兵负责发送消息作为报警通知给管理员。
+故障转移：如果 master node 挂掉了，会自动转移到 slave node 上。
+配置中心：如果故障转移发生了，通知 client 客户端新的 master 地址。
+
 监控主从服务器；sentinel,实现主从节点故障转移；
 它会监测主节点是否存活，如果发现主节点挂了，它就会选举一个从节点切换为主节点，并且把新主节点的相关信息通知给从节点和客户端。
 哨兵在部署时不会部署一个节点，而是用多个节点不是成哨兵集群；避免单个哨兵因为自身网络状况不好，而误判主节点下线的情况。
@@ -548,11 +636,35 @@ quorum 的值一般设置为哨兵个数的二分之一加1，例如 3 个哨兵
 4. 将旧主节点变为从节点；
 
 
+#### 导致数据丢失的两种情况
+1. 异步复制导致的数据丢失。指的是在master-->slave复制时，有部分数据还没有复制到slave，master就宕机了，此时这部分数据丢失；
+2. 脑裂导致的数据丢失。master突然脱离了正常的网络，跟slave连不上了，哨兵以为master宕机，然后开启选举新的master，client还没来得及切换master，继续向旧master写数据，而就master作为了新的slave而从新master复制数据，导致client向旧master写的这部分数据丢失；
+解决：
+min-slaves-to-write 1
+min-slaves-max-lag 10
+表示，要求至少有 1 个 slave，数据复制和同步的延迟不能超过 10 秒。
+如果说一旦所有的 slave，数据复制和同步的延迟都超过了 10 秒钟，那么这个时候，master 就不会再接收任何请求了。减少数据丢失。
+
+
+#### 哨兵的自动发现机制
+每隔两秒钟，每个哨兵都会往自己监控的某个 master+slaves 对应的 __sentinel__:hello channel 里发送一个消息，内容是自己的 host、ip 和 runid 还有对这个 master 的监控配置。
+每个哨兵也会去监听自己监控的每个 master+slaves 对应的 __sentinel__:hello channel，然后去感知到同样在监听这个 master+slaves 的其他哨兵的存在。
+
+
 ### redis过期删除策略
 redis会将key带上过期时间存储到一个过期字典中；
 策略：惰性删除+定期删除
 惰性删除策略的做法是，不主动删除过期键，每次从数据库访问 key 时，都检测 key 是否过期，如果过期则删除该 key。
 定期删除策略的做法是，每隔一段时间「随机」从数据库中取出一定数量的 key 进行检查，并删除其中的过期key。
+
+### 过期key处理
+slave不会过期key，只会等待master过期key。如果master过期了一个key，或者通过LRU淘汰了一个key，那么会模拟一条del命令发送给slave。
+
+### 内存淘汰机制
+定期删除漏掉很多过期的key，然后也没有及时去查，也就没有走惰性删除，这就导致大量过期的key堆积在内存中，导致redis内存耗尽。
+此时就走内存淘汰机制。
+allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的 key（这个是最常用的）。
+
 
 
 ### 保证数据库和缓存中的数据一致
@@ -562,6 +674,13 @@ redis会将key带上过期时间存储到一个过期字典中；
 1. 重试机制；将数据放入消息队列，如果应用删除缓存失败，即从消息队列中取数据，在此执行删除，重试超过一定次数即报错；如果删除缓存成功，则将数据从消息队列中移除；
 2. 订阅Mysql binlog,再操作缓存；订阅 binlog 日志，拿到具体要操作的数据，然后再执行缓存删除
 
+
+### redis-cluster
+Redis cluster，10 台机器，5 台机器部署了 Redis 主实例，另外 5 台机器部署了 Redis 的从实例，每个主实例挂了一个从实例，5 个节点对外提供读写服务，每个节点的读写高峰 QPS 可能可以达到每秒 5 万，5 台机器最多是 25 万读写请求每秒。
+机器是什么配置？32G 内存+ 8 核 CPU + 1T 磁盘，但是分配给 Redis 进程的是 10g 内存，一般线上生产环境，Redis 的内存尽量不要超过 10g，超过 10g 可能会有问题。
+5 台机器对外提供读写，一共有 50g 内存。
+因为每个主实例都挂了一个从实例，所以是高可用的，任何一个主实例宕机，都会自动故障迁移，Redis 从实例会自动变成主实例继续提供读写服务。
+你往内存里写的是什么数据？每条数据的大小是多少？商品数据，每条数据是 10kb。100 条数据是 1mb，10 万条数据是 1g。常驻内存的是 200 万条商品数据，占用内存是 20g，仅仅不到总内存的 50%。目前高峰期每秒就是 3500 左右的请求量。
 
 
 
@@ -577,8 +696,8 @@ redis会将key带上过期时间存储到一个过期字典中；
 ├── node3
 │   ├── data
 │   └── redis.conf
-
 2. docker-compose.yml内容
+```shell
 version: "3"
 
 services:
@@ -641,8 +760,9 @@ services:
       - "./node6/data:/data"
     command: ["redis-server", "/etc/redis.conf"]
     restart: always
-
+```
 3. 节点配置，即redis.conf文件
+```shell
 port 6371
 protected-mode no
 daemonize no
@@ -653,7 +773,7 @@ cluster-enabled yes
 cluster-config-file nodes.conf
 cluster-node-timeout 15000
 cluster-announce-bus-port 16371
-
+```
 4. 安装docker-compose,执行docker-compose up -d
 5. 查看节点是否正常docker ps -a|grep redis
 6. 设置密码 redis.conf中requirepass 123456;
@@ -689,8 +809,8 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 5. panic后面的defer语句不被执行，panic语句前的defer语句会被执行；
 6. 调用os.Exit(0)时defer语句不会被执行；
 
-### defer的底层数据结构：
-每个 defer 语句都对应一个_defer 实例，多个实例使用指针连接起来形成一个单连表，保存在 gotoutine 数据结构中，
+### defer的底层数据结构
+每个 defer 语句都对应一个_defer 实例，多个实例使用指针连接起来形成一个单连表，保存在 goroutine 数据结构中，
 每次插入_defer 实例，均插入到链表的头部，函数结束再一次从头部取出，从而形成后进先出的效果。
 
 
@@ -698,6 +818,16 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 Go字符串底层是通过byte数组实现，中文字符在unicode下占2个字节，在utf-8编码下占3个字节，而golang默认编码正好是utf-8
 byte 等同于int8，常用来处理ascii字符
 rune 等同于int32,常用来处理unicode或utf-8字符
+
+
+## errors包
+1. errors.New创建一个表示特定错误的对象，接受一个字符串类型的参数，返回一个error类型的对象；
+2. errors.Is用于判断给定的错误是否是目标错误类型或者基于目标错误类型包装过的错误，会递归检查错误链，直到找到目标错误类型或者到达错误链的末尾。如果找到目标错误类型，则返回true，否则返回false。
+
+
+## io包
+1. io.CopyN(io.Discard, conn, bytesToDiscard)           # 指的是将网络连接中bytesToDiscard大小的字节丢弃掉；
+2. io.ReadAtLeast()                # 能够从数据源读取至少指定数量的字节数据到缓冲区中
 
 
 
@@ -737,6 +867,21 @@ rune 等同于int32,常用来处理unicode或utf-8字符
 20. reflect.Indirect(reflect.ValueOf(&user)).Type()           //获取指针指向的对象的反射值。
 
 
+## rpc
+Remote Procedure Call，远程过程调用
+
+
+
+### grpc使用
+1. 先使用protobuf定义服务;
+2. 提前windows下载protoc到本地 https://github.com/protocolbuffers/protobuf/releases
+下载protoc-gen-go到本地 https://github.com/protocolbuffers/protobuf-go/releases
+git clone -b v1.30.0 https://github.com/grpc/grpc-go  
+cd cmd/protoc-gen-go-grpc  
+go install .
+会在GOPATH/bin下生成protoc-gen-go-grpc.exe文件；
+3. 到protobuf文件路径执行命令生成pd文件
+protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative myprotobuf.proto
 
 
 ## rabbitMQ
@@ -802,26 +947,62 @@ warmMapedFileEnable=true
 
 
 
+## lru
+最近最少使用，least recently used
+两个核心的数据结构：map(存储键和值的映射关系)+双向链表(所有值放到链表中)；
+
+
+
+
 # 微服务
 
 
 ## 如何设计一个高并发系统
 保证整体可用的同时，能够处理很高的并发用户请求，能够承受很大的流量冲击；
 1. 横向扩展；采用分布式部署，部署多台服务器，将流量分开，分担流量；
-2. 微服务拆分；按功能单一性，拆分成多个服务模块；
-3. 数据库分库分表；
+2. 微服务拆分；按功能单一性，拆分成多个服务模块；根据情况，先拆分一轮，后面如果系统更复杂了，可以继续分拆。一个服务的代码不要太多，1万行左右，两三万撑死了吧
+3. 数据库分库分表；数据库2000并发
 4. 池化技术；数据库连接池、http连接池、redis连接池；
 5. 主从分离；实时性要求不高的读请求，都去读从库，写的请求或者实时性要求高的请求，才走主库；
-6. 使用缓存；
+6. 使用缓存；redis几万并发；
 7. CDN加速静态资源访问；
-8. 消息队列，削峰；
-9. ElasticSearch；
+8. 消息队列，削峰；单机几万并发
+9. ElasticSearch；es 是分布式的，可以随便扩容，分布式天然就可以支撑高并发，因为动不动就可以扩容加机器来扛更高的并发。那么一些比较简单的查询、统计类的操作，可以考虑用 es 来承载，还有一些全文搜索类的操作，也可以考虑用 es 来承载。
 10. 降级熔断；
 11. 限流；
 12. 异步；
 13. 扩容+切流量；
 
 
+## 接口请求重试方式
+1. 循环重试；直至接口重试成功或者达到最大重试次数
+2. 递归重试；请求失败则继续调用，直到请求成功或达到最大重试次数。
+3. 并发框架异步重试；请求接口转化成一个异步任务，将任务放入线程池中异步执行，并发地重试请求接口。可以在任务执行完成后，判断任务执行结果，如果失败则继续重试。
+4. 消息队列重试；直接把消息投递到消息队列里，通过对消息的消费，来实现重试机制。
+
+在请求重试的时候，我们也要注意一些关键点，以免因为重试，引发更多的问题：
+1. 合理设置重试次数和重试间隔时间，避免频繁地发送请求，同时也不要设置过大的重试次数，以免影响系统的性能和响应时间。
+2. 考虑接口幂等性：如果请求是写操作，而且下游的服务不保证请求的幂等性，那么在重试时需要谨慎处理，可以通过查询等幂等的方式进行重试
+3. 在重试过程中，需要考虑并发的问题。如果多个线程同时进行重试，可能会导致请求重复发送或请求顺序混乱等问题。可以使用锁或者分布式锁来解决并发问题。
+4. 在处理异常时，需要根据具体的异常类型来进行处理。有些异常是可以通过重试来解决的，例如网络超时、连接异常等；而有些异常则需要进行特殊的处理，例如数据库异常、文件读写异常等。
+5. 在使用重试机制时，需要注意不要陷入死循环。如果请求一直失败，重试次数一直增加，可能会导致系统崩溃或者资源耗尽等问题。
+
+
+## flag
+// 定义命令行参数
+name := flag.String("name", "World", "Name to greet")
+// 定义短参数
+age := flag.Int("a", 0, "Age")
+// 解析命令行参数
+flag.Parse()
+
+
+
+## regexp
+// 定义正则表达式
+r := regexp.MustCompile(`\d+`)
+// 在字符串中查找匹配项
+match := r.FindString("abc123def")
 
 
 # Go packages
@@ -830,3 +1011,8 @@ warmMapedFileEnable=true
 3. 权限访问控制库 github.com/casbin/casbin/v2
 4. 错误处理 github.com/pkg/errors
 5. 获取cpu利用率 github.com/shirou/gopsutil
+6. 管理定时任务 github.com/robfig/cron/v3
+7. 解码结构体 github.com/mitchellh/mapstructure
+8. websocket库 nhooyr.io/websocket(gorilla/websocket 已停止维护)
+
+
