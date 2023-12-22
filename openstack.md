@@ -343,7 +343,8 @@ networksegments    # 每层的segment
 4. 查看网桥br-int的的虚机port；ovs-vsctl list-ports br-int；
 5. 通过ovs-vsctl list qos,查看qos配置表,其中有queue配置;ovs-vsctl list queue，查看queue表，可以看到限速的速率；
 6. tc qdisc show dev tap5a8435ab-22；
-
+7. 查看网桥下的接口ovs-vsctl list-ports br-ex
+8. 删除网桥下的接口ovs-vsctl del-port br-ex eth0
 
 ### ovs+vxlan网络流程
 1. 同一host上同一子网内的虚机通信；只是经过br-int，不经过br-tun；
@@ -984,10 +985,9 @@ create_backup
 
 
 ## ceph osd
-查看ceph集群---->ceph osd status
-
-
-
+查看ceph集群---->ceph osd status/ceph -s/ceph -w
+设置副本数----ceph osd pool set vms size 1
+查看副本数----ceph osd pool get vms size
 
 # glance
 
@@ -1076,7 +1076,7 @@ s3存储区域名称
 1. --tags neutron                                                      ---部署单独的组件；
 2. --skip-tags neutron nova                                            ---部署时跳过某些组件
 3. kolla-ansible post-deploy                                           ---生成admin-openrc.sh
-4. kolla-ansible -i /etc/ansible/hosts/ --tags nova reconfigure        ---修改所有节点的配置/etc/kolla/config/nova.conf
+4. kolla-ansible -i /etc/ansible/hosts/ deploy --tags nova reconfigure        ---修改所有节点的配置/etc/kolla/config/nova.conf
 5. kolla-ansible -i /etc/ansible/hosts/ deploy
 6. kolla-ansible -i /etc/ansible/hosts/ destroy --yes-i-really-really-mean-it
 
@@ -1172,7 +1172,7 @@ user_mail_attribute = mail
 
 user_enabled_attribute = userAccountControl
 user_enabled_default = 512
-#openstack的用户中有一个用户激活的属性，在AD中并没有对应的feild与之对应，需要使用user_enabled_mask = 2来支持，并配置user_enabled_emulation。user_enabled_emulation是一个work round，当用户的LDAP system没有提供 enabled这个属性的时候，可以用这个做为work round，方法就是创建一个cn，专门用来放那些user是enabled。
+#openstack的用户中有一个用户激活的属性，在AD中并没有对应的field与之对应，需要使用user_enabled_mask = 2来支持，并配置user_enabled_emulation。user_enabled_emulation是一个work round，当用户的LDAP system没有提供 enabled这个属性的时候，可以用这个做为work round，方法就是创建一个cn，专门用来放那些user是enabled。
 user_enabled_mask = 2
 user_enabled_emulation = False
 
@@ -1186,7 +1186,7 @@ group_member_attribute = member
 #open all debug log for ldap driver
 debug_level = -1
 
-3. 创建domain 
+3. 创建domain
 openstack domain create my-domain
 4. 重启keystone
 重启后openstack user list --domain my-domain即可看到在ldap服务中新建的用户
@@ -1199,14 +1199,165 @@ openstack role add --project test_project --user 2039fc8d3fe5990db555b4ddeed8307
 
 ### keystone to keystone idp
 
+#### 概念
+1. identity provider(idp),断言方，用于认证用户身份；
+2. service provider(sp)，服务提供方，依赖idp认证用户身份；
+3. Assertion Protocol: 认证(断言)协议，Service Provider 和 Identity Provider 完成认证用户身份所用的协议，常用有 SAML, OpenID, Oauth 等
+4. shibboleth，开源跨域身份验证和授权系统，Shibboleth通过集成身份提供者（Identity Provider，IdP）和服务提供者（Service Provider，SP）之间的信任关系，实现了安全的授权管理
+5. Mapping API: /OS-FEDERATION/mappings，管理 Identity Provider 里的用户和 Keystone 里的用户之间的映射规则，通过该 API，管理员可以管理 IDP 中用户访问 Service 的权限。比如 IDP 有用户 A，B，通过配置 mapping rule，可以允许 A 有权限而 B 无权限访问。
+openstack mapping create k2kmap --rules /tmp/rules.json
+6. 在sp上创建idp，openstack identity provider create keystoneidp --remote-id http://idp.keystone.demo/v3/OS-FEDERATION/saml2/idp
+7. sp上创建联合协议 openstack federation protocol create --identity-provider keystoneidp --mapping k2kmap saml2
+8. idp上创建sp，openstack service provider create keystonesp --auth-url http://sp.keystone.demo181:5000/v3/OS-FEDERATION/identity_providers/keystoneidp/protocols/saml2/auth --service-provider-url http://sp.keystone.demo181:5000/Shibboleth.sso/SAML2/ECP
+service-provider-url通过curl -s http://sp.keystone.demo181:5000/Shibboleth.sso/Metadata|grep urn:oasis:names:tc:SAML:2.0:bindings:PAOS获得
+9. keystone节点既可以配置sp也可以配置idp；
+10. SAML ECP（Security Assertion Markup Language Enhanced Client or Proxy）是一种基于SAML协议的增强客户端或代理身份验证机制。
+在SAML ECP中，客户端或代理充当身份提供者（IdP）的角色，与服务提供者（SP）进行通信。它利用SAML协议中的断言（Assertion）来携带用户的身份和授权信息。断言是由身份提供者签名的XML文档，其中包含用户的身份信息、权限等。
+11. 
 
+#### 工作流
+![img_1.png](img_1.png)
+1. 用户根据账号密码在idp调POST /v3/auth/tokens生成token；
+2. 调用idp /v3/auth/OS-FEDERATION/saml2/ecp生成ECP包装的SAML断言信息；
+3. 根据传参service_provider的id获得sp的service-provider-url，向sp的PAOS url请求，带断言数据；shibboleth会生成session;
+4. 重定向到sp Request an unscoped OS-FEDERATION token，例如：请求url http://sp.keystone.demo181:5000/v3/OS-FEDERATION/identity_providers/keystoneidp/protocols/saml2/auth;
+5. 取出token，并带project_id，向sp获取scoped token，然后拿此token进行资源的访问。
+
+
+#### 环境
+192.168.32.181 sp.keystone.demo
+192.168.32.239 idp.keysonte.demo
+
+#### 配置sp节点
+a. /etc/kolla/keystone/keystone.conf中配置支持的认证方法
+[auth]
+#methods = external,password,token,oauth1,mapped,openid,totp
+methods = password,token,oauth1,mapped,saml2
+#saml2 = keystone.auth.plugins.mapped.Mapped
+
+[saml2]
+remote_id_attribute = Shib-Identity-Provider
+
+[federation]
+trusted_dashboard = http://sp.keystone.demo/auth/websso/
+trusted_dashboard = http://idp.keystone.demo/auth/websso/
+sso_callback_template = /etc/keystone/sso_callback_template.html
+#driver = keystone.contrib.federation.backends.sql.Federation
+
+
+b. 在keystone容器中安装shibboleth rpm包；
+
+先配置yum源
+[root@openstack--1 ~]# cat /etc/yum.repos.d/shibbileth.repo
+[shibboleth]
+name=Shibboleth (CentOS_7)
+# Please report any problems to https://shibboleth.atlassian.net/jira
+type=rpm-md
+mirrorlist=https://shibboleth.net/cgi-bin/mirrorlist.cgi/CentOS_7
+gpgcheck=1
+gpgkey=https://shibboleth.net/downloads/service-provider/RPMS/repomd.xml.key
+https://shibboleth.net/downloads/service-provider/RPMS/cantor.repomd.xml.key
+enabled=1
+
+然后yum install -y shibboleth
+
+
+c. shibboleth启动配置
+<!-- The ApplicationDefaults element is where most of Shibboleth's SAML bits are defined. -->
+<ApplicationDefaults entityID="http://sp.keystone.demo/Shibboleth.sso/SAML2/ECP"
+REMOTE_USER="openstack_user"
+cipherSuites="DEFAULT:!EXP:!LOW:!aNULL:!eNULL:!DES:!IDEA:!SEED:!RC4:!3DES:!kRSA:!SSLv2:!SSLv3:!TLSv1:!TLSv1.1">
+
+<!--
+Configures SSO for a default IdP. To properly allow for >1 IdP, remove
+entityID property and adjust discoveryURL to point to discovery service.
+You can also override entityID on /Login query string, or in RequestMap/htaccess.
+-->
+<SSO ECP="true" entityID="http://idp.keystone.demo/v3/OS-FEDERATION/saml2/idp">        idp的唯一标识
+    SAML2 SAML1
+</SSO>
+
+<!-- Example of locally maintained metadata. -->        sp获取idp的metadata url
+<MetadataProvider type="XML" validate="true" url="http://idp.keystone.demo:5000/v3/OS-FEDERATION/saml2/metadata"/>
+</ApplicationDefaults>
+
+
+/etc/shibboleth/attribute_map.xml中配置
+<Attribute name="openstack_user" id="openstack_user"/>
+<Attribute name="openstack_roles" id="openstack_roles"/>
+<Attribute name="openstack_project" id="openstack_project"/>
+<Attribute name="openstack_user_domain" id="openstack_user_domain"/>
+<Attribute name="openstack_project_domain" id="openstack_project_domain"/>
+
+
+d. 启动shibd服务
+shibd -f -F &
+
+e. 在keystone监听的virtualHost 5000端口下加如下配置
+SetEnv Shib-Identity-Provider http://idp.keystone.demo/v3/OS-FEDERATION/saml2/idp       idp的唯一标识
+SetEnv openstack_user "admin"               openstack_user设为环境变量，为了后续mapping对应
+<Location /Shibboleth.sso>
+SetHandler shib
+</Location>
+<Location /v3/auth/OS-FEDERATION/websso/saml2>
+AuthType shibboleth
+Require valid-user
+ShibRequestSetting requireSession 1
+ShibExportAssertion Off
+</Location>
+<Location /v3/OS-FEDERATION/identity_providers/.*?/protocols/saml2/auth>
+AuthType shibboleth
+Require valid-user
+ShibRequestSetting requireSession 1
+ShibExportAssertion Off
+ShibRequestSetting applicationId default
+</Location>
+<Location /v3/auth/OS-FEDERATION/identity_providers/.*?/protocols/saml2/websso>
+AuthType shibboleth
+Require valid-user
+ShibRequestSetting requireSession 1
+ShibExportAssertion Off
+</Location>
+
+#### 配置idp节点
+a. /etc/kolla/keystone/keystone.conf增加saml配置，为了生成idp metadata
+[saml]
+certfile=/etc/keystone/ssl/certs/signing_cert.pem
+keyfile=/etc/keystone/ssl/private/signing_key.pem
+idp_entity_id=http://192.168.32.239/v3/OS-FEDERATION/saml2/idp
+idp_sso_endpoint=http://192.168.32.239/v3/OS-FEDERATION/saml2/sso
+idp_metadata_path=/etc/keystone/saml2_idp_metadata.xml
+idp_organization_name = sts
+idp_organization_display_name = sts
+idp_organization_url = http://sts.com/
+
+b. 创建metadata
+keystone-manage saml_idp_metadata > /etc/keystone/saml2_idp_metadata.xml
+
+c.创建service provider
+openstack service provider create keystonesp \
+--auth-url http://sp.keystone.demo:5000/v3/OS-FEDERATION/identity_providers/keystoneidp/protocols/saml2/auth \
+--service-provider-url http://sp.keystone.demo:5000/Shibboleth.sso/SAML2/ECP
+
+service-provider-url通过查看sp的metadata来获取
+[root@openstack--2 ~]# curl -s http://sp.keystone.demo:5000/Shibboleth.sso/Metadata|grep urn:oasis:names:tc:SAML:2.0:bindings:PAOS
+<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:PAOS" Location="http://sp.keystone.demo:5000/Shibboleth.sso/SAML2/ECP" index="4"/>
+[root@openstack--2 ~]#
+[root@openstack--2 ~]#
+
+#### 测试
+1. 在idp节点sdn_test1用户下获取unscoped token;
+openstack --os-service-provider keystonesp token issue --debug
+此过程会在sp节点创建user，project，由mapping控制
+2. 用此unscoped token向sp节点请求scoped token；
+3. 再拿获取到token向sp请求资源，例如创建network；
 
 
 # 状态机nonick-notifier-service
 ## dev环境构建
-docker build -t notifier:0921 . 
+docker build -t notifier:0921 .
 docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/service/logs/dev/nonick/nonick-notifier-service -v /etc/localtime:/etc/localtime -p 8081 notifier:0921 bash
-
+起在10.251.28.21:/home/dongxiang/openstack_notifier
 
 
 
