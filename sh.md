@@ -529,7 +529,28 @@ traceroute <目的地址>    追踪去往目的地时沿途经过的路由；
 
 
 
-## kubernetes
+## kubernetes k8s
+
+
+### CLI
+kubectl get all -n <ns>
+kubectl delete namespace --all
+crictl ps -a    # 查看到运行的container
+kubeadm reset -f ; ipvsadm --clear  ; rm -rf ~/.kube    # 初始化失败时进行重置
+kubectl config view    # 查看当前的配置文件
+kubectl config set-cluster <cluster-name> --server=<api-server-url>
+kubectl config get-contexts            # 查看当前上下文的信息，包括集群名称
+
+### kube-apiserver
+1. 配置文件路径  /etc/kubernetes/kube-controller-manager.kubeconfig;
+2. 重启systemctl restart kube-apiserver.service;
+3. 设置日志输出到文件中        --logtostderr=false --log-dir=/var/log/kubernetes
+4. k8s官方将apiversion分成了三个大类型，alpha、beta、stable。 
+Alpha: 未经充分测试，可能存在bug，功能可能随时调整或删除。
+Beta: 经过充分测试，功能细节可能会在未来进行修改。 
+Stable: 稳定版本，将会得到持续支持
+5. 查看k8s支持的资源  kubectl api-resources
+
 
 ### pod
 kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
@@ -597,7 +618,8 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 ### controller控制器
 1. 通过controller管理pod;
 2. controller种类：Deployment/ReplicaSet/DaemonSet/StatefuleSet/Job等；
-
+3. 查看k8s master组件状态 kubectl get cs；
+4. 
 
 
 ### service
@@ -762,7 +784,11 @@ kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboar
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 ```
 
-
+### helm
+安装helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
+    && chmod 700 get_helm.sh \
+    && ./get_helm.sh
 
 ### k8s源码
 
@@ -771,6 +797,20 @@ kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboar
 
 
 
+#### deepcopy-gen使用
+deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 -O zz_generated.deepcopy
+-v 5 指定输出内容的详细程度
+-h boilerplate.txt指定所有生成的文件的头部声明内容
+--bounding-dirs .指定生成目录为当前路径
+-i github.com/lt90s/deepcopy-gen-demo/types指定此package需要进行代码生成
+-O zz_generated.deepcopy指定生成的文件名称为zz_generated.deepcopy.go
+
+
+
+#### client-gen
+client-gen --clientset-name versioned -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 --output-package clientset --go-header-file hack/boilerplate.go.txt -v 5
+volcano.sh/apis增加资源client
+拉代码到本地直接执行./hack/update-codegen.sh即可在本地生成client
 
 
 
@@ -1048,6 +1088,668 @@ scontrol show node              #查看所有节点详细信息
 scontrol show node node-name    #查看指定节点详细信息
 scontrol show node | grep CPU   #查看各节点cpu状态
 scontrol show node node-name | grep CPU #查看指定节点cpu状态
+scontrol token username=root lifespan=5000    # 为用户root生成token，token有效期5000s
+
 
 sacct	                # 查看已完成作业
+
+squeue                  # 查看job的运行状态
+JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+49     batch        myapp     root  R       0:12      1 slurm1
+50     batch        myapp     root  R       0:04      1 slurm2
+
+脚本SBATCH参数
+-J,--job-name：指定作业名称
+-N,--nodes：节点数量
+-n,--ntasks：使用的CPU核数
+--mem：指定每个节点上使用的物理内存
+-t,--time：运行时间，超出时间限制的作业将被终止
+-p,--partition：指定分区
+--reservation：资源预留
+-w,--nodelist：指定节点运行作业
+-x,--exclude：分配给作业的节点中不要包含指定节点
+--ntasks-per-node：指定每个节点使用几个CPU核心
+--begin：指定作业开始时间
+-D，--chdir：指定脚本/命令的工作目录
+
+
+#添加账户，指定账户名称和所属集群名称，这里的账户可以理解成用户组的概念
+sacctmgr add account name=<your_account> cluster=cluster
+
+#添加用户，指定所属账户
+sacctmgr add user name=my_user_name account=<your_account>
+
+#添加俩qos，分别叫normal和long
+sacctmgr add qos normal
+sacctmgr add qos long
+
+#修改qos
+sacctmgr modify qos normal set MaxWall=3-00:00:00 MaxTRES="gres/gpu=4" MaxTRESPU="gres/gpu=4" MaxJobsPU=4 MaxSubmitJobsPU=4
+sacctmgr modify qos long set MaxWall=7-00:00:00 MaxTRES="gres/gpu=8" MaxTRESPU="gres/gpu=8" MaxJobsPU=1 MaxSubmitJobsPU=1
+
+#设置account可使用的qoslevel
+sacctmgr modify account my_account_name set QosLevel=normal,long
+
+
+
+### 场景
+1. 2个计算节点，执行三个job，srun ./myapp -p 30000，2个job分别分发到2个计算节点上，第3个job等待；
+srun: job 53 queued and waiting for resources
+srun: job 53 has been allocated resources
+squeue查看
+53     batch    myapp     root PD       0:00      1 (Resources)
+
+2. 设置任务在一个节点上运行，占用一个CPU，使用2G的运行内存，这样三个任务可以同时在此节点运行；
+JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+69     batch calculate     root  R       0:11      1 slurm1
+70     batch calculate     root  R       0:11      1 slurm1
+71     batch calculate     root  R       0:08      1 slurm1
+```shell
+#SBATCH -N 1
+#SBATCH --ntasks 1
+#SBATCH --cpus-per-task=1
+#SBATCH -t 1:00
+#SBATCH -o /home/myapp.log
+#SBATCH --ntasks-per-node 1
+#SBATCH --mem 2000
+```
+
+
+
+### slurm安装
+1. 安装jansson
+wget http://www.digip.org/jansson/releases/jansson-2.13.1.tar.gz
+tar -zxvf ~/jansson-2.13.1.tar.gz
+cd ~/jansson-2.13.1
+./configure --prefix=/user/local/jansson-2.13.1
+cp jansson.pc /usr/lib/pkgconfig/jansson.pc
+
+2. 编译安装libjwt
+git clone --depth 1 --single-branch -b v1.12.0 https://github.com/benmcollins/libjwt.git libjwt
+mv libjwt libjwt-1.12.0
+cd libjwt-1.12.0
+autoreconf --force --install
+./configure --prefix=/usr/local/libjwt-1.12.0 && make j && make install
+cd /usr/local && ln -s libjwt-1.12.0 libjwt
+
+3. 编译安装slurm
+下载源码slurm-20.11.9.tar.bz2，解压/home/slurm-20.11.9；
+./configure --prefix=/usr/local/slurm-20.11.9 --sysconfdir=/etc/slurm/ --with-jwt=/usr/local/libjwt --enable-slurmrestd && make -j16 && make install 
+配置文件路径 /etc/slurm/slurm.conf
+```shell
+# Cluster Name：集群名
+ ClusterName=MyCluster # 集群名，任意英文和数字名字
+
+# Control Machines：Slurmctld控制进程节点
+ SlurmctldHost=slurm # 启动slurmctld进程的节点名，如这里的admin
+# BackupController=   # 冗余备份节点，可空着
+ SlurmctldParameters=enable_configless # 采用无配置模式
+
+ # Slurm User：Slurm用户
+ SlurmUser=slurm # slurmctld启动时采用的用户名
+
+ # Slurm Port Numbers：Slurm服务通信端口
+ SlurmctldPort=6817 # Slurmctld服务端口，设为6817，如不设置，默认为6817号端口
+ SlurmdPort=6818    # Slurmd服务端口，设为6818，如不设置，默认为6818号端口
+
+ # State Preservation：状态保持
+ StateSaveLocation=/var/spool/slurmctld # 存储slurmctld服务状态的目录，如有备份控制节点，则需要所有SlurmctldHost节点都能共享读写该目录
+ SlurmdSpoolDir=/var/spool/slurmd # Slurmd服务所需要的目录，为各节点各自私有目录，不得多个slurmd节点共享
+
+ # auth type
+ AuthAltTypes=auth/jwt
+ AuthAltParameters=jwt_key=/var/spool/slurm/statesave/jwt_hs256.key
+
+ ReturnToService=1 #设定当DOWN（失去响应）状态节点如何恢复服务，默认为0。
+     # 0: 节点状态保持DOWN状态，只有当管理员明确使其恢复服务时才恢复
+     # 1: 仅当由于无响应而将DOWN节点设置为DOWN状态时，才可以当有效配置注册后使DOWN节点恢复服务。如节点由于任何其它原因（内存不足、意外重启等）被设置为DOWN，其状态将不会自动更改。当节点的内存、GRES、CPU计数等等于或大于slurm.conf中配置的值时，该节点才注册为有效配置。
+     # 2: 使用有效配置注册后，DOWN节点将可供使用。该节点可能因任何原因被设置为DOWN状态。当节点的内存、GRES、CPU计数等等于或大于slurm.conf 中配置的值，该节点才注册为有效配置。￼
+
+ # Default MPI Type：默认MPI类型
+ MPIDefault=pmi2
+     # MPI-PMI2: 对支持PMI2的MPI实现
+     # MPI-PMIx: Exascale PMI实现
+     # None: 对于大多数其它MPI，建议设置
+
+ # Process Tracking：进程追踪，定义用于确定特定的作业所对应的进程的算法，它使用信号、杀死和记账与作业步相关联的进程
+ ProctrackType=proctrack/cgroup
+     # Cgroup: 采用Linux cgroup来生成作业容器并追踪进程，需要设定/etc/slurm/cgroup.conf文件
+     # Cray XC: 采用Cray XC专有进程追踪
+     # LinuxProc: 采用父进程IP记录，进程可以脱离Slurm控制
+     # Pgid: 采用Unix进程组ID(Process Group ID)，进程如改变了其进程组ID则可以脱离Slurm控制
+
+ # Scheduling：调度
+ # DefMemPerCPU=0 # 默认每颗CPU可用内存，以MB为单位，0为不限制。如果将单个处理器分配给作业（SelectType=select/cons_res 或 SelectType=select/cons_tres），通常会使用DefMemPerCPU
+ # MaxMemPerCPU=0 # 最大每颗CPU可用内存，以MB为单位，0为不限制。如果将单个处理器分配给作业（SelectType=select/cons_res 或 SelectType=select/cons_tres），通常会使用MaxMemPerCPU
+ # SchedulerTimeSlice=30 # 当GANG调度启用时的时间片长度，以秒为单位
+ SchedulerType=sched/backfill # 要使用的调度程序的类型。注意，slurmctld守护程序必须重新启动才能使调度程序类型的更改生效（重新配置正在运行的守护程序对此参数无效）。如果需要，可以使用scontrol命令手动更改作业优先级。可接受的类型为：
+     # sched/backfill # 用于回填调度模块以增加默认FIFO调度。如这样做不会延迟任何较高优先级作业的预期启动时间，则回填调度将启动较低优先级作业。回填调度的有效性取决于用户指定的作业时间限制，否则所有作业将具有相同的时间限制，并且回填是不可能的。注意上面SchedulerParameters选项的文档。这是默认配置
+     # sched/builtin # 按优先级顺序启动作业的FIFO调度程序。如队列中的任何作业无法调度，则不会调度该队列中优先级较低的作业。对于作业的一个例外是由于队列限制（如时间限制）或关闭/耗尽节点而无法运行。在这种情况下，可以启动较低优先级的作业，而不会影响较高优先级的作业。
+     # sched/hold # 如果 /etc/slurm.hold 文件存在，则暂停所有新提交的作业，否则使用内置的FIFO调度程序。
+
+ # Resource Selection：资源选择，定义作业资源（节点）选择算法
+ SelectType=select/cons_tres
+     # select/cons_tres: 单个的CPU核、内存、GPU及其它可追踪资源作为可消费资源（消费及分配），建议设置
+     # select/cons_res: 单个的CPU核和内存作为可消费资源
+     # select/cray_aries: 对于Cray系统
+     # select/linear: 基于主机的作为可消费资源，不管理单个CPU等的分配
+
+ # SelectTypeParameters：资源选择类型参数，当SelectType=select/linear时仅支持CR_ONE_TASK_PER_CORE和CR_Memory；当SelectType=select/cons_res、SelectType=select/cray_aries和SelectType=select/cons_tres时，默认采用CR_Core_Memory
+ SelectTypeParameters=CR_Core_Memory
+     # CR_CPU: CPU核数作为可消费资源
+     # CR_Socket: 整颗CPU作为可消费资源
+     # CR_Core: CPU核作为可消费资源，默认
+     # CR_Memory: 内存作为可消费资源，CR_Memory假定MaxShare大于等于1
+     # CR_CPU_Memory: CPU和内存作为可消费资源
+     # CR_Socket_Memory: 整颗CPU和内存作为可消费资源
+     # CR_Core_Memory: CPU和和内存作为可消费资源
+
+ # Task Launch：任务启动
+ TaskPlugin=task/cgroup,task/affinity #设定任务启动插件。可被用于提供节点内的资源管理（如绑定任务到特定处理器），TaskPlugin值可为:
+     # task/affinity: CPU亲和支持（man srun查看其中--cpu-bind、--mem-bind和-E选项）
+     # task/cgroup: 强制采用Linux控制组cgroup分配资源（man group.conf查看帮助）
+     # task/none: #无任务启动动作
+
+ # Prolog and Epilog：前处理及后处理
+ # Prolog/Epilog: 完整的绝对路径，在用户作业开始前(Prolog)或结束后(Epilog)在其每个运行节点上都采用root用户执行，可用于初始化某些参数、清理作业运行后的可删除文件等
+ # Prolog=/opt/bin/prolog.sh # 作业开始运行前需要执行的文件，采用root用户执行
+ # Epilog=/opt/bin/epilog.sh # 作业结束运行后需要执行的文件，采用root用户执行
+
+ # SrunProlog/Epilog # 完整的绝对路径，在用户作业步开始前(SrunProlog)或结束后(Epilog)在其每个运行节点上都被srun执行，这些参数可以被srun的--prolog和--epilog选项覆盖
+ # SrunProlog=/opt/bin/srunprolog.sh # 在srun作业开始运行前需要执行的文件，采用运行srun命令的用户执行
+ # SrunEpilog=/opt/bin/srunepilog.sh # 在srun作业结束运行后需要执行的文件，采用运行srun命令的用户执行
+
+ # TaskProlog/Epilog: 绝对路径，在用户任务开始前(Prolog)和结束后(Epilog)在其每个运行节点上都采用运行作业的用户身份执行
+ # TaskProlog=/opt/bin/taskprolog.sh # 作业开始运行前需要执行的文件，采用运行作业的用户执行
+ # TaskEpilog=/opt/bin/taskepilog.sh # 作业结束后需要执行的文件，采用运行作业的用户执行行
+
+ # 顺序：
+    # 1. pre_launch_priv()：TaskPlugin内部函数
+    # 2. pre_launch()：TaskPlugin内部函数
+    # 3. TaskProlog：slurm.conf中定义的系统范围每个任务
+    # 4. User prolog：作业步指定的，采用srun命令的--task-prolog参数或SLURM_TASK_PROLOG环境变量指定
+    # 5. Task：作业步任务中执行
+    # 6. User epilog：作业步指定的，采用srun命令的--task-epilog参数或SLURM_TASK_EPILOG环境变量指定
+    # 7. TaskEpilog：slurm.conf中定义的系统范围每个任务
+    # 8. post_term()：TaskPlugin内部函数
+
+ # Event Logging：事件记录
+ # Slurmctld和slurmd守护进程可以配置为采用不同级别的详细度记录，从0（不记录）到7（极度详细）
+ SlurmctldDebug=debug # 默认为info
+ SlurmctldLogFile=/var/log/slurm/slurmctld.log # 如是空白，则记录到syslog
+ SlurmdDebug=debug # 默认为info
+ SlurmdLogFile=/var/log/slurm/slurmd.log # 如为空白，则记录到syslog，如名字中的有字符串"%h"，则"%h"将被替换为节点名
+ #SlurmrestdDebug=debug
+ #SlurmrestdLogFile=/var/log/slurm/slurmrestd.log
+
+ # Job Completion Logging：作业完成记录
+ JobCompType=jobcomp/mysql
+ # 指定作业完成是采用的记录机制，默认为None，可为以下值之一:
+    # None: 不记录作业完成信息
+    # Elasticsearch: 将作业完成信息记录到Elasticsearch服务器
+    # FileTxt: 将作业完成信息记录在一个纯文本文件中
+    # Lua: 利用名为jobcomp.lua的文件记录作业完成信息
+    # Script: 采用任意脚本对原始作业完成信息进行处理后记录
+    # MySQL: 将完成状态写入MySQL或MariaDB数据库
+
+ # JobCompLoc= # 设定记录作业完成信息的文本文件位置（若JobCompType=filetxt），或将要运行的脚本（若JobCompType=script），或Elasticsearch服务器的URL（若JobCompType=elasticsearch），或数据库名字（JobCompType为其它值时）
+
+ # 设定数据库在哪里运行，且如何连接
+ JobCompHost=localhost # 存储作业完成信息的数据库主机名
+ # JobCompPort= # 存储作业完成信息的数据库服务器监听端口
+ JobCompUser=slurm # 用于与存储作业完成信息数据库进行对话的用户名
+ JobCompPass=SomePassWD # 用于与存储作业完成信息数据库进行对话的用户密码
+
+ # Job Accounting Gather：作业记账收集
+ JobAcctGatherType=jobacct_gather/linux # Slurm记录每个作业消耗的资源，JobAcctGatherType值可为以下之一：
+    # jobacct_gather/none: 不对作业记账
+    # jobacct_gather/cgroup: 收集Linux cgroup信息
+    # jobacct_gather/linux: 收集Linux进程表信息，建议
+ JobAcctGatherFrequency=30 # 设定轮寻间隔，以秒为单位。若为-，则禁止周期性抽样
+
+ # Job Accounting Storage：作业记账存储
+ AccountingStorageType=accounting_storage/slurmdbd # 与作业记账收集一起，Slurm可以采用不同风格存储可以以许多不同的方式存储会计信息，可为以下值之一：
+     # accounting_storage/none: 不记录记账信息
+     # accounting_storage/slurmdbd: 将作业记账信息写入Slurm DBD数据库
+ # AccountingStorageLoc: 设定文件位置或数据库名，为完整绝对路径或为数据库的数据库名，当采用slurmdb时默认为slurm_acct_db
+
+ # 设定记账数据库信息，及如何连接
+ AccountingStorageHost=localhost # 记账数据库主机名
+ # AccountingStoragePort= # 记账数据库服务监听端口
+ # AccountingStorageUser=slurm # 记账数据库用户名
+ # AccountingStoragePass=SomePassWD # 记账数据库用户密码。对于SlurmDBD，提供企业范围的身份验证，如采用于Munge守护进程，则这是应该用munge套接字socket名（/var/run/munge/global.socket.2）代替。默认不设置
+ # AccountingStoreFlags= # 以逗号（,）分割的列表。选项是：
+     # job_comment：在数据库中存储作业说明域
+     # job_script：在数据库中存储脚本
+     # job_env：存储批处理作业的环境变量
+ # AccountingStorageTRES=gres/gpu # 设置GPU时需要
+ # GresTypes=gpu # 设置GPU时需要
+
+ # Process ID Logging：进程ID记录，定义记录守护进程的进程ID的位置
+ SlurmctldPidFile=/var/run/slurmctld.pid # 存储slurmctld进程号PID的文件
+ SlurmdPidFile=/var/run/slurmd.pid # 存储slurmd进程号PID的文件
+
+ # Timers：定时器
+ SlurmctldTimeout=120 # 设定备份控制器在主控制器等待多少秒后成为激活的控制器
+ SlurmdTimeout=300 # Slurm控制器等待slurmd未响应请求多少秒后将该节点状态设置为DOWN
+ InactiveLimit=0 # 潜伏期控制器等待srun命令响应多少秒后，将在考虑作业或作业步骤不活动并终止它之前。0表示无限长等待
+ MinJobAge=300 # Slurm控制器在等待作业结束多少秒后清理其记录
+ KillWait=30 # 在作业到达其时间限制前等待多少秒后在发送SIGKILLL信号之前发送TERM信号以优雅地终止
+ WaitTime=0 # 在一个作业步的第一个任务结束后等待多少秒后结束所有其它任务，0表示无限长等待
+
+ # Compute Machines：计算节点
+ NodeName=slurm2 NodeAddr=192.168.32.227 CPUs=4 RealMemory=7800 Sockets=4 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
+ NodeName=slurm1 NodeAddr=192.168.32.210 CPUs=4 RealMemory=7800 Sockets=4 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
+ # NodeName=gnode[01-10] Gres=gpu:v100:2 CPUs=40 RealMemory=385560 Sockets=2 CoresPerSocket=20 ThreadsPerCore=1 State=UNKNOWN #GPU节点例子，主要为Gres=gpu:v100:2
+     # NodeName=node[1-10] # 计算节点名，node[1-10]表示为从node1、node2连续编号到node10，其余类似
+     # NodeAddr=192.168.1.[1-10] # 计算节点IP
+     # CPUs=48 # 节点内CPU核数，如开着超线程，则按照2倍核数计算，其值为：Sockets*CoresPerSocket*ThreadsPerCore
+     # RealMemory=192000 # 节点内作业可用内存数(MB)，一般不大于free -m的输出，当启用select/cons_res插件限制内存时使用
+     # Sockets=2 # 节点内CPU颗数
+     # CoresPerSocket=24 # 每颗CPU核数
+     # ThreadsPerCore=1 # 每核逻辑线程数，如开了超线程，则为2
+     # State=UNKNOWN # 状态，是否启用，State可以为以下之一：
+         # CLOUD   # 在云上存在
+         # DOWN    # 节点失效，不能分配给在作业
+         # DRAIN   # 节点不能分配给作业
+         # FAIL    # 节点即将失效，不能接受分配新作业
+         # FAILING # 节点即将失效，但上面有作业未完成，不能接收新作业
+         # FUTURE  # 节点为了将来使用，当Slurm守护进程启动时设置为不存在，可以之后采用scontrol命令简单地改变其状态，而不是需要重启slurmctld守护进程。当这些节点有效后，修改slurm.conf中它们的State。在它们被设置为有效前，采用Slurm看不到它们，也尝试与其联系。
+               # 动态未来节点(Dynamic Future Nodes)：
+                  # slurmd启动时如有-F[<feature>]参数，将关联到一个与slurmd -C命令显示配置(sockets、cores、threads)相同的配置的FUTURE节点。节点的NodeAddr和NodeHostname从slurmd守护进程自动获取，并且当被设置为FUTURE状态后自动清除。动态未来节点在重启时保持non-FUTURE状态。利用scontrol可以将其设置为FUTURE状态。
+                  # 若NodeName与slurmd的HostName映射未通过DNS更新，动态未来节点不知道在之间如何进行通信，其原因在于NodeAddr和NodeHostName未在slurm.conf被定义，而且扇出通信(fanout communication)需要通过将TreeWidth设置为一个较高的数字（如65533）来使其无效。若做了DNS映射，则可以使用cloud_dns SlurmctldParameter。
+          # UNKNOWN # 节点状态未被定义，但将在节点上启动slurmd进程后设置为BUSY或IDLE，该为默认值。
+
+ PartitionName=batch Nodes=slurm[1-2] Default=YES MaxTime=INFINITE State=UP
+     # PartitionName=batch # 队列分区名
+     # Nodes=node[1-10] # 节点名
+     # Default=Yes # 作为默认队列，运行作业不知明队列名时采用的队列
+     # MaxTime=INFINITE # 作业最大运行时间，以分钟为单位，INFINITE表示为无限制
+     # State=UP # 状态，是否启用
+     # Gres=gpu:v100:2 # 设置节点有两块v100 GPU卡，需要在GPU节点 /etc/slum/gres.conf 文件中有类似下面配置：
+         #AutoDetect=nvml
+         #Name=gpu Type=v100 File=/dev/nvidia[0-1] #设置资源的名称Name是gpu，类型Type为v100，名称与类型可以任意取，但需要与其它方面配置对应，File=/dev/nvidia[0-1]指明了使用的GPU设备。
+         #Name=mps Count=100
+```
+4. 配置slurm
+```shell
+SLURMPATH=/opt/slurm/21.08.6
+echo "export PATH=\$PATH:$SLURMPATH/bin:$SLURMPATH/sbin" >> /etc/bash.bashrc
+source /etc/bash.bashrc
+```
+
+5. slurm对jwt的支持
+新建JWT key到控制器。该文件位于/var/spool/slurm/statesave/jwt_hs256.key
+```shell
+dd if=/dev/random of=/var/spool/slurm/statesave/jwt_hs256.key bs=32 count=1
+chown slurm:slurm /var/spool/slurm/statesave/jwt_hs256.key
+chmod 0600 /var/spool/slurm/statesave/jwt_hs256.key
+chown slurm:slurm /var/spool/slurm/statesave
+chmod 0755 /var/spool/slurm/statesave
+```
+slurmdbd进程仅仅运行在管理节点上，但修改了两个文件之后，还是应该把两个配置文件同步到计算节点上。
+重启slurmctld和slurmdbd。
+
+6. 关于slurmrestd服务
+把Slurm为我们准备的slurmrestd.service拷贝至/etc/systemd/system目录下，该文件位于slurm安装包源文件目录下
+cd ~/slurm-20.11.9/ && cp etc/slurmrestd.service /etc/systemd/system
+systemctl daemon-reload && systemctl restart slurmrestd
+
+7. 其余步骤参考 https://hmli.ustc.edu.cn/doc/linux/slurm-install/slurm-install.html#id1
+
+
+
+
+## terraform
+
+### terraform安装
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+sudo yum -y install terraform
+
+
+### 通过terraform编排openstack
+1. 获得脚本到本地https://github.com/tf-openstack-modules/terraform-openstack-instances；
+2. 增加provider.tf；
+```shell
+provider "openstack" {
+  user_name = "admin"
+  tenant_name = "admin"
+  password  = "a0vhHyaRdAAkq2vH76rnMODTQFm6gnh8r0W7Opi6"
+  auth_url  = "http://9.9.33.5:5000/v3"
+  domain_name = "Default"
+}
+```
+3. 设置变量
+```shell
+[root@openstack--1 terraform-openstack-instances-main]# cat 000-input-variables.tf
+variable "key_pair_name" {
+  type = string
+  description = <<EOF
+The name of the ssh key referenced in openstack
+EOF
+}
+
+variable "image_id" {
+  type = string
+  default = "67b0efe9-2534-4b33-b9f8-6943e3ed2671"
+  description = <<EOF
+The image's id referenced in openstack
+EOF
+}
+
+variable "name" {
+  type = string
+  default = "vm_test"
+  description = <<EOF
+Instance's name
+EOF
+}
+
+variable "flavor_name" {
+  type = string
+  default = "4c4g16g"
+  description = <<EOF
+Instance's flavor name referenced in openstack
+EOF
+}
+
+variable "public_ip_network" {
+  type = string
+  description = <<EOF
+The name of the network who give floating IPs
+EOF
+  default = "ext_net"
+}
+
+variable "is_public" {
+  type = bool
+  description = <<EOF
+Boolean who allow you to to make public or not your instance
+EOF
+  default = true
+}
+
+variable "ports" {
+  type = list(object({
+    name = string
+    network_id = string
+    subnet_id = string
+    admin_state_up = optional(bool)
+    security_group_ids = optional(list(string))
+    ip_address = optional(string)
+  }))
+  description = <<EOF
+The ports list, at least 1 port is required
+EOF
+  default = [{
+    name = "port_test"
+    network_id = "875de082-e7c6-429d-9ea7-8a31a66b18cc"
+    subnet_id = "53ae6630-ce8e-434c-9a08-26bd590a53c9"
+    admin_state_up = true
+    security_group_ids = []
+  }]
+}
+
+variable "block_device_volume_size" {
+  type = number
+  description = <<EOF
+The volume size of block device
+EOF
+  default = 20
+}
+
+variable "block_device_delete_on_termination" {
+  type = bool
+  description = <<EOF
+Delete block device when instance is shut down
+EOF
+  default = true
+}
+
+variable "server_groups" {
+  type = list(string)
+  description = <<EOF
+List of server group id
+EOF
+  default = []
+}
+```
+
+4. 设置资源参数
+```shell
+[root@openstack--1 terraform-openstack-instances-main]# cat 010-computes.tf
+#
+# Create instance
+#
+resource "openstack_compute_instance_v2" "instance" {
+  name        = var.name
+  flavor_name = var.flavor_name
+
+  block_device {
+    uuid                  = var.image_id
+    source_type           = "image"
+    volume_size           = var.block_device_volume_size
+    boot_index            = 0
+    destination_type      = "volume"
+    delete_on_termination = var.block_device_delete_on_termination
+  }
+
+  key_pair = var.key_pair_name
+
+  dynamic "scheduler_hints" {
+    for_each = var.server_groups
+    content {
+      group = scheduler_hints.value
+    }
+  }
+
+  dynamic "network" {
+    for_each = openstack_networking_port_v2.port
+
+    content {
+      port = network.value["id"]
+    }
+  }
+}
+
+# Create network port
+
+resource "openstack_networking_port_v2" "port" {
+  count = length(var.ports)
+
+  name = var.ports[count.index].name
+  network_id = var.ports[count.index].network_id
+  admin_state_up = var.ports[count.index].admin_state_up == null ? true : var.ports[count.index].admin_state_up
+  security_group_ids = var.ports[count.index].security_group_ids == null ? [] : var.ports[count.index].security_group_ids
+  fixed_ip {
+    subnet_id = var.ports[count.index].subnet_id
+    ip_address = var.ports[count.index].ip_address == null ? null : var.ports[count.index].ip_address
+  }
+}
+
+# Create floating ip
+resource "openstack_networking_floatingip_v2" "ip" {
+  count = var.is_public ? 1 : 0
+
+  pool = var.public_ip_network
+}
+
+# Attach floating ip to instance
+resource "openstack_compute_floatingip_associate_v2" "ipa" {
+  count = var.is_public ? 1: 0
+
+  floating_ip = openstack_networking_floatingip_v2.ip[count.index].address
+  instance_id = openstack_compute_instance_v2.instance.id
+}
+```
+
+6. 设置输出形式
+```shell
+[root@openstack--1 terraform-openstack-instances-main]# cat 999-outputs.tf
+output "instance" {
+  value = openstack_compute_instance_v2.instance
+  sensitive = true
+}
+
+output "ip" {
+  value = openstack_networking_floatingip_v2.ip
+}
+```
+
+7. terraform init;
+8. terraform plan;
+9. terraform apply；
+
+
+
+
+
+
+## 概念
+### kubeflow
+它提供了一套工具和组件，用于构建、训练、部署和管理机器学习模型的端到端工作流程。
+
+### rancher
+Rancher提供了在生产环境中使用的管理Docker和Kubernetes的全栈化容器部署与管理平台。
+也就是提供可视化web界面进行k8s部署；
+
+### CRD
+它代表自定义资源定义（Custom Resource Definition）。CRD 允许用户扩展 Kubernetes API，以添加自定义资源和自定义控制器。
+Kubernetes 中的资源（Resource）是 API 对象的实例，例如 Pod、Service、Deployment 等。这些资源都有相应的 API 定义和控制器，用于管理它们的生命周期和状态。
+CRD 允许用户定义自己的资源类型，这些资源类型可以扩展 Kubernetes 的功能，以满足特定的需求。用户可以创建自定义资源定义，定义自己的资源结构和行为，并编写自定义控制器来管理这些资源。
+
+### HPC
+高性能计算（High Performance Computing，缩写HPC）指利用聚集起来的计算能力来处理标准工作站无法完成的数据密集型的计算任务。
+
+### tensorflow
+TensorFlow是一个基于数据流编程的符号数学系统，被广泛应用于各类机器学习算法的编程实现。
+PS-worker模型：Parameter Server执行模型相关业务，Work Server训练相关业务，推理计算、梯度计算等。
+
+### NPU
+神经处理单元（Neural Processing Unit）的缩写，它是一种专门设计用于进行人工神经网络计算的处理器。NPU 的设计旨在加速深度学习任务，包括图像识别、语音识别、自然语言处理等
+
+
+### volcano
+基础设施调度引擎，基于Kubernetes的容器批量计算平台，主要用于高性能计算场景。
+作为一个通用批处理平台，Volcano与几乎所有的主流计算框架无缝对接，如Spark 、TensorFlow 、PyTorch 、 Flink 、Argo 、MindSpore、 PaddlePaddle等。
+
+如何查看Volcano scheduler的配置
+kubectl get configmap -n volcano-system
+kubectl get configmap volcano-scheduler-configmap -n volcano-system -oyaml
+
+
+#### queue
+Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。而 VolcanoJob 则是一个 K8s Job 升级版，对应的下一级资源是 PodGroup。换言之，就好比 ReplicaSet 的下一级资源是 Pod 一样。
+1. queue名称不能重复；
+2. 名称限制：a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
+3. Capability: 表示该queue中所有podgroup使用资源之和的上限，它是个硬约束；
+4. Guarantee: 表示队列的预留资源；
+5. Reclaimable: 表示该queue在资源使用量超过该queue所应得的资源份额时，是否允许其它queue回收该queue使用超额的资源，默认true；
+6. Weight: 表示该queue在集群资源划分中所占的相对比重；
+7. Status: podgroup统计信息与queue状态信息；
+
+
+
+#### podgroup
+互相关联的一组pod集合。
+1. 当queue设置Capability为2时，创建vcjob设置tasks.template.spec.containers.resources.requests大于2时，则不能调度；
+podgroup和job都是PENDING状态，podgroup事件信息queue resource quota insufficient，vcjob事件信息是pod group is not ready；
+2. minMember: 运行作业必须启动的最小总task数量；
+3. minResources: 运行作业必须的最小资源；
+4. minTaskMember: 运行作业所需的各类task的最小数量，其和等于minMember；
+5. priorityClassName: 作业的优先级，用于调度抢占等行为中对作业进行排序，默认为0；
+6. queue: 表示该podgroup所属的queue，必须提前创建好且状态为open；
+7. status: 记录podgroup的状态；
+8. conditions: 该podgroup的具体状态日志；
+9. phase: 作业整体状态；
+10. running: 处于running状态的pod数量；
+
+
+
+#### vcjob
+1. 当vcjob删除时，跟着vcjob创建的podgroup一同删除了；
+2. svc插件实现同一vcjob中各pod之间的通信；
+3. sla插件，作业最长等待时间sla-waiting-time，表示作业停留在pending状态不被调度的最长等待时间；既可以配置在configmap中，作为sla插件的参数，对经由volcano调度的全部作业生效；也可以单独配置在作业的annotation中，只对改作业生效；
+4. gpu共享。通过使用资源名volcano.sh/gpu-memory进行容器级的资源需求共享；多个pod共享一张GPU卡。
+5. enqueue action
+通过资源量等集群状态，预估作业无法调度时，阻止作业创建pod；Enqueue action是调度器配置必不可少的action。
+6. proportion plugin
+控制队列的可用资源，包括硬性指标：guarantee和capability以及weight
+7. allocate action
+过滤掉不符合要求的节点，对符合要求的节点进行打分排序，选出得分最高的节点，最终检查作业是否满足gang约束条件；
+8. preempt action
+检查作业是否处于有效状态；检查作业是否可以被抢占；Preempt用于同一个Queue中job之间的抢占，或同一Job下Task之间的抢占。
+9. backfill action
+处理待调度Pod列表中没有指明资源申请量的Pod调度，在对单个Pod执行调度动作的时候，遍历所有的节点，只要节点满足了Pod的调度请求，就将Pod调度到这个节点上。
+10. reclaim action
+选择要回收的任务；
+11. binpack plugin
+尽量把已有的节点填满（尽量不往空白节点分配）
+12. predicate plugin
+过滤掉不符合pod要求的节点；在AI场景下，它可以快速筛选出来需要GPU的进行集中调度；plugin cache可以对相同pod模板的task进行结果缓存，加速调度进程；
+predicate.GPUSharingEnable:true
+predicate.CacheEnable:true
+predicate.proportionalEnable:true
+predicate.resources:nvidia.com/gpu
+predicate.resources:nvidia.com/gpu.cpu:8
+predicate.resources:nvidia.com/gpu.memory:8
+13. nodeorder plugin
+通过用户配置的打分参数从各个维度为节点打分，从而找到最适合当前作业的节点；
+14. priority plugin
+优先级分配插件，priorityClassName
+15. gang plugin
+All or nothing,观察Job下的Pod已调度数量是否满足了最小运行数量，当Job的最小运行数量得到满足时，为Job下的所有Pod执行调度动作，否则，不执行。
+16. drf plugin
+Dominant Resource Fairness，volcano-scheduler观察每个Job请求的主导资源，并将其作为对集群资源使用的一种度量，根据Job的主导资源，计算Job的share值，在调度的过程中，具有较低share值的Job将具有更高的调度优先级。
+17. Task-topology plugin
+根据Job内task之间亲和性和反亲和性配置计算task优先级和Node优先级的算法。通过在Job内配置task之间的亲和性和反亲和性策略，并使用task-topology算法，可优先将具有亲和性配置的task调度到同一个节点上，将具有反亲和性配置的Pod调度到不同的节点上。
+以TensorFlow计算为例，配置“ps”和“worker”之间的亲和性。可使“ps”和“worker”尽量调度到同一台节点上，从而提升“ps”和“worker”之间进行网络和数据交互的效率，进而提升计算效率。
+ps”与“ps”之间的反亲和性。
+18. sla plugin
+Service Level agreement。用户向volcano提交job的时候，可能会给job增加特殊的约束，例如最长等待时间(JobWaitingTime)。这些约束条件可以视为用户与volcano之间的服务协议。SLA plugin可以为单个作业/整个集群接收或者发送SLA参数。
+19. Numa-aware plugin
+支持cpu资源的拓扑调度。
+支持pod级别的拓扑协议。
+20. action真正的调度过程--reclaim-->allocate-->backfill-->preempt
+21. job插件
+svc: 实现同一vc job内的各pod间通信；在所有pod中添加hostname和subdomain字段；
+添加VC_<TASK_NAME>_NUM和VC_<TASK_NAME>_HOSTS环境变量；为job创建headless service,configmap和networkpolicy；
+配置示例svc:["--publish-not-ready-address=false", "--disable-network-policy=false"]；
+ssh: 实现同一vc job内的各container之间的免密ssh登录；
+配置示例：ssh:["--ssh-key-file-path=/home/user/.ssh", "--ssh-private-key=xxx\n", "--ssh-public-key=xxx""]
+env: 为vc job中的全部pod添加TASK_INDEX环境变量；
+配置示例： env: []
+pytorch: 为job中的所有container开放指定端口；开启svc插件；添加MASTER_ADDR，MASTER_PORT,MASTER_SIZE,RANK等pytorch相关环境变量；
+配置示例：pytorch: ["--master=master", "--worker=worker", "--port=23456"]
+tensorflow: 为job中的所有container开放指定端口；开启svc插件；
+配置示例：pytorch: ["--ps=master", "--worker=worker", "--port=2222"]
+
+
+
+
+
+#### 调度GPU
+
+##### k8s中使用GPU
+GPUs 只能设置在 limits 部分，这意味着：
+不可以仅指定 requests 而不指定 limits
+可以同时指定 limits 和 requests，不过这两个值必须相等
+可以指定 GPU 的 limits 而不指定其 requests，K8S 将使用限制值作为默认的请求值；
+每个容器可以请求一个或者多个GPU
+limits和requests指定如下字段，系统会分配指定数量的显卡：
+nvidia.com/gpu
+amd.com/gpu
+
+
+节点需要使用 NVIDIA 的 GPU 资源的话，需要先安装 k8s-device-plugin 这个插件，并且需要事先满足下面的条件：
+Kubernetes 的节点必须预先安装了 NVIDIA 驱动
+Kubernetes 的节点必须预先安装 nvidia-docker2.0
+Docker 的默认运行时必须设置为 nvidia-container-runtime，而不是 runc
+NVIDIA 驱动版本大于或者等于 384.81 版本
+
+
+nvidia-smi -L         # 确认pod使用了GPU卡
+
+
 

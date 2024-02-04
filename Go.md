@@ -142,6 +142,10 @@ go env -w GOOS=linux
 
 
 
+## 组合
+var _ Codec = (*GobCodec)(nil)
+
+
 
 ## Go设计模式
 ### 单例模式实现两种方式
@@ -884,6 +888,18 @@ go install .
 protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative myprotobuf.proto
 
 
+#### grpc四种请求响应模式 
+简单模式(Simple RPC)：客户端发起请求并等待服务端响应。
+服务端流式（Server-side streaming RPC）：客户端发送请求到服务器，拿到一个流去读取返回的消息序列。 客户端读取返回的流，直到里面没有任何消息。
+客户端流式（Client-side streaming RPC）：与服务端数据流模式相反，这次是客户端源源不断的向服务端发送数据流，而在发送结束后，由服务端返回一个响应。
+双向流式（Bidirectional streaming RPC）：双方使用读写流去发送一个消息序列，两个流独立操作，双方可以同时发送和同时接收。
+
+
+#### tips
+1. 不设置请求参数或者返回体，proto文件中import "google/protobuf/empty.proto"(下载放到同级目录)，google.protobuf.Empty；
+2. 
+
+
 ## rabbitMQ
 rabbitmqctl list_queues  查看队列，并且显示消息数；
 rabbitmqctl list_exchanges  查看交换机；
@@ -1014,5 +1030,6 @@ match := r.FindString("abc123def")
 6. 管理定时任务 github.com/robfig/cron/v3
 7. 解码结构体 github.com/mitchellh/mapstructure
 8. websocket库 nhooyr.io/websocket(gorilla/websocket 已停止维护)
-
+9. 处理和操作通用类型的Go库 github.com/zclconf/go-cty/cty
+10. 
 

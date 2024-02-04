@@ -152,13 +152,18 @@ AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主
 
 
 重装系统rebuild--->三个过程power_off/rebuild/power_on
+虚机rebuild前状态是stopped时，在rebuild流程走完前会有一步stop_instance的操作,也就是将状态回到rebuild前
+
 
 openstack server rebuild <server_uuid> --image <image>
 1. 根据bdm的boot_index==0判断虚机是否是volume_backend；
 2. image是必传项；
 3. 可以实现密码、key-name、属性、镜像的更换；
-4. 
+4. 重建过程中修改密码时传参是adminPass和user_data；
 
+
+## 主机疏散
+nova host-evacuate <host> --target_host <target_host>
 
 
 ## 虚机创建快照
@@ -292,9 +297,59 @@ Network
 Config
 Final
 
+执行如下的命令
+cloud-init clean
+cloud-init init --local
+cloud-init init
+cloud-init modules --mode config
 
+### config driver
+查看虚机中config driver配置：mount /dev/sr0 <某个目录>    即可在目录中看到配置
 
+关于user_data
+将如下通过base64加密，即可作为user_data进行虚机创建或重建传参；
+```shell
+Content-Type: multipart/mixed; boundary="===============2309984059743762475=="
+MIME-Version: 1.0
 
+--===============2309984059743762475==
+Content-Type: text/cloud-config; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="ssh-pwauth-script.txt"
+
+cloud-config
+disable_root: false
+ssh_pwauth: true
+password: Wang.123
+
+--===============2309984059743762475==
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="passwd-script.txt"
+
+#!/bin/sh
+echo 'root:Wang.123' | chpasswd
+
+--===============2309984059743762475==
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="enable-fs-collector.txt"
+
+#!/bin/sh
+qemu_file="/etc/sysconfig/qemu-ga"
+if [ -f ${qemu_file} ]; then
+    sed -i -r "s/^#?BLACKLIST_RPC=/#BLACKLIST_RPC=/" "${qemu_file}"
+    has_gqa=$(systemctl list-units --full -all -t service --plain | grep -o qemu-guest-agent.service)
+    if [[ -n ${has_gqa} ]]; then
+        systemctl restart qemu-guest-agent.service
+    fi
+fi
+
+--===============2309984059743762475==--
+```
 
 ## nova-api-metadata
 nova-api的子服务，metadata的提供者，instance可以通过其restful接口获取metadata信息；
@@ -1079,6 +1134,19 @@ s3存储区域名称
 4. kolla-ansible -i /etc/ansible/hosts/ deploy --tags nova reconfigure        ---修改所有节点的配置/etc/kolla/config/nova.conf
 5. kolla-ansible -i /etc/ansible/hosts/ deploy
 6. kolla-ansible -i /etc/ansible/hosts/ destroy --yes-i-really-really-mean-it
+7. kolla-ansible pull --tags nova + kolla-ansible deploy --tags nova      ---拉取最新镜像更新容器
+8. kolla-ansible -i /etc/ansible/hosts/ deploy --tags nova --limit node2     ---限node2部署
+
+
+
+
+## 扩容计算节点
+1. 将计算节点配置到00host文件中；
+2. 执行初始化ansible-playbook -i /etc/ansible/hosts/ /root/ict-ansible/config.yml；
+3. kolla-ansible -i /etc/ansible/hosts/ upgrade -t nova neutron
+4. nova-conductor中执行nova-manage cell_v2 discover_hosts --verbose
+
+
 
 
 # notification机制
