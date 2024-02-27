@@ -1430,4 +1430,19 @@ docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/ser
 
 
 
-
+# issue
+1. 硬盘的备份恢复支持s3对象存储。过程：获取uid或AK/SK+备份类型s3+endpoint+bucket之后初始化s3 client进行备份、恢复操作（cinder）；
+2. openstack 虚机、硬盘、网络等资源状态同步推送到集成层；支持资源成功失败的场景（neutron/cinder/nova）；
+3. 支持lvm类型的系统盘根据快照恢复到硬盘；过程就是调用driver的create_export（cinder）；
+4. OpenStack Train版本的neutron对接huawei SDN控制器（neutron）；
+5. 支持镜像上传到s3并通过image import方式创建新的镜像（glance_store）；
+6. 支持根据自有镜像volume进行rebuild虚机（nova）;
+7. config driver支持配置单网卡多IP（nova）；
+8. 完成l3资源在保证IP不变的情况下进行重建router gateway/fip/port forwarding）/fip qos；
+9. 实践neutron metering进行路由层面流量监控；
+10. 调研OpenStack Magnum和kuryr-kubernetes如何整合openstack和k8s网络；
+11. slurm集群搭建并调研；
+12. volcano调研；
+13. 实践keystone-to-keystone federation；
+14. 裸金属修改密码；调用nova meta设置密码时，祼金属内部启用定时任务，每隔1分钟执行，从metadataserver中拉取裸金属的密码与本地缓存的密码进行对比，如有变化则调用重置密码方法
+15. 

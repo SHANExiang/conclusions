@@ -62,4 +62,4 @@ docker-compose restart    # 重启docker-compose文件中的容器
 
 
 ## 容器时间和宿主机一致
-将宿主机的时区文件映射到容器中  -v /etc/localtime:/etc/localtime 
+将宿主机的时区文件映射到容器中  -v /etc/localtime:/etc/localtime

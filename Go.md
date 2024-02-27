@@ -265,6 +265,22 @@ HTTP请求的路径恰好是由/分隔的多段构成的，因此，每一段可
 查询功能，同样也是递归查询每一层的节点，退出规则是，匹配到了*，匹配失败，或者匹配到了第len(parts)层节点。
 
 
+## 令牌桶
+描述：有个固定大小的桶，系统会以恒定速率向桶中放入令牌，桶满则不放。请求到来时需要从桶中获取令牌才能执行，否则不能执行，要么阻塞，要么丢弃。
+
+生产和消费令牌其实就是维护token数，token数是共享资源，可能会有多线程操作，需要加锁。
+
+time/rate包的Limiter类型对限流器进行了定义：
+limit：limit字段表示往桶里放Token的速率，它的类型是Limit，是int64的类型别名。设置limit时既可以用数字指定每秒向桶中放多少个Token，也可以指定向桶中放Token的时间间隔，其实指定了每秒放Token的个数后就能计算出放每个Token的时间间隔了。
+burst: 令牌桶的大小。
+tokens: 桶中的令牌。
+last: 上次往桶中放 Token 的时间。
+lastEvent：上次发生限速器事件的时间（通过或者限制都是限速器事件）
+
+这个池子一开始容量为b，装满b个令牌，然后每秒往里面填充r个令牌。
+由于令牌池中最多有b个令牌，所以一次最多只能允许b个事件发生，一个事件花费掉一个令牌。
+
+
 
 # 并发编程
 ## goroutine
@@ -1051,5 +1067,5 @@ match := r.FindString("abc123def")
 7. 解码结构体 github.com/mitchellh/mapstructure
 8. websocket库 nhooyr.io/websocket(gorilla/websocket 已停止维护)
 9. 处理和操作通用类型的Go库 github.com/zclconf/go-cty/cty
-10. 
+10. 使用令牌桶算法实现限流器 golang.org/x/time/rate
 
