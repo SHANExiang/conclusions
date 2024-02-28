@@ -15,9 +15,20 @@
 * [python 内存管理机制](#python-1)
 	* [python 内存池](#python-1)
 	* [垃圾回收](#-1)
+		* [引用计数 PyObject](#PyObject)
+		* [标记清除](#-1)
 	* [分代回收](#-1)
+	* [哪些操作会导致 Python 内存泄露，怎么处理？](#Python)
 * [python 中单例模式实现方式](#python-1)
 * [python 编码](#python-1)
+	* [python 三元运算子](#python-1)
+	* [python 支持一个表达式进行多种比较操作，其实这个表达式本质是由多个隐式的 and](#pythonand)
+	* [python 身份运算符 is 和 is not](#pythonisisnot)
+	* [如何判断一个值是方法还是函数？](#-1)
+	* [文档字符串](#-1)
+	* [了解类型注解么？](#-1)
+	* [猴子补丁](#-1)
+	* [介绍 Cython，Pypy Cpython Numba 各有什么缺点](#CythonPypyCpythonNumba)
 * [python 新式类和经典类的区别](#python-1)
 	* [字典和集合解析](#-1)
 	* [遍历字典两种方式](#-1)
@@ -25,10 +36,87 @@
 	* [获得字典的最大深度：](#-1)
 	* [字典如何删除键和合并两个字典](#-1)
 	* [合并两个字典](#-1)
-* [用 Python 匹配 HTML tag 的时候，<.> 和 <.?> 有什么区别](#PythonHTMLtag..)
+	* [列表嵌套字典的排序，分别根据年龄和姓名排序**](#-1)
+	* [根据键对字典排序](#-1)
+* [bytes 字节](#bytes)
+* [set 集合](#set)
+	* [创建非空元素](#-1)
+	* [集合 set 不支持索引；也不支持元素删除，比如 del s[1]；](#setdels1)
+	* [取两个列表的交集](#-1)
+	* [集合并集](#-1)
+	* [集合中添加元素](#-1)
+	* [集合中删除元素](#-1)
+	* [判断 set1 是否是 set2 的子集合](#set1set2)
+	* [从 set1 中移除两个集合的交集；](#set1)
+	* [取 set1 中的元素且不在 set2](#set1set2-1)
+	* [对称差异，将两个集合的对称差作为新集合返回(即恰好在集合之一中的所有元素)](#-1)
+* [函数](#-1)
+	* [python 函数参数类型](#python-1)
+	* [lambda 匿名函数](#lambda)
+	* [内建函数](#-1)
+		* [range](#range)
+		* [sum](#sum)
+		* [sorted](#sorted)
+		* [reversed](#reversed)
+		* [locals 与 globals](#localsglobals)
+		* [ord 与 chr](#ordchr)
+		* [all](#all)
+		* [any](#any)
+		* [map](#map)
+		* [reduce](#reduce)
+		* [zip](#zip)
+		* [filter](#filter)
+		* [slice](#slice)
+		* [exec 与 eval](#execeval)
+	* [python 函数参数传递方式](#python-1)
+* [迭代器](#-1)
+* [生成器](#-1)
+	* [怎么获取 return 的值？](#return)
+	* [yield 与 yield from](#yieldyieldfrom)
+* [什么是闭包？](#-1)
+* [python 中的魔法方法](#python-1)
+* [封装](#-1)
+* [继承](#-1)
+* [多态](#-1)
+	* [元类](#-1)
+		* [元类控制器实例的创建](#-1)
+* [正则表达式](#-1)
+		* [多线程同步方式](#-1)
+		* [threading.Event](#threading.Event)
+		* [threading.Condition](#threading.Condition)
+		* [threading.Semaphore信号量](#threading.Semaphore)
+		* [threading.Lock](#threading.Lock)
+		* [threading.RLock](#threading.RLock)
+		* [线程池](#-1)
+	* [多进程](#-1)
+		* [进程间通信 Queue](#Queue)
+		* [进程池 Pool](#Pool)
+		* [daemon 和 join 的区别](#daemonjoin)
+	* [协程](#-1)
+		* [asyncio](#asyncio)
+	* [queue](#queue)
+	* [死锁](#-1)
 		* [json.dump 显示中文](#json.dump)
 * [快速排序](#-1)
 		* [不用+号，两个数相加](#-1)
+* [异常](#-1)
+* [设计模式](#-1)
+	* [单例模式的应用场景有那些？](#-1)
+	* [代理模式](#-1)
+	* [工厂模式](#-1)
+	* [策略模式](#-1)
+	* [访问者模式](#-1)
+	* [抽象工厂模式](#-1)
+	* [装饰器模式](#-1)
+	* [模板方法模式](#-1)
+	* [享元模式](#-1)
+	* [责任链模式](#-1)
+	* [适配器模式](#-1)
+	* [观察者模式](#-1)
+* [1. 合并两个无序链表](#-1)
+* [2. 一次遍历获取列表第二大值 ok](#ok)
+* [3. 快排](#-1)
+* [4. 归并排序](#-1)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -273,12 +361,12 @@ Level+1 层：当申请的内存大小大于 256KB 时，由 Python 原生的内
 ### <a name='-1'></a>垃圾回收 
 垃圾回收机制：主要是以对象引用计数为主标记清除和分代技术为辅的那么一种方式； 
 
-#### 引用计数 PyObject 
+#### <a name='PyObject'></a>引用计数 PyObject 
 python 里每一个东西都是对象，它们的核心就是一个结构体：PyObject。 PyObject 是每个对象必有的内容，其中 ob_refcnt 就是做为引用计数。
 当一个对象有新的引用时，它的 ob_refcnt 就会增加，当引用它的对象被删除，它的 ob_refcnt就会减少，当引用计数降为 0 时，说明没有任何引用指向该对象，该对象就成为 要被回收的垃圾了。
 不过如果出现循环引用（当对象 1 中的某个属性指向对象 2， 对象 2 中的某个属性指向对象 1 就会出现循环引用）的话，引用计数机制就不再起有效的作用了，del 语句可以减少引用次数，但是引用计数不会归 0，对象也就不会被销毁，从而造成了内存泄漏问题。 
 
-#### 标记清除
+#### <a name='-1'></a>标记清除
 标记-清除机制，顾名思义，首先标记对象（垃圾检测），然后清除垃圾（垃圾回收）。首先初始所有对象标记为白色，并确定根节点对象（这些对象是不会被删除），标记它们为黑色（表示对象有效）。将有效对象引用的对象标记为灰色（表示对象可达，但它们所引用的对象还没检查），检查完灰色对象引用的对象后，将灰色标记为黑色。重复直到不存在灰色节点为止。最后白色结点都是需要清除的对象。 
 解决循环引用： 
 >>> a=[1,2] 
@@ -317,7 +405,7 @@ gc 扫描次数（第 0 代>第 1 代>第 2 代）
 
 
  
-### 哪些操作会导致 Python 内存泄露，怎么处理？
+### <a name='Python'></a>哪些操作会导致 Python 内存泄露，怎么处理？
 内存泄漏指由于疏忽或错误造成程序未能释放已经不再使用的内存。内存泄漏并非指内存在物理上的消失，而是应用程序分配某段内存后，由于设计错误，导致在释放该段内存之前就失去了对该段内存的控制，从而造成了内存的浪费。 有 
 __del__() 函数的对象间的循环引用是导致内存泄露的主凶。不使用一个对象时使用: del object 来删除一个对象的引用计数就可以有效防止内存泄露问题。 
 通过 Python 扩展模块 gc 来查看不能回收的对象的详细信息。 
@@ -565,10 +653,10 @@ float('-inf') - float('-inf')  # 结果也为：nan
 ``` 
  
  
-### python 三元运算子 
+### <a name='python-1'></a>python 三元运算子 
 [on true] if [expression] else [on false] 
 
-### python 支持一个表达式进行多种比较操作，其实这个表达式本质是由多个隐式的 and
+### <a name='pythonand'></a>python 支持一个表达式进行多种比较操作，其实这个表达式本质是由多个隐式的 and
 连接起来的多个表达式； 
 ```python
 3<4<7  # same as "(3<4) and (4<7)" 
@@ -578,7 +666,7 @@ float('-inf') - float('-inf')  # 结果也为：nan
 # x and y 的值只可能是 x 或 y. x 为真就是 y, x 为假就是 x
 ```
 
-### python 身份运算符 is 和 is not  
+### <a name='pythonisisnot'></a>python 身份运算符 is 和 is not  
 类型注解 
 def add(x:int, y:int) -> int: 
    return x + y 
@@ -611,20 +699,20 @@ __foo----这个有真正的意义:解析器用_classname__foo 来代替这个名
 __xxx 这样的方式可以访问. 
 
 
-### 如何判断一个值是方法还是函数？ 
+### <a name='-1'></a>如何判断一个值是方法还是函数？ 
 1、 使用 type()来判断，如果是 method 为方法，如果是 function 则是函数。 
 2、 与类和实例无绑定关系的 function 都属于函数（function） 
 3、 与类和实例有绑定关系的 function 都属于方法 
  
  
  
-### 文档字符串 
+### <a name='-1'></a>文档字符串 
 在函数的第一个逻辑行的字符串是这个函数的文档字符串。
 文档字符串的惯例是一个多行字符串，它的首行以大写字母开始，句号结尾。第二行是空行，从第三行开始是详细的描述，在函数中使用文档字符串时尽量遵循这个惯例。 
 文档字符串是一个重要工具，用于解释文档程序 ，帮助你的程序文档更加简单易懂。 我们可以在函数体的第一行使用一对三个单引号 或者一对三个双引号来定义文档字符串。 你可以使用 __doc__调用函数中的文档字符串属性;
 
 
-### 了解类型注解么？ 
+### <a name='-1'></a>了解类型注解么？ 
 def list_to_str (param_list:list,connect_str: str = " ") - > str: 
     paas 
 python3 中注解用来给参数， 返回值，变量的类型加上注解，对代码没影响 
@@ -632,7 +720,7 @@ Python 提供了一个工具方便我们测试类型注解的正确性
 pip install mypy mypy demo.py 若无错误则无输出 
 
  
-### 猴子补丁 
+### <a name='-1'></a>猴子补丁 
 “猴子补丁”(monkey patching)就是指，在函数或对象已经定义之后，再去改变它们的行为。
 指在运行时动态修改类或模块。运行时动态修改模块、类或函数，通常是添加功能或修正缺陷。猴子补丁在代码运行时内存中）发挥作用，不会修改源码，因此只对当前运行的程序实例有效。因为猴子补丁破坏了封装，而且容易导致程序与补丁代码的实现细节紧密耦合，所以被视为临时的变通方案，不是集成代码的推荐方式。 
 举个例子： 
@@ -641,7 +729,7 @@ datetime.datetime.now = lambda: datetime.datetime(2012, 12, 12)
  
 
  
-### 介绍 Cython，Pypy Cpython Numba 各有什么缺点 
+### <a name='CythonPypyCpythonNumba'></a>介绍 Cython，Pypy Cpython Numba 各有什么缺点 
 CPython 是使用最广的 Python 解释器。 
 IPython 是基于 CPython 之上的一个交互式解释器，也就是说，IPython 只是在交互方式上有所增强 
 PyPy 是另一个 Python 解释器，它的目标是执行速度。PyPy 采用 JIT 技术，对 Python 代码进行动态编译（注意不是解释），所以可以显著提高 Python 代码的执行速度。 绝大部分 Python 代码都可以在 PyPy 下运行，但是 PyPy 和 CPython
@@ -1144,7 +1232,7 @@ python3.9 可以使用 "|" 操作符合并两个字典
 {'a': 1, 'b': 2, 'c': 3, 'd': 4} 
       
       
-### 列表嵌套字典的排序，分别根据年龄和姓名排序** 
+### <a name='-1'></a>列表嵌套字典的排序，分别根据年龄和姓名排序** 
  
 foo = [{"name":"zs","age":19},{"name":"ll","age":54}, 
 {"name":"wa","age":17},{"name":"df","age":23}] 
@@ -1160,7 +1248,7 @@ foo = [{"name":"zs","age":19},{"name":"ll","age":54},
  
  
  
-### 根据键对字典排序 
+### <a name='-1'></a>根据键对字典排序 
  
 **方法一，zip 函数** 
  
@@ -1182,7 +1270,7 @@ sorted()构造排序规则
 [('address', 'nj'), ('age', 20), ('name', 'dx')] 
 
 
-## bytes 字节
+## <a name='bytes'></a>bytes 字节
 在 Python3 以后，字符串和 bytes 类型彻底分开了。字符串是以字符为单位进行处理的，bytes 类型是以字节为单位处理的。 
 bytes 数据类型在所有的操作和使用甚至内置方法上和字符串数据类型基本一样，也是不可变的序列对象。 
 bytes 对象只负责以二进制字节序列的形式记录所需记录的对象，至于该对象到底表示什么（比如到底是什么字符）则由相应的编码格式解码所决定。
@@ -1190,46 +1278,46 @@ Python3中，bytes 通常用于网络数据传输、二进制图片和文件的�
 b = b''          # 创建一个空的 bytes 
 b = bytes()      # 创建一个空的 bytes 
 
-## set 集合 
+## <a name='set'></a>set 集合 
 set 集合是一个无序不重复元素的集，基本功能包括关系测试和消除重复元素。
 集合使用大括号({})框定元素，并以逗号进行分隔。但是注意：如果要创建一个空集合，必须用set()而不是{}，因为后者创建的是一个空字典。集合除了在形式上最外层用的也是花括号外，其它的和字典没有一毛钱关系。 
 集合数据类型的核心在于自动去重。 
-### 创建非空元素 
+### <a name='-1'></a>创建非空元素 
 set([1, 2, 3, 4, 5]) 
 
-### 集合 set 不支持索引；也不支持元素删除，比如 del s[1]； 
+### <a name='setdels1'></a>集合 set 不支持索引；也不支持元素删除，比如 del s[1]； 
 
-### 取两个列表的交集 
+### <a name='-1'></a>取两个列表的交集 
 set(list1) & set(list2)  
 集合的交集 
 set1 & set2； 
-### 集合并集 
+### <a name='-1'></a>集合并集 
 set1 | set2  
 color_list_2.union(color_list_1) 
 两集合并集-交集-----set1 ^ set2；
 set().union(*L)----L 为一个列表，其中包含元组元素，指的是获取一个列表中的独一无二的元素； 
  
-### 集合中添加元素 
+### <a name='-1'></a>集合中添加元素 
 original_set.add("red") 
 original_set.update(["blue", "black"]) 
  
-### 集合中删除元素 
+### <a name='-1'></a>集合中删除元素 
 original_set.pop()  # 从前往后移除 
 original_set.remove(num)以及 original_set.discard(num)  # 都是移除元素 num； 
  
-### 判断 set1 是否是 set2 的子集合 
+### <a name='set1set2'></a>判断 set1 是否是 set2 的子集合 
 set1.issubset(set2); 
 同理父集合----set1.issuperset(set2) 
 集合的拷贝----set2 = set1.copy(); 
 集合的清理----set1.clear(); 
  
-### 从 set1 中移除两个集合的交集； 
+### <a name='set1'></a>从 set1 中移除两个集合的交集； 
 set1.difference_update(set2) 
 
 print(s1 - s2) # s1 中有 s2 中没有的元素     # print(s1 + s2)# TypeError: unsupported operand type(s) for +: 'set' and 'set' 
 print(s2 - s1) # s2 中有 s1 中没有的元素 
  
-### 取 set1 中的元素且不在 set2 
+### <a name='set1set2-1'></a>取 set1 中的元素且不在 set2 
 >>> color_list_1 = set(["White", "Black", "Red"]) 
 >>> color_list_2 = set(["Red", "Green"]) 
 >>> color_list_1 - color_list_2 
@@ -1239,7 +1327,7 @@ print(s2 - s1) # s2 中有 s1 中没有的元素
  
  
  
-### 对称差异，将两个集合的对称差作为新集合返回(即恰好在集合之一中的所有元素) 
+### <a name='-1'></a>对称差异，将两个集合的对称差作为新集合返回(即恰好在集合之一中的所有元素) 
 n = [9,8,3,2,2,0,9,7,6,3] 
 all_nums = set([0,1,2,3,4,5,6,7,8,9]) 
 n = set([int(i) for i in n]) 
@@ -1247,13 +1335,13 @@ n = n.symmetric_difference(all_nums)     # [1, 4, 5]
 
 
 
-## 函数 
+## <a name='-1'></a>函数 
 函数名其实就是指向一段内存空间的地址，既然是地址，那么我们可以利用这种特性来： 
 a. 函数名可以作为一个值; 
 b. 函数名可以作为返回值; 
 c. 函数名可以作为一个参数；
  
-### python 函数参数类型
+### <a name='python-1'></a>python 函数参数类型
 python 函数传递参数类型比较多，按照是否确定参数数目可分为定长参数变长参数，按照是否引入关键字分为普通参数和关键字参，可以从以下五个方面进行介绍： 
  定长普通参数 
  定长关键字参数 
@@ -1366,7 +1454,7 @@ def spam(a, b=_no_value):
         print('No b value supplied') 
     ...  
 
-### lambda 匿名函数
+### <a name='lambda'></a>lambda 匿名函数
 Python 使用 lambda 关键字创造匿名函数。所谓匿名，意即不再使用 def 语句这样标准的形式定义一个函数。这种语句在调用时绕过函数的栈分配，可以提高效率。
 其语法是： 
 lambda [arg1[, arg2, ... argN]]: expression 
@@ -1400,19 +1488,19 @@ lambda 表达式的时候，x 的值是执行时的值。
 ... print(f(0))        # 0 1 2 3 4 
 
  
-### 内建函数 
-#### range 
+### <a name='-1'></a>内建函数 
+#### <a name='range'></a>range 
 range(1,10)---左开右闭， 
  
 
-#### sum 
+#### <a name='sum'></a>sum 
 sum 可以接收一个容器，求其和 
 sum([23, 23, 34,])       # 80 
  
 sum(range(1,10))----1-9 之间的和 
 
  
-#### sorted 
+#### <a name='sorted'></a>sorted 
 sorted(iterable[, cmp[, key[, reverse]]]) 
 Return a new sorted list from the items in iterable. 
 它会从一个可迭代对象构建一个新的排序列表。 
@@ -1451,12 +1539,12 @@ d = {'354': 34, 'dong': 54, 'fh': 10}
 print(sorted(d.items(), key=lambda x:x[1]))          # [('fh', 10), ('354', 34), ('dong', 54)] 
 
 
-#### reversed
+#### <a name='reversed'></a>reversed
 reversed(seq) 函数返回一个反转的迭代器。 
 seq--要转换的序列，可以是 tuple, string, list 或 range。 
 
 
-#### locals 与 globals 
+#### <a name='localsglobals'></a>locals 与 globals 
 local()函数会以字典类型返回当前位置的全部局部变量。对于函数, 方法, lambda 
 函式, 类, 以及实现了 call 方法的类实例, 它都返回 True。 
 locals 函数可以得到一个局部变量字典，这样就可以从局部变量字典中取得修改
@@ -1466,7 +1554,7 @@ globals
 函数会以字典类型返回当前位置的全部全局变量。 
 
 
-#### ord 与 chr 
+#### <a name='ordchr'></a>ord 与 chr 
 a. ord 与 chr 用法 
 def test_ord_chr(): 
     print(ord('9')) 
@@ -1487,7 +1575,7 @@ for i in range(26):
     lower.append(chr(i + 97))          # lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'] 
  
 
-#### all 
+#### <a name='all'></a>all 
 all(iterable) -> bool 
 all() 函数用于判断给定的可迭代参数 iterable 中的所有元素是否都为 TRUE，
 如果是返回 True，否则返回 False。 
@@ -1513,7 +1601,7 @@ def test_all():
 test_all()   # False  True 
 
 
-#### any 
+#### <a name='any'></a>any 
 Return True if any element of the iterable is true. If the iterable is empty, return False.  
 any() 函数用于判断给定的可迭代参数 iterable 是否全部为 False，则返回 False，
 如果有一个为 True，则返回 True。元素除了是 0、空、FALSE 外都算 TRUE。
@@ -1538,7 +1626,7 @@ all():迭代器中所有的判断项返回都是真，结果才为真
  
  
  
-#### map 
+#### <a name='map'></a>map 
 map(function, sequence[, sequence, ...]) -> list 
 map() 会根据提供的函数对指定序列做映射。Python 2.x 返回列表。Python 3.x 
 返回迭代器。 
@@ -1585,7 +1673,7 @@ map()函数第一个参数是 fun，第二个参数是一般是 list，第三个
  
  
  
-#### reduce 
+#### <a name='reduce'></a>reduce 
 reduce(function, sequence[, initial]) -> value 
 reduce() 函数会对参数序列中元素进行累积。 
 函数将一个数据集合（链表，元组等）中的所有数据进行下列操作：用传给 reduce 
@@ -1599,7 +1687,7 @@ reduce() 函数会对参数序列中元素进行累积。
 5050 
 
 
-#### zip 
+#### <a name='zip'></a>zip 
 zip(seq1 [, seq2 [...]]) -> [(seq1[0], seq2[0] ...), (...)] 
 zip() 函数用于将可迭代的对象作为参数，将对象中对应的元素打包成一个个元
 组，然后返回由这些元组组成的列表。如果各个迭代器的元素个数不一致，则返
@@ -1615,7 +1703,7 @@ zip() 函数用于将可迭代的对象作为参数，将对象中对应的元�
  
  
  
-#### filter 
+#### <a name='filter'></a>filter 
 filter(function or None, sequence) -> list, tuple, or string 
 Return those items of sequence for which function(item) is true. If function is None, 
 return the items that are true. If sequence is a tuple or string, return the same type, else 
@@ -1642,7 +1730,7 @@ filter()函数用于过滤序列，过滤掉不符合条件的元素，返回由
  
  
  
-#### slice 
+#### <a name='slice'></a>slice 
 内置的 slice()函数创建了一个切片对象，可以被用在任何切片允许使用的地方。 
 >>> a = slice(1,10,2) 
 >>> a 
@@ -1666,7 +1754,7 @@ filter()函数用于过滤序列，过滤掉不符合条件的元素，返回由
 [0, 1, 5, 6] 
 
 
-#### exec 与 eval 
+#### <a name='execeval'></a>exec 与 eval 
 exec(object[, globals[, locals]]) 
 参数 
 object：必选参数，表示需要被指定的 Python 代码。它必须是字符串或 code 对象。 
@@ -1746,7 +1834,7 @@ class Foo1(object):
 # 3
 ```
  
-### python 函数参数传递方式 
+### <a name='python-1'></a>python 函数参数传递方式 
 python 中参数传递类似于引用传递。 
 当函数参数为不可变对象（整数，字符串，元组）时，函数体内的参数在被改变之前，会一直持有该对象的引用，但当参数发生改变时，由于该对象为不可变对象，必须生成一份新的拷贝作为函数的本地变量，函数对该本地变量的修改不会影响函数调用者的变量值，这一点有点类似 C++ 函数的值传递。 
 当函数参数为可变对象（列表，字典）时，除非发生赋值操作，函数体类的参数会一直持有该对象的引用，函数对该参数的修改也会影响到函数调用者的变量值，类似于 C++函数中的引用传递。但在函数体内发生赋值操作时，也会生成一份新的拷贝作为函数的本地变量，函数对该本地变量的修改不会影响到函数调用者的变量值。 
@@ -1791,7 +1879,7 @@ if __name__ == "__main__":
 个粒度上。若在一个函数中处理多件事，不利于代码的重用 
  
  
-## 迭代器 
+## <a name='-1'></a>迭代器 
 何为迭代：重复+继续 
 第一，迭代需要重复进行某一操作； 
 第二，本次迭代的要依赖上一次的结果继续往下做，如果中途有任何停顿，都不能算是迭代； 
@@ -1871,7 +1959,7 @@ print(isinstance(g, Iterator)) # False
  
  
  
-## 生成器 
+## <a name='-1'></a>生成器 
 将列表生成式中[]改成()之后数据结构是否改变？ 答案：是，从列表变为生成器。 
 生成器： 
 如果一个函数中有 yield 语句，表明这个函数就不再是一个函数了，而是一个生成器模板，如果调用这个函数的时候，就不再是调用这个函数了，而是创建一个生成器对象。
@@ -1899,7 +1987,7 @@ def get_fibonacci(num):
          
 obj = get_fibonacci(10)  # 获得一个生成器对象 
 next(obj)  # 调用生成器获取元素； 
-### 怎么获取 return 的值？ 
+### <a name='return'></a>怎么获取 return 的值？ 
  
 while True: 
     try: 
@@ -1981,12 +2069,12 @@ yield 的返回值是 yield 后面的值，food_list
 send()既是传值，也是调用 next，执行下面的代码，直到下次 yield 停止； 
  
  
-### yield 与 yield from 
+### <a name='yieldyieldfrom'></a>yield 与 yield from 
 yield 将一个函数变成一个生成器 
 yield 返回一个值 
 yield from 后面跟的可以是生成器、元组、列表等可迭代对象以及 range()函数产生的序列; 
 
-## 什么是闭包？ 
+## <a name='-1'></a>什么是闭包？ 
 作用域 
 全局变量能够被文件任何地方引用，但修改只能在全局进行操作; 
 如果局部没有找到所需的变量，就会往外进行查找，没有找到就会报错。 
@@ -2011,7 +2099,7 @@ bb(26)  # name: the5fire age: 26
 
 
 
-## python 中的魔法方法 
+## <a name='python-1'></a>python 中的魔法方法 
 在 Python 中，所有以__双下划线包起来的方法，都统称为"魔术方法"。比如我们
 接触最多的__init__. 
 有些魔术方法,我们可能以后一辈子都不会再遇到了,这里也就只是简单介绍下; 
@@ -3650,7 +3738,7 @@ class Foo1(object):
   4) 你可以将它作为函数参数进行传递 
 
 
-## 封装 
+## <a name='-1'></a>封装 
  属性和方法封装到一个抽象的类中，外界使用类创建对象，然后让对象调用方法，对象方法的细节都被封装到类的内部；一个对象的属性可以是另外一个类创建的对象； 
  在对象方法的内部，是可以直接访问对象的属性；
  同一个类创建的多个对象之间，它们的属性是互不干扰的；
@@ -3702,7 +3790,7 @@ print(dir(b))    # '_internal', 'public', 'public_method','_A__private_method', 
 ```
 
 
-## 继承 
+## <a name='-1'></a>继承 
  继承用来实现代码的重用；子类拥有父类所有的属性和方法，可以直接使用父类的中封装好的方法，不需要再次开发；子类继承父类，子类的实例可以拥有父类的属性； 
  继承传递性； 
  重写父类方法： 
@@ -3726,7 +3814,7 @@ python 通过引入模块 abc 提供官方的解决方案，这个模块为抽�
 持。 
 
 
-## 多态 
+## <a name='-1'></a>多态 
  不同的子类对象调用相同的父类方法，产生不同的执行结果； 
  以继承和重写父类方法为前提； 
  类： 
@@ -3744,13 +3832,13 @@ o 类属性或类方法：
  类方法----修饰器@classmethod 标识； 
  静态方法----修饰器@staticmethod 标识； 
 
-### 元类 
+### <a name='-1'></a>元类 
 元类就是用来创建这些类（对象）的，元类就是类的类。 
 MyClass = type('MyClass', (), {}) 
 type 实际上是一个元类，type 就是 python 在背后用来创建所有类的元类。 
  
 
-#### 元类控制器实例的创建 
+#### <a name='-1'></a>元类控制器实例的创建 
 Python 是一种动态语言，而动态语言和静态语言最大的不同，就是函数和类不是编译时定义的，而是运行时动态创建的。class 的定义是运行时动态创建的，而创建 class 的方法就是使用 type()函数 
 定义：type(类名, 父类的元组（针对继承的情况，可以为空），包含属性的字典（名称和值）) 
 type()函数既可以返回一个对象的类型，又可以创建出新的类型 
@@ -3859,7 +3947,7 @@ class Bar(object, metaclass=MetaClass):
     def print_name(): 
         print(self.name) 
  
-## 正则表达式 
+## <a name='-1'></a>正则表达式 
 一是：检测某一段字符串是否符合规则，也就是我们常说的"校验"  
 二是：从一大段字符串中找到符合规则的字符串，可以理解为"检索" 
 正则表达式模块 
@@ -4104,7 +4192,7 @@ args=----指定将来调用函数的时候传递什么数据过去；格式：ar
  
 
  
-#### 多线程同步方式 
+#### <a name='-1'></a>多线程同步方式 
 ```python
 import os
 import threading
@@ -4143,7 +4231,7 @@ print(thread1.getName())
 ``` 
  
  
-#### threading.Event
+#### <a name='threading.Event'></a>threading.Event
 Event 对象包含一个可由线程设置的信号标志，它允许线程等待某些事件的发生。
 在初始情况下，event 对象中的信号标志被设置为假。如果有线程等待一个 event 
 对象，而 这个 event 对象的标志为假，那么这个线程将会被一直阻塞直至该标志
@@ -4158,7 +4246,7 @@ threading.Event().wait()---主线程等待着，那边线程结束将次标志�
 threading.Event().set(); 
 
  
-#### threading.Condition 
+#### <a name='threading.Condition'></a>threading.Condition 
 如果你只想唤醒单个线程，最好是使用信号量或者 Condition 对象来替代 Event。 
 上下文管理器上使用 Condition: 
    
@@ -4170,12 +4258,12 @@ with threading.Condition():
  
  
  
-#### threading.Semaphore信号量 
+#### <a name='threading.Semaphore'></a>threading.Semaphore信号量 
 threading.Semaphore(0).acquire()        # 线程等待获取信号量
 threading.Semaphore(0).release()       # 信号量被释放  
  
 
-#### threading.Lock
+#### <a name='threading.Lock'></a>threading.Lock
 Lock 对象和 with 语句块一起使用可以保证互斥执行，就是每次只有一个线程
 可 以执行 with 语句包含的代码块。with 语句会在这个代码块执行前自动获取
 锁，在执行结束后自动释放锁。 
@@ -4267,121 +4355,73 @@ output:
  
  
  
-#### threading.RLock 
+#### <a name='threading.RLock'></a>threading.RLock 
 可重入锁 
-一个 RLock （可重入锁）可以被同一个线程多次获取，主要用来实现基于监测
-对象模式的锁定和同步。在使用这种锁的情况下，当锁被持有时，只有一个线程
-可以使用完整的函数或者类中的方法。 
+一个 RLock （可重入锁）可以被同一个线程多次获取，主要用来实现基于监测对象模式的锁定和同步。在使用这种锁的情况下，当锁被持有时，只有一个线程可以使用完整的函数或者类中的方法。 
  
 
-线程池 
+#### <a name='-1'></a>线程池 
 创建一个线程池，用来相应客户端请求或者执行其它的工作； 
 concurrent.furtures 函数库中有一个 ThreadPoolExecutor 类可以达到这种效果； 
 pool = ThreadPoolExecutor(128) 
 pool.submit(func, args) 
- 
- 
- 
-<2> 多进程 
-一个程序运行起来后，代码+用到的资源称之为进程，它是操作系统分配资源的
-最小单元。 
-python 的多进程的模块是 multiprocessing，创建进程的方式和线程类似，
-multiprocessing.Process(target=, args=())，另一个种方式就是继承 Processing，重写
-run 方法，创建实例 start； 
-  start 仅仅是向操作系统发出信号，具体谁先执行不一定，由操作系统决定 
-在主进程运行过程中如果想并发地执行其他的任务，我们可以开启子进程，此时
-主进程的任务与子进程的任务分两种情况 
-  情况一：在主进程的任务与子进程的任务彼此独立的情况下，主进程的任务
-先执行完毕后，主进程还需要等待子进程执行完毕，然后统一回收资源。 
-  情况二：如果主进程的任务在执行到某一个阶段时，需要等待子进程执行完
-毕后才能继续执行，就需要有一种机制能够让主进程检测子进程是否运行完毕，
-在子进程执行完毕后才继续执行，否则一直在原地阻塞，这就是 join 方法的作
-用。 
 
-进程间通信 Queue 
+
+
+### <a name='-1'></a>多进程 
+一个程序运行起来后，代码+用到的资源称之为进程，它是操作系统分配资源的最小单元。 
+python 的多进程的模块是 multiprocessing，创建进程的方式和线程类似，multiprocessing.Process(target=, args=())，另一个种方式就是继承 Processing，重写run 方法，创建实例 start； 
+start 仅仅是向操作系统发出信号，具体谁先执行不一定，由操作系统决定。在主进程运行过程中如果想并发地执行其他的任务，我们可以开启子进程，此时主进程的任务与子进程的任务分两种情况 
+情况一：在主进程的任务与子进程的任务彼此独立的情况下，主进程的任务先执行完毕后，主进程还需要等待子进程执行完毕，然后统一回收资源。 
+情况二：如果主进程的任务在执行到某一个阶段时，需要等待子进程执行完毕后才能继续执行，就需要有一种机制能够让主进程检测子进程是否运行完毕，在子进程执行完毕后才继续执行，否则一直在原地阻塞，这就是 join 方法的作用。 
+
+#### <a name='Queue'></a>进程间通信 Queue 
 使用 multiprocessing 模块中的 Queue 实现多进程之间的数据传递，Queue 本身是一个消息队列程序。 
-from multiprocessing import Queue 
- 
+from multiprocessing import Queue
 from multiprocessing import Manager 
 queue = Manager().Queue() 
- 
-进程池 Pool 
+
+
+#### <a name='Pool'></a>进程池 Pool 
 from multiprocessing import Pool 
- 
+
 pool = multiprocessing.Pool(3)，3 表明进程池中初始化 3 个进程，pool.apply_async(worker)
 表明进程池中进程执行任务，每次循环将会用空闲出来的子进程去调用目标； 
 pool.close() # 关闭进程池，关闭后进程池将不再接受请求 
 pool.join()   # 等待 pool 的子进程执行完成，必须放在 pool.close()之后； 
- 
- 
+
+
 def show_video_stats(options): 
     pool = Pool(8) 
     video_page_urls = get_video_page_urls() 
     results = pool.map(get_video_data, video_page_urls) 
 multiprocessing.Pool 类开启了 8 个工作进程等待分配任务运行。 
- 
-调用 pool.map()类似于调用常规的 map()，它将会对第二个参数指定的迭代变量中的每
-个元素调用一次第一个参数指定的函数。最大的不同是，它将发送这些给进程池所拥有
-的进程运行，所以在这个例子中八个任务将会并行运行。 
 
-concurrent.futures.ProcessPoolExecutor    # 计算密集型函数  
+调用 pool.map()类似于调用常规的 map()，它将会对第二个参数指定的迭代变量中的每个元素调用一次第一个参数指定的函数。最大的不同是，它将发送这些给进程池所拥有的进程运行，所以在这个例子中八个任务将会并行运行。 
+
+concurrent.futures.ProcessPoolExecutor    # 计算密集型函数
 简单用法： 
 with ProcessPoolExecutor() as pool: 
     do work in parallel using pool 
 其原理是，一个 ProcessPoolExecutor 创建 N 个独立的 Python 解释器，N 是系统上面可用 CPU 的个数。 
-你可以通过提供可选参数给 ProcessPoolExecutor(N)来修改处理器数量。 
-这个处理池会一直运行到 with 块中最后一个语句执行完成，然后处理池被关闭。 
-不过，程序会一直等待直到所有提交的工作被处理完成。 
-被提交到池中的工作必须被定义为一个函数。 
+你可以通过提供可选参数给 ProcessPoolExecutor(N)来修改处理器数量。
+这个处理池会一直运行到 with 块中最后一个语句执行完成，然后处理池被关闭。
+不过，程序会一直等待直到所有提交的工作被处理完成。被提交到池中的工作必须被定义为一个函数。 
 有两种方法去提交。如果你想让一个列表推导或一个 map()操作并行执行的话，可使用pool.map(): 
-```python
-def work(x):
-    ... 
-    return result 
-# Nonparallel code 
-results = map(work, data) 
-# Parallel implementation 
-with ProcessPoolExecutor() as pool: 
-    results = pool.map(work, data) 
-
-# 另外，你可以使用 pool.submit()来手动的提交单个任务： 
-# Some function 
-def work(x):  
-    ... 
-    return result 
-with ProcessPoolExecutor() as pool: 
-    ... 
- 
-# Example of submitting work to the pool 
- 
-future_result = pool.submit(work, arg) 
- 
-# Obtaining the result (blocks until done) 
- 
-r = future_result.result() 
-
-``` 
  
  
-#### daemon 和 join 的区别 
+#### <a name='daemonjoin'></a>daemon 和 join 的区别 
 守护进程(daemon) 
 主进程创建守护进程 
 其一：守护进程会在主进程代码执行结束后就终止 
-其二：守护进程内无法开启子进程，否则抛出异常：AssertionError: daemonic processes 
-are not allowed to have children 
-注意：进程之间是相互独立的，主进程的代码运行结束，守护进程随即终止 
-p.join([timeout]): 主进程等待相应的子进程 p 终止（强调：是主线程处于等的状态，而 p
-是处于运行的状态）。需要强调的是 p.join()只能 join 住 start 开始的进程，而不能 join
-住 run 开启的进程 
+其二：守护进程内无法开启子进程，否则抛出异常：AssertionError: daemonic processes are not allowed to have children 
+注意：进程之间是相互独立的，主进程的代码运行结束，守护进程随即终止 p.join([timeout]): 主进程等待相应的子进程 p 终止（强调：是主线程处于等的状态，而 p 是处于运行的状态）。需要强调的是 p.join()只能 join 住 start 开始的进程，而不能 join住 run 开启的进程 
  
  
 
-<3> 协程 
-协程实现多任务，意思就是说任务完成或者等待某些条件时，可以在此期间完成
-其它的任务，也就说一个线程等待某些条件，可以充分利用这段时间去完成其它
-事情，这就是协程。 
-生成器替换线程 yield 语句会让它的生成器挂起它的执行，这样可以编写一个调
-度器，将生成器当作某种任务并使用任务协作切换来替换它们执行； 
+### <a name='-1'></a>协程 
+协程实现多任务，意思就是说任务完成或者等待某些条件时，可以在此期间完成其它的任务，也就说一个线程等待某些条件，可以充分利用这段时间去完成其它事情，这就是协程。 
+生成器替换线程 yield 语句会让它的生成器挂起它的执行，这样可以编写一个调度器，将生成器当作某种任务并使用任务协作切换来替换它们执行； 
 def task01(): 
     while True: 
         print("----------task01---------") 
@@ -4480,11 +4520,8 @@ g3.join()
 from gevent import monkey 
 import gevent 
 import time 
- 
- 
-# 有耗时操作时需要 
-gevent.monkey.patch_all()  # 将程序中用到的耗时操作代码，换位 gevent 中自己实现的
-代码 
+
+gevent.monkey.patch_all()  # 将程序中用到的耗时操作代码，换位 gevent 中自己实现的代码 
  
  
 def func1(n): 
@@ -4513,7 +4550,7 @@ g1.join()
 g2.join() 
 g3.join() 
  
-# 以上 6 行代码可以用如下代替： 
+以上 6 行代码可以用如下代替： 
 gevent.joinall([ 
     gevent.spawn(func1, 5), 
     gevent.spawn(func2, 5), 
@@ -4522,21 +4559,15 @@ gevent.joinall([
  
  
  
-asyncio 
-asyncio 是 Python 语言内置的异步编程库，它提供了一种协程（coroutine）基础
-架构，使得开发者能够编写高效的异步代码。asyncio 的核心是事件循环（event 
-loop）、协程和任务（task）。 
-事件循环负责运行异步任务，协程是异步任务的执行单元，任务则是协程的高层
-封装，包含协程的状态信息以及其他必要属性。通过 async/await 语法，开发者可
-以编写类似于同步代码的异步程序。当遇到 IO 操作等阻塞调用时，协程会主动
-挂起并切换到其他协程，直到 IO 操作完成后再切换回来继续执行。这样就避免
-了线程切换时的资源浪费和上下文切换带来的额外消耗。 
-# 同步，是指操作一个接一个地执行，下一个操作必须等上一个操作执行完成之后才能
-开始执行； 
-# 异步，是指不同操作间可以相互交替执行，如果其中地某个操作被堵塞，程序并不会
-等待，而是会找出可执行的操作继续执行。 
+#### <a name='asyncio'></a>asyncio 
+asyncio 是 Python 语言内置的异步编程库，它提供了一种协程（coroutine）基础架构，使得开发者能够编写高效的异步代码。
+asyncio 的核心是事件循环（event loop）、协程和任务（task）。 
+事件循环负责运行异步任务，协程是异步任务的执行单元，任务则是协程的高层封装，包含协程的状态信息以及其他必要属性。通过 async/await 语法，开发者可以编写类似于同步代码的异步程序。当遇到 IO 操作等阻塞调用时，协程会主动
+挂起并切换到其他协程，直到 IO 操作完成后再切换回来继续执行。这样就避免了线程切换时的资源浪费和上下文切换带来的额外消耗。 
+同步，是指操作一个接一个地执行，下一个操作必须等上一个操作执行完成之后才能开始执行； 
+异步，是指不同操作间可以相互交替执行，如果其中地某个操作被堵塞，程序并不会等待，而是会找出可执行的操作继续执行。 
  
-# 什么是 Asyncio? 
+什么是 Asyncio? 
 Asyncio 和其他 Python 程序一样，是单线程的，它只有一个主线程，但可以进行多个不
 同的任务。这里的任务，指的就是特殊的 future 对象，我们可以把它类比成多线程版本
 里的多个线程。 
@@ -4566,11 +4597,11 @@ Asyncio 和其他 Python 程序一样，是单线程的，它只有一个主线�
  
  
  
-#  event_loop 事件循环 
+event_loop 事件循环 
 程序开启一个无限的循环，程序员会把一些函数注册到事件循环上。当满足事件发生的
 时候，调用相应的协程函数。 
  
-# coroutine 协程 
+coroutine 协程 
 协程对象，指一个使用 async 关键字定义的函数，它的调用不会立即执行函数，而是会
 返回一个协程对象。协程对象需要注册到事件循环，由事件循环调用。 
 def test_define_coroutine(): 
@@ -4586,11 +4617,12 @@ def test_define_coroutine():
     print('Time lost: %s' % (now() - start)) 
  
  
-# task 任务 
+task 任务 
 一个协程对象就是一个原生可以挂起的函数，任务则是对协程进一步封装，其中包含任
 务 的 各 种 状 态 。 协 程 对 象 不 能 直 接 运 行 ， 在 注 册 事 件 循 环 的 时 候 ， 其 实 是
 run_until_complete 方法将协程包装成为了一个任务（task）对象。所谓 task 对象是 Future
 类的子类。保存了协程运行后的状态，用于未来获取协程的结果。 
+```python
 def test_task(): 
     async def do_some_work(x): 
         print('waiting: {}'.format(x)) 
@@ -4605,36 +4637,27 @@ def test_task():
     loop.run_until_complete(task) 
     print(task) 
     print('Time lost: %s' % (now() - start)) 
-# <Task pending name='Task-1' coro=<test_task.<locals>.do_some_work() running at 
-F:/projects/python/test_coroutine/test_asyncio.py:52>> 
+# <Task pending name='Task-1' coro=<test_task.<locals>.do_some_work() running at F:/projects/python/test_coroutine/test_asyncio.py:52>> 
 # waiting: 4 
-# <Task finished name='Task-1' coro=<test_task.<locals>.do_some_work() done, defined at 
-F:/projects/python/test_coroutine/test_asyncio.py:52> result=None> 
+# <Task finished name='Task-1' coro=<test_task.<locals>.do_some_work() done, defined at F:/projects/python/test_coroutine/test_asyncio.py:52> result=None> 
 # Time lost: 0.0006648999999999683 
  
-# 创建 task 后，task 在加入事件循环之前是 pending 状态，因为 do_some_work 中没有
-耗时的阻塞操作，task 很快就执行完毕了。后面打印的 finished 状态。 
-# asyncio.ensure_future(coroutine) 和 loop.create_task(coroutine)都可以创建一个 task，
-run_until_complete 的参数是一个 futrue 对象。当传入一个协程，其内部会自动封装成
-task，task 是 Future 的子类。isinstance(task, asyncio.Future)将会输出 True。 
- 
+# 创建 task 后，task 在加入事件循环之前是 pending 状态，因为 do_some_work 中没有耗时的阻塞操作，task 很快就执行完毕了。后面打印的 finished 状态。 
+# asyncio.ensure_future(coroutine) 和 loop.create_task(coroutine)都可以创建一个 task，run_until_complete 的参数是一个 futrue 对象。当传入一个协程，其内部会自动封装成task，task 是 Future 的子类。isinstance(task, asyncio.Future)将会输出 True。
 # task 的 result,run_until_complete()执行后，task.result()可以获取协程 return 结果; 
+
+```
  
  
- 
-# future 
-代表将来执行或没有执行的任务的结果。它和 task 上没有本质的区别 
+future 代表将来执行或没有执行的任务的结果。它和 task 上没有本质的区别 
  
  
-# async/await 关键字 
-python3.5 用于定义协程的关键字，async 定义一个协程，await 用于挂起阻塞的异步调
-用接口。 
-# Async 和 await 关键字是 Asyncio 的最新写法，表示这个语句（函数）是非阻塞的，
-正好对应前面所讲的事件循环的概念，即如果任务执行的过程需要等待，则将其放入等
-待状态的列表中，然后继续执行预备状态列表里的任务; 
-# 使用 async 可以定义协程对象，使用 await 可以针对耗时的操作进行挂起，就像生成
-器里的 yield 一样，函数让出控制权。协程遇到 await，事件循环将会挂起该协程，执行
+async/await 关键字 python3.5 用于定义协程的关键字，async 定义一个协程，await 用于挂起阻塞的异步调用接口。 
+Async 和 await 关键字是 Asyncio 的最新写法，表示这个语句（函数）是非阻塞的，
+正好对应前面所讲的事件循环的概念，即如果任务执行的过程需要等待，则将其放入等待状态的列表中，然后继续执行预备状态列表里的任务; 
+使用 async 可以定义协程对象，使用 await 可以针对耗时的操作进行挂起，就像生成器里的 yield 一样，函数让出控制权。协程遇到 await，事件循环将会挂起该协程，执行
 别的协程，直到其他的协程也挂起或者执行完毕，再进行下一个协程的执行。 
+```python
 def test_await(): 
     async def do_some_work(x): 
         print('Waiting: {}'.format(x)) 
@@ -4651,18 +4674,17 @@ def test_await():
     print('Time lost: %s' % (now() - start)) 
      
 # output: 
-Waiting: 4 
-Task ret:  Done after 4s 
-Time lost: 4.00298 
+# Waiting: 4 
+# Task ret:  Done after 4s 
+# Time lost: 4.00298 
+ 
+```
  
  
+asyncio.ensure_future(coro) 表示对输入的协程 coro 创建一个任务，安排它的执行，并返回此任务对象。 
+asyncio.gather() 表示在事件循环对象中运行 aws 序列的所有任务。 
  
-# asyncio.ensure_future(coro) 表示对输入的协程 coro 创建一个任务，安排它的执行，并
-返回此任务对象。 
- 
-# asyncio.gather() 表示在事件循环对象中运行 aws 序列的所有任务。 
- 
-# asyncio 实现并发 
+asyncio 实现并发 
 def test_concurrent_using_asyncio(): 
     async def do_some_work(x): 
         print('Waiting: {}'.format(x)) 
@@ -4683,7 +4705,7 @@ def test_concurrent_using_asyncio():
         print("Task ret: ", task.result()) 
     print('Time lost: %s' % (now() - start)) 
   
-# output: 
+output: 
 Waiting: 1 
 Waiting: 2 
 Waiting: 4 
@@ -4691,17 +4713,17 @@ Task ret:  Done after 1s
 Task ret:  Done after 2s 
 Task ret:  Done after 4s 
 Time lost: 4.0084599999999995 
-# asyncio.wait(tasks)也可以使用 asyncio.gather(*tasks),前者接受一个 task 列表，后者接收
-一堆 task。 
+asyncio.wait(tasks)也可以使用 asyncio.gather(*tasks),前者接受一个 task 列表，后者接收一堆 task。 
  
  
  
  
-<4> queue 
+### <a name='queue'></a>queue 
 队列是将数据存到内存中处理，这就满足了“效率高”这个要求，另外，队列是基
 于“管道+锁”设计的，所以另外一点也满足了。事实上，队列才是进程间通信（IPC）
 的最佳选择！ 
 另外需要大家注意的是：队列是一种先进先出的数据结构。 
+```python
 def producer(queue): 
     for i in range(4): 
         res = '商品%s' % (i + 1) 
@@ -4749,8 +4771,8 @@ output:
 消费者 15120 消费了商品 3 
 消费者 13816 消费了商品 3 
 消费者 15120 消费了商品 4 
-消费者 13816 消费了商品 4 
- 
+消费者 13816 消费了商品 4
+``` 
  
 创建队列----queue.Queue(),此对象不可迭代，要迭代使用 queue.Queue().queue； 
 队列的元素个数----queue.Queue().qsize(); 
@@ -4763,29 +4785,21 @@ output:
  
 解释一下什么是锁，有哪几种锁？ 
 锁(Lock)是 python 提供的对线程控制的对象。有互斥锁，可重入锁，死锁。 
- 
- 
- 
- 
-死锁 
-在两个或者多个并发进程中，每个进程持有某种资源而又等待其它进程释放它们
-现在保持着的资源，在未改变这种状态之前都不能向前推进，称这一组进程产生
-了死锁(deadlock)。通俗的讲就是两个或多个进程无限期的阻塞、相互等待的一种
-状态。 
-死锁产生的必要条件？ 
+
+
+### <a name='-1'></a>死锁
+在两个或者多个并发进程中，每个进程持有某种资源而又等待其它进程释放它们现在保持着的资源，在未改变这种状态之前都不能向前推进，称这一组进程产生了死锁(deadlock)。通俗的讲就是两个或多个进程无限期的阻塞、相互等待的一种状态。 
+
+死锁产生的必要条件？
 互斥：一个资源一次只能被一个进程使用； 
-占有并等待：一个进程至少占有一个资源，并在等待另一个被其它进程占用的资
-源； 
-非抢占：已经分配给一个进程的资源不能被强制性抢占，只能由进程完成任务之
-后自愿释放； 
-循环等待：若干进程之间形成一种头尾相接的环形等待资源关系，该环路中的每
-个进程都在等待下一个进程所占有的资源。 
- 
-死锁有哪些处理方法？ 
+占有并等待：一个进程至少占有一个资源，并在等待另一个被其它进程占用的资源； 
+非抢占：已经分配给一个进程的资源不能被强制性抢占，只能由进程完成任务之后自愿释放； 
+循环等待：若干进程之间形成一种头尾相接的环形等待资源关系，该环路中的每个进程都在等待下一个进程所占有的资源。 
+
+死锁有哪些处理方法？
 鸵鸟策略 
-直接忽略死锁。因为解决死锁问题的代价很高，因此鸵鸟策略这种不采取任务措
-施的方案会获得更高的性能。当发生死锁时不会对用户造成多大影响，或发生死
-锁的概率很低，可以采用鸵鸟策略。 
+直接忽略死锁。因为解决死锁问题的代价很高，因此鸵鸟策略这种不采取任务措施的方案会获得更高的性能。当发生死锁时不会对用户造成多大影响，或发生死锁的概率很低，可以采用鸵鸟策略。 
+
 死锁预防 
 基本思想是破坏形成死锁的四个必要条件： 
 破坏互斥条件：允许某些资源同时被多个进程访问。但是有些资源本身并不具有
@@ -4795,10 +4809,7 @@ output:
 占用资源的时候才能申请资源（申请资源前先释放占有的资源）； 
 缺点：很多时候无法预知一个进程所需的全部资源；同时，会降低资源利用率，
 降低系统的并发性； 
-破坏非抢占条件：允许进程强行抢占被其它进程占有的资源。会降低系统性能； 
-破坏循环等待条件：对所有资源统一编号，所有进程对资源的请求必须按照序号
-递增的顺序提出，即只有占有了编号较小的资源才能申请编号较大的资源。这样
-避免了占有大号资源的进程去申请小号资源。 
+破坏非抢占条件：允许进程强行抢占被其它进程占有的资源。会降低系统性能；破坏循环等待条件：对所有资源统一编号，所有进程对资源的请求必须按照序号递增的顺序提出，即只有占有了编号较小的资源才能申请编号较大的资源。这样避免了占有大号资源的进程去申请小号资源。 
 死锁避免 
 动态地检测资源分配状态，以确保系统处于安全状态，只有处于安全状态时才会
 进行资源的分配。所谓安全状态是指：即使所有进程突然请求需要的所有资源，
@@ -4810,29 +4821,23 @@ output:
 处于饥饿状态； 
 利用回滚：让某些进程回退到足以解除死锁的地步，进程回退时自愿释放资源。
 要求系统保持进程的历史信息，设置还原点； 
-利用杀死进程：强制杀死某些进程直到死锁解除为止，可以按照优先级进行。 
- 
- 
- 
- 
- 
+利用杀死进程：强制杀死某些进程直到死锁解除为止，可以按照优先级进行。
+
+
+
+
+
 多线程交互访问数据，如果访问到了就不访问了？ 
-怎么避免重读？ 
-创建一个已访问数据列表，用于存储已经访问过的数据，并加上互斥锁，在多线
-程访问数据的时候先查看数据是否在已访问的列表中，若已存在就直接跳过。 
- 
- 
- 
-什么是线程安全，什么是互斥锁？ 
-每个对象都对应于一个可称为互斥锁的标记，这个标记用来保证在任一时刻，只
-能有一个线程访问该对象。 
-同一进程中的多线程之间是共享系统资源的，多个线程同时对一个对象进行操作，
-一个线程操作尚未结束，另一线程已经对其进行操作，导致最终结果出现错误，
-此时需要对被操作对象添加互斥锁，保证每个线程对该对象的操作都得到正确的
-结果。 
- 
- 
- 
+怎么避免重读？
+创建一个已访问数据列表，用于存储已经访问过的数据，并加上互斥锁，在多线程访问数据的时候先查看数据是否在已访问的列表中，若已存在就直接跳过。 
+
+
+什么是线程安全，什么是互斥锁？
+每个对象都对应于一个可称为互斥锁的标记，这个标记用来保证在任一时刻，只能有一个线程访问该对象。 
+同一进程中的多线程之间是共享系统资源的，多个线程同时对一个对象进行操作，一个线程操作尚未结束，另一线程已经对其进行操作，导致最终结果出现错误，此时需要对被操作对象添加互斥锁，保证每个线程对该对象的操作都得到正确的结果。 
+
+
+
 说说下面几个概念：同步，异步，阻塞，非阻塞？ 
 同步： 多个任务之间有先后顺序执行，一个执行完下个才能执行。 
 异步： 多个任务之间没有先后顺序，可以同时执行，有时候一个任务可能要在
@@ -4840,9 +4845,9 @@ output:
 阻塞： 如果卡住了调用者，调用者不能继续往下执行，就是说调用者阻塞了。 
 非阻塞： 如果不会卡住，可以继续执行，就是说非阻塞的。 
 同步异步相对于多任务而言，阻塞非阻塞相对于代码执行而言。 
- 
- 
- 
+
+
+
 什么是僵尸进程和孤儿进程？怎么避免僵尸进程？
 ok 
 孤儿进程： 父进程退出，子进程还在运行的这些子进程都是孤儿进程，孤儿进
@@ -4886,10 +4891,9 @@ CPU 密集型： 大部分时间用来做计算，逻辑判断等 CPU 动作的�
  
 python asyncio 的原理？ 
 asyncio 这个库就是使用 python 的 yield 这个可以打断保存当前函数的上下文的
-机制， 封装好了 selector 摆脱掉了复杂的回调关系 
- 
- 
- 
+机制， 封装好了 selector 摆脱掉了复杂的回调关系
+
+
 简述乐观锁和悲观锁 
 悲观锁, 就是很悲观，每次去拿数据的时候都认为别人会修改，所以每次在拿数
 据的时候都会上锁，这样别人想拿这个数据就会 block 直到它拿到锁。传统的关
@@ -8277,7 +8281,7 @@ test_valid_ip_address(addr2) # valid ip address
  
  
  
-异常 
+## <a name='-1'></a>异常 
 AttributeError 试图访问一个对象没有的树形，比如 foo.x，但是 foo 没有属性 x 
 IOError 输入/输出异常；基本上是无法打开文件 
 ImportError 无法引入模块或包；基本上是路径问题或名称错误 
@@ -8291,31 +8295,30 @@ UnboundLocalError 试图访问一个还未被设置的局部变量，基本上�
 的全局变量，导致你以为正在访问它 
 ValueError 传入一个调用者不期望的值，即使值的类型是正确的 
 SyntaxError:Python 代码逻辑语法出错，不能执行 
+
+
  
-设计模式 
-单例模式的应用场景有那些？ 
-单例模式应用的场景一般发现在以下条件下：资源共享的情况下，避免由于资源
-操作时导致的性能或损耗等，如日志文件，应用配置。 控制资源的情况下，方
-便资源之间的互相通信。如线程池等， 
+## <a name='-1'></a>设计模式 
+### <a name='-1'></a>单例模式的应用场景有那些？ 
+单例模式应用的场景一般发现在以下条件下：资源共享的情况下，避免由于资源操作时导致的性能或损耗等，如日志文件，应用配置。 控制资源的情况下，方便资源之间的互相通信。如线程池等， 
 1.网站的计数器 
 2.应用配置 
 3.多线程池 
 4.数据库配置 数据库连接池 
 5.应用程序的日志应用... 
-说说你对代理模式的理解  
-代理模式是给某一个对象提供一个代理，并由代理对象控制对原对象的引用。 优
-点： 代理模式能够协调调用者和被调用者，在一定程度上降低了系统的耦合度； 
-可以灵活地隐藏被代理对象的部分功能和服务，也增加额外的功能和服务。 缺
-点： 由于使用了代理模式，因此程序的性能没有直接调用性能高； 使用代理模
-式提高了代码的复杂度。 黄牛卖火车票：没有流行网络购票的年代是很喜欢找
-黄牛买火车票的，因为工作忙的原因，没时间 去买票，然后就托黄牛给你买张
-回家过年的火车票。这个过程中黄牛就是代理人，火车票就是被代 理的对象。 
-婚姻介绍所：婚姻介绍所的工作人员，搜集单身人士信息，婚介所的工作人员为
-这个单身人士找对 象，这个过程也是代理模式的生活案例。对象就是被代理的
-对象。 注意了，问代理模式的时候，很有可能会问：动态代理。在 Spring 篇中
-已经讲述过，如果你把动态 代理讲了后，很有可能还会问什么是静态代理？一
-个动一个是静，大致也能才出来，就是中间代理层使我们手动写的，通常说的代
-理模式就是静态代理。  
+
+### <a name='-1'></a>代理模式
+代理模式是给某一个对象提供一个代理，并由代理对象控制对原对象的引用。 
+优点： 代理模式能够协调调用者和被调用者，在一定程度上降低了系统的耦合度；可以灵活地隐藏被代理对象的部分功能和服务，也增加额外的功能和服务。 
+缺点： 由于使用了代理模式，因此程序的性能没有直接调用性能高； 使用代理模式提高了代码的复杂度。 
+黄牛卖火车票：没有流行网络购票的年代是很喜欢找黄牛买火车票的，因为工作忙的原因，没时间去买票，然后就托黄牛给你买张回家过年的火车票。 这个过程中黄牛就是代理人，火车票就是被代理的对象。
+婚姻介绍所：婚姻介绍所的工作人员，搜集单身人士信息，婚介所的工作人员为这个单身人士找对 象，这个过程也是代理模式的生活案例。对象就是被代理的对象。
+
+静态代理模式中，代理类在编译时就已经确定了；代理类和被代理类实现同一个接口或继承同一个父类，以便代理类可以代理被代理类的行为。
+在动态代理模式中，代理类在运行时动态生成。动态代理模式通过反射或字节码操作等方式，在运行时创建代理对象，无需预先定义代理类。
+
+代码实现就是代理类和被代理类继承同一类，代理类实例化时带上被代理类，实际调用时就是在代理类中调用被代理类的方法；
+```python
 from abc import ABC, abstractmethod 
  
  
@@ -8362,13 +8365,13 @@ if __name__ == "__main__":
  
     print("Client: Executing the same client code with a proxy:") 
     proxy = Proxy(real_subject) 
-    client_code(proxy) 
-说说工厂模式  
-该模式旨在创建对象而无需指定具体类。我们可以通过定义一个工厂函数或者类
-来实现它。例如，假设我们正在创建一个游戏，需要创建多个不同类型的角色对
-象，可以使用工厂模式来创建这些对象。工厂模式的优点是可以将对象的创建和
-使用分离，使得代码更加灵活和可扩展；缺点是增加了代码的复杂度和工作量，
-需要额外编写工厂类。 
+    client_code(proxy)
+```
+
+### <a name='-1'></a>工厂模式
+该模式旨在创建对象而无需指定具体类。我们可以通过定义一个工厂函数或者类来实现它。
+例如，假设我们正在创建一个游戏，需要创建多个不同类型的角色对象，可以使用工厂模式来创建这些对象。工厂模式的优点是可以将对象的创建和使用分离，使得代码更加灵活和可扩展；缺点是增加了代码的复杂度和工作量，需要额外编写工厂类。 
+```python
 from abc import ABC, abstractmethod 
  
 class Character(ABC): 
@@ -8399,17 +8402,20 @@ knight = factory.create_character('knight')
 mage = factory.create_character('mage') 
  
 knight.say_hello()  # Output: "I'm a knight!" 
-mage.say_hello()    # Output: "I'm a mage!" 
- 
-策略模式 
-在 Python 中实现策略模式，可以通过定义抽象策略类和具体策略类，以及包含
-策略对象的上下文类来完成。具体代码实现如下： 
-# 抽象策略类 
+mage.say_hello()    # Output: "I'm a mage!"
+```
+
+
+### <a name='-1'></a>策略模式
+在 Python 中实现策略模式，可以通过定义抽象策略类和具体策略类，以及包含策略对象的上下文类来完成。
+具体代码实现如下：
+```python
+# 抽象策略类
 class Strategy: 
     def do_strategy(self): 
-        pass 
+        pass
  
-# 具体策略类 1 
+# 具体策略类 1
 class StrategyA(Strategy): 
     def do_strategy(self): 
         print("执行策略 A") 
@@ -8428,110 +8434,648 @@ class Context:
         self.strategy = strategy 
  
     def execute_strategy(self): 
-        self.strategy.do_strategy() 
-在上述实现中，抽象策略类 Strategy 定义了一个抽象方法 do_strategy()，具体策
-略类 StrategyA 和 StrategyB 分别实现了该方法，上下文类 Context 包含一个策略
-对象，并提供了设置策略和执行策略方法。 
- 
-策略模式的优点是能够更轻松地对算法进行切换和替换，使得代码更加灵活和可
-扩展；同时不需要创建额外的类，因此较为简洁。缺点是会使得代码变得更加分
-散和复杂，需要开发人员有较高的设计能力和抽象能力。 
- 
-访问者模式
+        self.strategy.do_strategy()
+```
 
-抽象工厂模式  
-答：抽象工厂模式是在简单工厂的基础上将未来可能需要修改的代码抽象出来，
-通过继承的方式让子类去做决定。 比如，以上面的咖啡工厂为例，某天我的口
-味突然变了，不想喝咖啡了想喝啤酒，这个时候如果直接修改简单工厂里面的代
-码，这种做法不但不够优雅，也不符合软件设计的“开闭原则”，因为每次新增品
-类都要修改原来的代码。这个时候就可以使用抽象工厂类了，抽象工厂里只声明
-方法，具体的实现交给子类（子工厂）去实现，这个时候再有新增品类的需求，
-只需要新创建代码即可。  
-装饰器模式是什么  
-答：装饰器模式是指动态地给一个对象增加一些额外的功能，同时又不改变其结
-构。 优点：装饰类和被装饰类可以独立发展，不会相互耦合，装饰模式是继承
-的一个替代模式，装饰模式可以动态扩展一个实现类的功能。 装饰器模式的关
-键：装饰器中使用了被装饰的对象。比如，创建一个对象“laowang”，给对象添加
-不同的装饰，穿上夹克、戴上帽子......，这个执行过程就是装饰者模式。 一句名
-言：人靠衣裳马靠鞍。都是装饰器模式的生活案列。  
-代理模式和装饰器模式有什么区别？  
-答：都是结构型模式，代理模式重在访问权限的控制，而装饰器模式重在功能的
-加强。  
-模板方法模式  
-答：模板方法模式是指定义一个算法骨架，将具体内容延迟到子类去实现。 优
-点： 提高代码复用性：将相同部分的代码放在抽象的父类中，而将不同的代码
-放入不同的子类中； 实现了反向控制：通过一个父类调用其子类的操作，通过
-对子类的具体实现扩展不同的行为， 实现了反向控制并且符合开闭原则。 喝茶
-茶：烧水----放入茶叶---喝茶。放入的茶叶每个人自己的喜好不一样，有的是普
-洱、有的是铁观 音等。 每日工作：上班打卡----工作---下班打卡。每个人工作的
-内容不一样，后端开发的、前端开发、测 试、产品每个人的工作内容不一样。  
-知道享元模式吗？  
-答：顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提
-是享元对象是不可 变对象。 具体来讲，当一个系统中存在大量重复对象的时候，
-如果这些重复的对象是不可变对象，我们就可 以利用享元模式将对象设计成享
-元，在内存中只保留一份实例，供多处代码引用。这样可以减少内 存中对象的
-数量，起到节省内存的目的。 典型的使用场景：Integer 中 cache，就是享元模式
-很经典的实现。 怎么看起来享元模式和单例模式是一毛一样的？面试官很有可
-能会继续问：  
-享元模式和单例模式的区别？  
-答：单例模式是创建型模式，重在只能有一个对象。而享元模式是结构型模式，
-重在节约内存使 用，提升程序性能。 享元模式：把一个或者多可对象霍村起来，
-用的时候，直接从缓存里获取。也就是说享元模式不一 定只有一个对象。  
+在上述实现中，抽象策略类 Strategy 定义了一个抽象方法 do_strategy()，具体策略类 StrategyA 和 StrategyB 分别实现了该方法，上下文类 Context 包含一个策略对象，并提供了设置策略和执行策略方法。
+策略模式的优点是能够更轻松地对算法进行切换和替换，使得代码更加灵活和可扩展；同时不需要创建额外的类，因此较为简洁。缺点是会使得代码变得更加分散和复杂，需要开发人员有较高的设计能力和抽象能力。 
+
+
 说说策略模式在我们生活的场景？  
-答：策略模式是指定义一系列算法，将每个算法都封装起来，并且使他们之间可
-以相互替换。 优点：遵循了开闭原则，扩展性良好。 缺点：随着策略的增加，
-对外暴露越来越多。 条条大路通罗马，条条大路通北京。 我们去北京的交通方
-式（策略）很多，比如说坐飞机、坐高铁、自己开车等方式。每一种方式就可 以
-理解为每一种策略。 这就是生活中的策略模式。  
-知道责任链模式吗？  
-答：是行为型设计模式之一，其将链中每一个节点看作是一个对象，每个节点处
-理的请求均不同， 且内部自动维护一个下一节点对象。当一个请求从链式的首
-端发出时，会沿着链的路径依次传递给 每一个节点对象，直至有对象处理这个
-请求为止。 优点 解耦了请求与处理； 请求处理者（节点对象）只需关注自己
-感兴趣的请求进行处理即可，对于不感兴趣的请求，直 接转发给下一级节点对
-象； 具备链式传递处理请求功能，请求发送者无需知晓链路结构，只需等待请
-求处理结果； 链路结构灵活，可以通过改变链路结构动态地新增或删减责任； 
-易于扩展新的请求处理类（节点），符合 开闭原则； 缺点 责任链路过长时，
-可能对请求传递处理效率有影响； 如果节点对象存在循环引用时，会造成死循
-环，导致系统崩溃； 生活案列：我们在公司内部发起一个 OA 审批流程，项目
-经理审批、部门经理审批。老板审批、人力 审批。这就是生活中的责任链模式，
-每个角色的责任是不同。 SpringMVC 中的拦截器和 Mybatis 中的插件机制，都
-是拦截器经典实现。  
-了解过适配器模式么？  
-答：适配器模式是将一个类的接口变成客户端所期望的另一种接口，从而使原本
-因接口不匹配而无 法一起工作的两个类能够在一起工作。 优点： 可以让两个
-没有关联的类一起运行，起着中间转换的作用； 灵活性好，不会破坏原有的系
-统。 缺点：过多地使用适配器，容易使代码结构混乱，如明明看到调用的是 A 
-接口，内部调用的却是 B 接口的实现。 生活中的插座，为了适应各种插头，然
-后上面有两个孔的，三个空的，基本都能适应。还有万能充 电器、USB 接口等。
-这些都是生活中的适配器模式。  
-知道观察者模式吗？  
-答：观察者模式是定义对象间的一种一对多依赖关系，使得每当一个对象状态发
-生改变时，其相关 依赖对象皆得到通知并被自动更新。观察者模式又叫做发布
--订阅（Publish/Subscribe）模式、模 型-视图（Model/View）模式、源-监听器
-（Source/Listener）模式或从属者（Dependents）模 式。 优点： 观察者模式可
-以实现表示层和数据逻辑层的分离，并定义了稳定的消息更新传递机制，抽象了 
-更新接口，使得可以有各种各样不同的表示层作为具体观察者角色； 观察者模
-式在观察目标和观察者之间建立一个抽象的耦合； 观察者模式支持广播通信； 
-观察者模式符合开闭原则（对拓展开放，对修改关闭）的要求。 缺点： 如果一
-个观察目标对象有很多直接和间接的观察者的话，将所有的观察者都通知到会花
-费很多 时间； 如果在观察者和观察目标之间有循环依赖的话，观察目标会触发
-它们之间进行循环调用，可能 导致系统崩溃； 观察者模式没有相应的机制让观
-察者知道所观察的目标对象是怎么发生变化的，而仅仅只是知 道观察目标发生
-了变化。 在观察者模式中有如下角色： Subject：抽象主题（抽象被观察者），
-抽象主题角色把所有观察者对象保存在一个集合里，每 个主题都可以有任意数
-量 的 观 察 者 ， 抽 象 主 题 提 供 一 个 接 口 ， 可 以 增 加 和 删 除 观 察 者 对 象 ； 
-ConcreteSubject：具体主题（具体被观察者），该角色将有关状态存入具体观察
-者对象，在 具体主题的内部状态发生改变时，给所有注册过的观察者发送通知； 
-Observer：抽象观察者，是观察者者的抽象类，它定义了一个更新接口，使得在
-得到主题更改 通知时更新自己； ConcrereObserver：具体观察者，实现抽象观察
-者定义的更新接口，以便在得到主题更改通知 时更新自身的状态。 在 Spring 中
-大量的使用的观察者模式，只要看到是以 Event 结尾或者 Publish 开头的基本上
-都是观察者模式。 
- 
+答：策略模式是指定义一系列算法，将每个算法都封装起来，并且使他们之间可以相互替换。 
+优点：遵循了开闭原则，扩展性良好。 缺点：随着策略的增加，对外暴露越来越多。 条条大路通罗马，条条大路通北京。 我们去北京的交通方式（策略）很多，比如说坐飞机、坐高铁、自己开车等方式。每一种方式就可以理解为每一种策略。 这就是生活中的策略模式。  
 
-# 15. 算法
-##  23. <a name='-1'></a>1. 合并两个无序链表
+
+### <a name='-1'></a>访问者模式
+```python
+from abc import ABC, abstractmethod
+
+
+class Element(ABC):
+    @abstractmethod
+    def accept(self, visitor):
+        pass
+
+
+class ConcreteElementA(Element):
+    def accept(self, visitor):
+        visitor.visit_concrete_element_a(self)
+
+    def operation_a(self):
+        return "ConcreteElementA operation A."
+
+
+class ConcreteElementB(Element):
+    def accept(self, visitor):
+        visitor.visit_concrete_element_b(self)
+
+    def operation_b(self):
+        return "ConcreteElementB operation B."
+
+
+class Visitor(ABC):
+    @abstractmethod
+    def visit_concrete_element_a(self, element):
+        pass
+
+    @abstractmethod
+    def visit_concrete_element_b(self, element):
+        pass
+
+
+class ConcreteVisitor1(Visitor):
+    def visit_concrete_element_a(self, element):
+        print("ConcreteVisitor1 visited ConcreteElementA.")
+        print(element.operation_a())
+
+    def visit_concrete_element_b(self, element):
+        print("ConcreteVisitor1 visited ConcreteElementB.")
+        print(element.operation_b())
+
+
+class ConcreteVisitor2(Visitor):
+    def visit_concrete_element_a(self, element):
+        print("ConcreteVisitor2 visited ConcreteElementA.")
+        print(element.operation_a())
+
+    def visit_concrete_element_b(self, element):
+        print("ConcreteVisitor2 visited ConcreteElementB.")
+        print(element.operation_b())
+
+
+class ObjectStructure:
+    def __init__(self):
+        self._elements = []
+
+    def attach(self, element):
+        self._elements.append(element)
+
+    def detach(self, element):
+        self._elements.remove(element)
+
+    def accept(self, visitor):
+        for element in self._elements:
+            element.accept(visitor)
+
+
+if __name__ == "__main__":
+    object_structure = ObjectStructure()
+    object_structure.attach(ConcreteElementA())
+    object_structure.attach(ConcreteElementB())
+
+    visitor1 = ConcreteVisitor1()
+    visitor2 = ConcreteVisitor2()
+
+    object_structure.accept(visitor1)
+    print("-" * 20)
+    object_structure.accept(visitor2)
+
+```
+这个例子中，我们先定义了两个元素类 ConcreteElementA 和 ConcreteElementB，它们都继承于 Element 抽象基类，并实现了 accept() 方法。接着定义了两个访问者类 ConcreteVisitor1 和 ConcreteVisitor2，它们都继承于 Visitor 抽象基类，并实现了 visit_concrete_element_a() 和 visit_concrete_element_b() 方法。
+最后我们定义了一个对象结构类 ObjectStructure，用于管理元素对象，并向外提供访问接口。在这个类中，我们定义了 attach()、detach() 和 accept() 方法，分别用于添加/删除元素对象和接受访问者访问元素对象。
+当我们创建完元素对象并添加到对象结构中后，可以通过调用 accept() 方法接受访问者的访问，这个过程中通过动态多态性调用相应的 visit_concrete_element_a() 和 visit_concrete_element_b() 方法，实现了访问者对元素的操作。
+在这个示例中，我们创建了两个不同的访问者对象 visitor1 和 visitor2，它们分别对相同的元素对象进行不同的操作。最后我们通过调用 accept() 方法，分别接受两个访问者的访问，并输出结果。
+
+
+### <a name='-1'></a>抽象工厂模式
+答：抽象工厂模式是在简单工厂的基础上将未来可能需要修改的代码抽象出来，通过继承的方式让子类去做决定。 
+比如，以上面的咖啡工厂为例，某天我的口味突然变了，不想喝咖啡了想喝啤酒，这个时候如果直接修改简单工厂里面的代码，这种做法不但不够优雅，也不符合软件设计的“开闭原则”，因为每次新增品 类都要修改原来的代码。
+这个时候就可以使用抽象工厂类了，抽象工厂里只声明方法，具体的实现交给子类（子工厂）去实现，这个时候再有新增品类的需求，只需要新创建代码即可。
+
+抽象工厂模式包含以下几个核心角色：
+抽象工厂（Abstract Factory）：声明了一组用于创建产品对象的方法，每个方法对应一种产品类型。抽象工厂可以是接口或抽象类。
+具体工厂（Concrete Factory）：实现了抽象工厂接口，负责创建具体产品对象的实例。
+抽象产品（Abstract Product）：定义了一组产品对象的共同接口或抽象类，描述了产品对象的公共方法。
+具体产品（Concrete Product）：实现了抽象产品接口，定义了具体产品的特定行为和属性。
+
+```python
+# Python原生默认不支持接口，默认多继承，所有的方法都必须不能实现
+from abc import  abstractmethod,ABCMeta
+
+# 创建一个接口Shape
+class Shape(metaclass=ABCMeta):
+    @abstractmethod
+    def draw(self):
+        pass
+#创建Shape的实体类
+class Rectangle(Shape):
+    def draw(self):
+        print("Inside Rectangel:draw() method.")
+
+class Square(Shape):
+    def draw(self):
+        print("Inside Square:draw() method.")
+
+class Circle(Shape):
+    def draw(self):
+        print("Inside Circle:draw() method.")
+
+# 创建一个接口Color
+class Color(metaclass=ABCMeta):
+    @abstractmethod
+    def fill(self):
+        pass
+# 创建Color的实体类
+class Red(Color):
+    def fill(self):
+        print("Inside Red.fill() method.")
+
+class Green(Color):
+    def fill(self):
+        print("Inside Green.fill() method.")
+
+class Blue(Color):
+    def fill(self):
+        print("Inside Blue.fill() method.")
+
+#创建抽象工厂
+class AbstractFactory(metaclass=ABCMeta):
+    @abstractmethod
+    def getColor(self,color):
+        pass
+
+    @abstractmethod
+    def getShape(self,shape):
+        pass
+
+#创建抽象工厂实例 ShapeFactory,ColorFactory
+class ShapeFactory(AbstractFactory):
+    def getShape(self,shapeType):
+        if shapeType == None :
+            return None
+        elif shapeType.upper() == "CIRCLE":
+            return Circle()
+        elif shapeType.upper() == "RECTANGLE":
+            return Rectangle()
+        elif shapeType.upper() == "SQUARE":
+            return Square()
+        return None
+    def getColor(self,colorType):
+        pass
+
+class ColorFactory(AbstractFactory):
+    def getShape(self,shapeType):
+        pass
+    def getColor(self,colorType):
+        if colorType == None:
+            return None
+        elif colorType.upper() == "RED":
+            return Red()
+        elif colorType.upper() == "GREEN":
+            return Green()
+        elif colorType.upper() == "BLUE":
+            return Blue()
+        return None
+
+# 创建工厂创造器/生产器类
+class FactoryProducer(object):
+    @staticmethod
+    # 这里不能写成 def getFactory(self,choiceType): 否则会报错
+    # 因为是静态方法，被直接调用，所以不能带self参数
+    # 如果不是静态方法，必须加self参数，且需要先实例化对象，再用实例化的对象调用方法
+    def getFactory(choiceType):
+        if choiceType.upper() == "SHAPE":
+            return ShapeFactory()
+        elif choiceType.upper() == "COLOR":
+            return ColorFactory()
+        return None
+
+# 调用输出
+if __name__ == '__main__':
+    shapeFactory = FactoryProducer.getFactory('SHAPE')
+    shape1 = shapeFactory.getShape("CIRCLE")
+    shape1.draw()
+    shape2 = shapeFactory.getShape("RECTANGLE")
+    shape2.draw()
+    shape3 = shapeFactory.getShape("SQUARE")
+    shape3.draw()
+
+    colorFactory = FactoryProducer.getFactory("COLOR")
+    color1 = colorFactory.getColor("RED")
+    color1.fill()
+    color2 = colorFactory.getColor("Green")
+    color2.fill()
+    color3 = colorFactory.getColor("BLUE")
+    color3.fill()
+```
+
+### <a name='-1'></a>装饰器模式
+装饰器模式是指动态地给一个对象增加一些额外的功能，同时又不改变其结构。 优点：装饰类和被装饰类可以独立发展，不会相互耦合，装饰模式是继承的一个替代模式，装饰模式可以动态扩展一个实现类的功能。 
+装饰器模式的关键：装饰器中使用了被装饰的对象。比如，创建一个对象“laowang”，给对象添加不同的装饰，穿上夹克、戴上帽子......，这个执行过程就是装饰者模式。
+代理模式和装饰器模式有什么区别？
+答：都是结构型模式，代理模式重在访问权限的控制，而装饰器模式重在功能的加强。  
+装饰器模式通过将对象包装在装饰器类中，以便动态地修改其行为。
+```python
+# Decorator Pattern with Python Code
+from abc import  abstractmethod,ABCMeta
+
+# 创建Shape接口
+class Shape(metaclass=ABCMeta):
+    @abstractmethod
+    def draw(self):
+        pass
+# 实现Shape的实体类：Rectangle、Circle
+class Rectangle(Shape):
+    def draw(self):
+        print("Shape: Rectangle")
+class Circle(Shape):
+    def draw(self):
+        print("Shape: Circle")
+
+# 创建实现了Shape接口的抽象装饰类ShapeDecorator类
+class ShapeDecorator(Shape):
+    _decoratedShape = None
+    def __init__(self,inDecoratedShape):
+        self._decoratedShape = inDecoratedShape
+    def draw(self):
+        self._decoratedShape.draw()
+
+# 创建扩展了ShapeDecorator类的实体装饰类对象
+class RedShapeDecorator(ShapeDecorator):
+    def __init__(self,inDecoratedShape):
+        ShapeDecorator.__init__(self,inDecoratedShape)
+    def draw(self):
+        self._decoratedShape.draw()
+        self.setRedBorder(self._decoratedShape)
+    def setRedBorder(self,inDecoratedShape):
+        print("Border Color: Red")
+
+# 调用输出
+if __name__ == '__main__':
+    aCircle = Circle()
+    aRedCircle = RedShapeDecorator(Circle())
+    aRedRectangle = RedShapeDecorator(Rectangle())
+
+    print("Circle with normal border")
+    aCircle.draw()
+    print("\nCircle of red border")
+    aRedCircle.draw()
+    print("\nRectangle of red border")
+    aRedRectangle.draw()
+```
+
+
+### <a name='-1'></a>模板方法模式
+答：模板方法模式是指定义一个算法骨架，将具体内容延迟到子类去实现。 
+优点： 提高代码复用性：将相同部分的代码放在抽象的父类中，而将不同的代码放入不同的子类中； 
+实现了反向控制：通过一个父类调用其子类的操作，通过对子类的具体实现扩展不同的行为，实现了反向控制并且符合开闭原则。 
+喝茶茶：烧水----放入茶叶---喝茶。放入的茶叶每个人自己的喜好不一样，有的是普洱、有的是铁观 音等。 每日工作：上班打卡----工作---下班打卡。每个人工作的内容不一样，后端开发的、前端开发、测 试、产品每个人的工作内容不一样。  
+```python
+# Template Pattern code with Python
+from abc import abstractmethod,ABCMeta
+
+# 创建一个game父类
+class Game(metaclass=ABCMeta):
+
+    # 把几乎不变的公共部分代码集中在父亲类，比如showcopyright
+    # 此例子中，初始化、开始、结束三个方法，除了游戏名以外，都一样，所以把共性部分放在父类
+    def initialize(self):
+        print("%s Game Initialized! Start Playing." %self.setGameName())
+    def startPlay(self):
+        print("%s Game Started. Enjoy the game!" % self.setGameName())
+    def endPlay(self):
+        print("%s Game Finished! \n" % self.setGameName())
+    def play(self):
+        self.initialize()
+        self.startPlay()
+        self.endPlay()
+
+    # 每个游戏子类的抽象部分仅仅是游戏名称的设定
+    @abstractmethod
+    def setGameName(self):
+        pass
+
+class Cricket(Game):
+    def setGameName(self):
+        return  "Cricket"
+
+class Football(Game):
+    def setGameName(self):
+        return "Football"
+
+# 调用输出
+if __name__ == '__main__':
+    game1 = Cricket()
+    game1.play()
+    game2 = Football()
+    game2.play()
+```
+
+### <a name='-1'></a>享元模式
+答：顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。 
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。
+这样可以减少内存中对象的数量，起到节省内存的目的。 
+享元模式和单例模式的区别？  
+答：单例模式是创建型模式，重在只能有一个对象。而享元模式是结构型模式，重在节约内存使用，提升程序性能。 享元模式：把一个或者多可对象霍村起来，用的时候，直接从缓存里获取。也就是说享元模式不一 定只有一个对象。
+```python
+# Flyweight Pattern with Python Code
+from abc import abstractmethod,ABCMeta
+import random
+
+#创建一个Shape接口
+class Shape(metaclass=ABCMeta):
+    @abstractmethod
+    def draw(self):
+        pass
+# 创建实现接口的实体类Circle
+class Circle(Shape):
+    _color=""
+    _x =0
+    _y =0
+    _radius = 0
+
+    def __init__(self, inColor):
+        self._color = inColor
+    def setX(self, inX):
+        self._x = inX
+    def setY(self,inY):
+        self._y = inY
+    def setRadius(self,inRadius):
+        self._radius = inRadius
+    def draw(self):
+        print("Circle: Draw() [Color : {0}, x : {1}, y : {2}, radius : {3}]".format(self._color,self._x,self._y,self._radius))
+
+# 创建一个工厂，生成基于给定信息的实体类的对象
+class ShapeFactory():
+    circleMap = {}
+    @staticmethod
+    def getCircle(inColor):
+        circle = None
+        if inColor in ShapeFactory.circleMap :
+            circle = ShapeFactory.circleMap[inColor]
+        else:
+            circle = Circle(inColor)
+            aCircle = {inColor:circle}
+            ShapeFactory.circleMap.update(aCircle)
+            print("Creating circle of color : " + inColor)
+        return circle
+# 调用输出
+if __name__ == '__main__':
+    colors = ["Red","Green","Blue","White","Black"]
+
+    def getRandomColor():
+        return colors[random.randint(0,len(colors)-1)]
+    def getRandom():
+        return random.randint(1,100)
+
+    for i in range(20):
+        ranColor = getRandomColor()
+        circle = ShapeFactory.getCircle(ranColor)
+        circle.setX(getRandom())
+        circle.setY(getRandom())
+        circle.setRadius(getRandom())
+        circle.draw()
+```
+
+### <a name='-1'></a>责任链模式
+是行为型设计模式之一，其将链中每一个节点看作是一个对象，每个节点处理的请求均不同，且内部自动维护一个下一节点对象。
+当一个请求从链式的首端发出时，会沿着链的路径依次传递给 每一个节点对象，直至有对象处理这个请求为止。 
+优点：解耦了请求与处理；请求处理者（节点对象）只需关注自己感兴趣的请求进行处理即可，对于不感兴趣的请求，直接转发给下一级节点对象； 具备链式传递处理请求功能，请求发送者无需知晓链路结构，只需等待请求处理结果； 链路结构灵活，可以通过改变链路结构动态地新增或删减责任； 易于扩展新的请求处理类（节点），符合 开闭原则；
+缺点 责任链路过长时，可能对请求传递处理效率有影响； 如果节点对象存在循环引用时，会造成死循环，导致系统崩溃； 
+生活案列：我们在公司内部发起一个 OA 审批流程，项目经理审批、部门经理审批。老板审批、人力审批。这就是生活中的责任链模式，每个角色的责任是不同。 SpringMVC 中的拦截器和 Mybatis 中的插件机制，都是拦截器经典实现。  
+```python
+# Chain of Responsibility Pattern with Python Code
+from abc import  abstractmethod,ABCMeta
+
+
+# 创建抽象的记录器类
+class AbstractLogger(metaclass=ABCMeta):
+    INFO = 1
+    DEBUG = 2
+    ERROR = 3
+    _level = 0
+    #责任链中的下一个元素
+    _nextLogger = None
+
+    def setNextLogger(self,inNextLogger):
+        self._nextLogger = inNextLogger
+
+    def logMessage(self,inLevel,inMessage):
+        if self._level <= inLevel :
+            self.write(inMessage)
+        if self._nextLogger is not None :
+            self._nextLogger.logMessage(inLevel,inMessage)
+
+    @abstractmethod
+    def write(self,inMessage):
+        pass
+
+
+# 创建扩展了该记录器类的实体类
+class ConsoleLogger(AbstractLogger):
+    def __init__(self,inLevel):
+        self._level = inLevel
+
+    def write(self,inMessage):
+        print("Standard Console::Logger: "+inMessage)
+
+
+class ErrorLogger(AbstractLogger):
+    def __init__(self,inLevel):
+        self._level = inLevel
+
+    def write(self,inMessage):
+        print("Error Console::Logger: "+inMessage)
+
+
+class FileLogger(AbstractLogger):
+    def __init__(self,inLevel):
+        self._level = inLevel
+
+    def write(self,inMessage):
+        print("File::Logger: "+inMessage)
+
+
+# 创建不同类型的记录器，赋予它们不同的错误级别，并在每个记录器中设置下一个记录器。每个记录器中的下一个记录器代表的是链的一部分
+if __name__ == '__main__':
+    errorLogger = ErrorLogger(AbstractLogger.ERROR)
+    fileLogger = FileLogger(AbstractLogger.DEBUG)
+    consoleLogger = ConsoleLogger(AbstractLogger.INFO)
+
+    errorLogger.setNextLogger(fileLogger)
+    fileLogger.setNextLogger(consoleLogger)
+
+    loggerChain = errorLogger
+    loggerChain.logMessage(AbstractLogger.INFO,"This is an information.")
+    loggerChain.logMessage(AbstractLogger.DEBUG,"This is a debug level information")
+    loggerChain.logMessage(AbstractLogger.ERROR,"This is an error information.")
+    
+# Standard Console::Logger: This is an information.
+# File::Logger: This is a debug level information
+# Standard Console::Logger: This is a debug level information
+# Error Console::Logger: This is an error information.
+# File::Logger: This is an error information.
+# Standard Console::Logger: This is an error information.
+
+```
+
+
+### <a name='-1'></a>适配器模式
+答：适配器模式是将一个类的接口变成客户端所期望的另一种接口，从而使原本因接口不匹配而无法一起工作的两个类能够在一起工作。 
+优点： 可以让两个没有关联的类一起运行，起着中间转换的作用； 灵活性好，不会破坏原有的系统。 
+缺点：过多地使用适配器，容易使代码结构混乱，如明明看到调用的是 A 接口，内部调用的却是 B 接口的实现。 
+生活中的插座，为了适应各种插头，然后上面有两个孔的，三个空的，基本都能适应。还有万能充电器、USB 接口等。
+```python
+#Adapter Pattern with Python Code
+from abc import abstractmethod,ABCMeta
+
+# 为媒体播放器和更高级的媒体播放器创建接口
+class MediaPlayer(metaclass=ABCMeta):
+    @abstractmethod
+    def play(self, strAudioType, strFilename):
+        pass
+
+class AdvancedMediaPlayer(metaclass=ABCMeta):
+    @abstractmethod
+    def playVlc(self,strFilename):
+        pass
+    @abstractmethod
+    def playMp4(self,strFilename):
+        pass
+
+# 实现AdvancedMediaPlayer接口的实体类
+class VlcPlayer(AdvancedMediaPlayer):
+    def playVlc(self,strFilename):
+        print("Playing vlc file. Name: "+strFilename)
+    def playMp4(self,strFilename):
+        pass
+
+class Mp4Player(AdvancedMediaPlayer):
+    def playVlc(self,strFilename):
+        pass
+    def playMp4(self,strFilename):
+        print("Playing MP4 file. Name: " + strFilename)
+
+# 实现MediaPlayer的MediaAdapter实体类
+class MediaAdapter(MediaPlayer):
+    advancedMusicPlayer = None
+
+    def __init__(self,strAudioType):
+        strAudioType = str.lower(strAudioType)
+        if strAudioType == "vlc" :
+            self.advancedMusicPlayer = VlcPlayer()
+        elif strAudioType == "mp4" :
+            self.advancedMusicPlayer = Mp4Player()
+    def play(self,strAudioType,strFilename):
+        if strAudioType == "vlc" :
+            self.advancedMusicPlayer.playVlc(strFilename)
+        elif strAudioType == "mp4" :
+            self.advancedMusicPlayer.playMp4(strFilename)
+
+# 实现MediaPlayer的AudiPlayer实体类
+class AudioPlayer(MediaPlayer):
+    mediaAdapter = None
+    def play(self,strAudioType,strFilename):
+        strAudioType = str.lower(strAudioType)
+        # 播放MP3音乐文件
+        if strAudioType == "mp3" :
+            print("Playing mp3 file. Name: "+ strFilename)
+        elif (strAudioType == "vlc") or (strAudioType == "mp4") :
+            self.mediaAdapter = MediaAdapter(strAudioType)
+            self.mediaAdapter.play(strAudioType,strFilename)
+        else :
+            print("Invalid media. "+ strAudioType + " format not supported.")
+
+# 调用输出
+if __name__ == '__main__':
+    audioPlayer = AudioPlayer()
+
+    audioPlayer.play("mp3","beyond the horizon.mp3")
+    audioPlayer.play("mp4","alone.mp4")
+    audioPlayer.play("vlc", "far far away.vlc")
+    audioPlayer.play("avi", "mind me.avi")
+```
+
+
+### <a name='-1'></a>观察者模式
+答：观察者模式是定义对象间的一种一对多依赖关系，使得每当一个对象状态发生改变时，其相关依赖对象皆得到通知并被自动更新。
+观察者模式又叫做发布-订阅（Publish/Subscribe）模式、模型-视图（Model/View）模式、源-监听器（Source/Listener）模式或从属者（Dependents）模式。 
+优点： 观察者模式可以实现表示层和数据逻辑层的分离，并定义了稳定的消息更新传递机制，抽象了更新接口，使得可以有各种各样不同的表示层作为具体观察者角色； 
+观察者模式在观察目标和观察者之间建立一个抽象的耦合； 观察者模式支持广播通信； 
+观察者模式符合开闭原则（对拓展开放，对修改关闭）的要求。
+缺点： 如果一个观察目标对象有很多直接和间接的观察者的话，将所有的观察者都通知到会花费很多时间； 
+如果在观察者和观察目标之间有循环依赖的话，观察目标会触发它们之间进行循环调用，可能导致系统崩溃； 
+观察者模式没有相应的机制让观察者知道所观察的目标对象是怎么发生变化的，而仅仅只是知道观察目标发生了变化。 
+
+在观察者模式中有如下角色： 
+Subject：抽象主题（抽象被观察者），抽象主题角色把所有观察者对象保存在一个集合里，每个主题都可以有任意数量的观察者，抽象主题提供一个接口，可以增加和删除观察者对象；
+ConcreteSubject：具体主题（具体被观察者），该角色将有关状态存入具体观察者对象，在具体主题的内部状态发生改变时，给所有注册过的观察者发送通知； 
+Observer：抽象观察者，是观察者者的抽象类，它定义了一个更新接口，使得在得到主题更改通知时更新自己； 
+ConcrereObserver：具体观察者，实现抽象观察者定义的更新接口，以便在得到主题更改通知 时更新自身的状态。
+
+```python
+# Observer Pattern with Python Code
+from abc import abstractmethod,ABCMeta
+
+# 创建一个目标对象Subject，如果有多种不同的目标，可以抽象subject，用子对象实现
+class Subject:
+    # 建立一个私有集合，存放观察者对象
+    _observers = []
+    _state = ""
+    def getState(self):
+        return self._state
+    def setState(self,inState):
+        self._state = inState
+        self.notifyAllObservers()
+    # 追加观察者
+    def attach(self, inObserver):
+        self._observers.append(inObserver)
+    # 通知观察者
+    def notifyAllObservers(self):
+        for aObser in self._observers:
+            aObser.update()
+
+# 创建观察者抽象类
+class Observer(metaclass=ABCMeta):
+    subject = Subject()
+    @abstractmethod
+    def update(self):
+        pass
+    def __init__(self):
+        self.subject = Subject()
+
+# 实现具体观察者
+class BinaryObserver(Observer):
+    def __init__(self, inSubject):
+        self.subject = inSubject
+        self.subject.attach(self)
+
+    def update(self):
+        print("Binary String : " + str(bin(self.subject.getState())))
+
+class OctalObserver(Observer):
+    def __init__(self,inSubject):
+        self.subject = inSubject
+        self.subject.attach(self)
+    def update(self):
+        print("Octal String : " + str(oct(self.subject.getState())))
+
+class HexaObserver(Observer):
+    def __init__(self,inSubject):
+        self.subject = inSubject
+        self.subject.attach(self)
+    def update(self):
+        print("Hex String : " + str(hex(self.subject.getState())))
+
+# 调用输出
+if __name__ == '__main__':
+    aSubject = Subject()
+
+    HexaObserver(aSubject)
+    OctalObserver(aSubject)
+    BinaryObserver(aSubject)
+
+    print("First state change : 15")
+    aSubject.setState(15)
+    print("======================")
+    print("First state change : 10")
+    aSubject.setState(10)
+``` 
+
+
+
+# 算法
+## <a name='-1'></a>1. 合并两个无序链表
 ```python
 class Solution: 
    def sortList(self, head: ListNode) -> ListNode: 
@@ -8566,7 +9110,8 @@ class Solution:
        return sort_func(head, None)
 ```
 
-2. 一次遍历获取列表第二大值 ok 
+## <a name='ok'></a>2. 一次遍历获取列表第二大值 ok
+````python
 class Solution(object): 
    def get_2th_num(self, nums): 
        max_num = float('-INF') 
@@ -8578,15 +9123,18 @@ class Solution(object):
            else: 
                if num > second_num: 
                    second_num = num 
-       return second_num, max_num 
-3. 快排 
-1. 挑选基准值：从数列中挑出一个元素，称为"基准"（pivot）; 
-2. 分割：重新排序数列，所有比基准值小的元素摆放在基准前面，所有比基准值大的
+       return second_num, max_num
+````
+
+## <a name='-1'></a>3. 快排 
+a. 挑选基准值：从数列中挑出一个元素，称为"基准"（pivot）; 
+b. 分割：重新排序数列，所有比基准值小的元素摆放在基准前面，所有比基准值大的
 元素摆在基准后面（与基准值相等的数可以到任何一边）。在这个分割结束之后，对
 基准值的排序就已经完成; 
-3. 递归排序子序列：递归地将小于基准值元素的子序列和大于基准值元素的子序列排
+c. 递归排序子序列：递归地将小于基准值元素的子序列和大于基准值元素的子序列排
 序。 
 递归到最底部的判断条件是数列的大小是零或一，此时该数列显然已经有序。 
+```python
 def quick_sort(lists,i,j): 
    if i >= j: 
        return lists 
@@ -8595,23 +9143,17 @@ def quick_sort(lists,i,j):
    high = j 
    while i < j: 
        while i < j and lists[j] >= pivot:   
-           j -= 1  # 如果 i 与 j 未重合，j(右边)指向的元素大于等于基准元素，则 j 向左
-移动 
-       lists[i]=lists[j]  # 到此位置时 j 指向一个比基准元素小的元素,将 j 指向的元素放到
-i 的位置上,此时 j 指向的位置空着,接下来移动 i 找到符合条件的元素放在此处; 
+           j -= 1  # 如果 i 与 j 未重合，j(右边)指向的元素大于等于基准元素，则 j 向左移动 
+       lists[i]=lists[j]  # 到此位置时 j 指向一个比基准元素小的元素,将 j 指向的元素放到i 的位置上,此时 j 指向的位置空着,接下来移动 i 找到符合条件的元素放在此处; 
        while i < j and lists[i] <= pivot: 
            i += 1  # 如果 i 与 j 未重合，i 指向的元素比基准元素小，则 i 向右移动 
-       lists[j]=lists[i]  # 此时 i 指向一个比基准元素大的元素,将 i 指向的元素放到 j 空着
-的位置上,此时 i 指向的位置空着,之后进行下一次循环,将 j 找到符合条件的元素填到此
-处 
-   lists[j] = pivot  # 退出循环后，i 与 j 重合，此时所指位置为基准元素的正确位置,左
-边的元素都比基准元素小,右边的元素都比基准元素大 
+       lists[j]=lists[i]  # 此时 i 指向一个比基准元素大的元素,将 i 指向的元素放到 j 空着的位置上,此时 i 指向的位置空着,之后进行下一次循环,将 j 找到符合条件的元素填到此处 
+   lists[j] = pivot  # 退出循环后，i 与 j 重合，此时所指位置为基准元素的正确位置,左边的元素都比基准元素小,右边的元素都比基准元素大 
    quick_sort(lists,low,i-1) # 对基准元素左边的子序列进行快速排序 
    quick_sort(lists,i+1,high) # 对基准元素右边的子序列进行快速排序 
-   return lists 
- 
- 
- 
+   return lists
+
+
 def quick_sort(lists): 
    if not lists: 
        return lists 
@@ -8627,55 +9169,57 @@ def quick_sort(lists):
        else: 
            greater.append(num) 
    return quick_sort(smaller) + equal + quick_sort(greater) 
-4. 归并排序 
-# 归并排序 
+
+``` 
  
+## <a name='-1'></a>4. 归并排序
+```python
 # 方法一 
 def merge_sort(nums): 
-   n = len(nums) 
-   if n <= 1: 
-       return nums 
-   def merge(a, b): 
-       na, nb = len(a), len(b) 
-       i, j = 0, 0 
-       ans = [] 
-       while i < na and j < nb: 
-           if a[i] < = b[j]: 
-               ans.append(a[i]) 
-               i += 1 
-           else: 
-               ans.append(a[j]) 
-               j += 1 
-       if i < na: 
-          ans.extend(a[i:]) 
-       else: 
-           ans.extend(b[j:]) 
-       return ans 
-   mid = n // 2 
-   left = merge_sort(nums[0:mid]) 
-   right = merge_sort(nums[mid:]) 
-return merge(left, right) 
+    n = len(nums) 
+    if n <= 1: 
+        return nums 
+    def merge(a, b): 
+        na, nb = len(a), len(b) 
+        i, j = 0, 0 
+        ans = [] 
+        while i < na and j < nb: 
+            if a[i] <= b[j]: 
+                ans.append(a[i]) 
+                i += 1 
+            else: 
+                ans.append(a[j]) 
+                j += 1 
+        if i < na: 
+           ans.extend(a[i:]) 
+        else: 
+            ans.extend(b[j:]) 
+        return ans 
+    mid = n // 2 
+    left = merge_sort(nums[0:mid]) 
+    right = merge_sort(nums[mid:]) 
+    return merge(left, right) 
  
  
 # 方法二 
-   def merge(self, nums, left, mid, right): 
-       p, q = left, mid + 1 
-       temp = [0] * len(nums) 
-       for i in range(left, right+1): 
-           temp[i] = nums[i] 
-       for j in range(left, right+1): 
-           if p > mid:  # 当左半边用尽时，取右半边的元素 
-               nums[j] = temp[q] 
-               q += 1 
-           elif q > right: # 当右半边用尽时，取左半边的元素 
-               nums[j] = temp[p] 
-               p += 1 
-           elif temp[p] < temp[q]: # 当左半边小于右半边时，取左半边的元素 
-               nums[j] = temp[p] 
-               p += 1 
-           else: # 当右半边小于左半边时，取右半边的元素 
-               nums[j] = temp[q] 
-               q += 1 
+def merge(self, nums, left, mid, right): 
+   p, q = left, mid + 1 
+   temp = [0] * len(nums) 
+   for i in range(left, right+1): 
+	   temp[i] = nums[i] 
+   for j in range(left, right+1): 
+	   if p > mid:  # 当左半边用尽时，取右半边的元素 
+		   nums[j] = temp[q] 
+		   q += 1 
+	   elif q > right: # 当右半边用尽时，取左半边的元素 
+		   nums[j] = temp[p] 
+		   p += 1 
+	   elif temp[p] < temp[q]: # 当左半边小于右半边时，取左半边的元素 
+		   nums[j] = temp[p] 
+		   p += 1 
+	   else: # 当右半边小于左半边时，取右半边的元素 
+		   nums[j] = temp[q] 
+		   q += 1 
  
    def merge_sort(self, nums, left, right): 
        if left >= right: 
@@ -8689,6 +9233,8 @@ return merge(left, right)
        left, right = 0, len(nums) - 1 
        self.merge_sort(nums, left, right) 
        return nums 
+
+```
 5. 最大子列表和 ok 
 # 贪心算法 
 class Solution(object): 
