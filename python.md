@@ -503,6 +503,7 @@ print(foo1 is foo2)  # True
 
 第四种方法：import 方法 
 作为 python 的模块是天然的单例模式 
+```python
 # mysingleton.py 
 class My_Singleton(object): 
     def foo(self): 
@@ -511,827 +512,9 @@ my_singleton = My_Singleton()
 # to use 
 from mysingleton import my_singleton 
 my_singleton.foo()
- 
- 
- 
-## <a name='python-1'></a>python 编码 
-文件以什么编码保存的，就以什么编码方式打开. 
-python2 中默认使用 ascii，python3 中默认使用 utf-8。 
-x="hello",其中的 x，等号，引号，地位都一样，都是普通字符而已，都是以 unicode
-编码的二进制形式存放与内存中的.但是程序在执行过程中，会申请内存（与程序
-代码所存在的内存是俩个空间），可以存放任意编码格式的数据。 比如 x="hello",
-会被 python 解释器识别为字符串，会申请内存空间来存放"hello"，然后让 x 指向
-该内存地址，此时新申请的该内存地址保存也是 unicode 编码的 hello； 如果代
-码换成 x="hello".encode('utf-8'),那么新申请的内存空间里存放的就是 utf-8 编码
-的字符串 hello 了。不同编码的字符串就是存放在不同的内存地址。 
-python2 中有两种字符串类型 str 和 unicode 
-str 类型 
-   当 python 解释器执行到产生字符串的代码时（例如 s='林'），会申请新的
-内存地址，然后将'林'编码成文件开头指定的编码格式，这已经是 encode 之后的
-结果了，所以 s 只能 decode。再次 encode 就会报错。 
-#_*_coding:gbk_*_ 
- 
-x='林' 
-print x.encode('gbk') #报错 
-print x.decode('gbk') #结果：林 
-在 python2 中，str 就是编码后的结果 bytes，str=bytes,所以在 python2 中，unicode 字符
-编码的结果是 str/bytes 
-#coding:utf-8 
-s='林' #在执行时,'林'会被以 conding:utf-8 的形式保存到新的内存空间中 
- 
-print repr(s) #'\xe6\x9e\x97' 三个 Bytes,证明确实是 utf-8 
-print type(s) #<type 'str'> 
- 
-s.decode('utf-8') 
-s.encode('utf-8') #报错，s 为编码后的结果 bytes，所以只能 decode 
-  Unicode 类型 
-  当 python 解释器执行到产生字符串的代码时（例如 s=u'林'），会申请新的
-内存地址，然后将'林'以 unicode 的格式存放到新的内存空间中，所以 s 只能 encode，
-不能 decode. 
-s=u'林' 
-print repr(s) #u'\u6797' 
-print type(s) #<type 'unicode'> 
- 
- 
-s.decode('utf-8') #报错，s 为 unicode，所以只能 encode 
-s.encode('utf-8')  
-  特别说明: 
-  当数据要打印到终端时，要注意一些问题。 
-  当程序执行时，比如:x='林';print(x) #这一步是将 x 指向的那块新的内存空间
-（非代码所在的内存空间）中的内存，打印到终端，而终端仍然是运行于内存中
-的，所以这打印可以理解为从内存打印到内存，即内存->内存，unicode->unicode.
-对于 unicode 格式的数据来说，无论怎么打印，都不会乱码.python3 中的字符串
-与 python2 中的 u'字符串'，都是 unicode，所以无论如何打印都不会乱码.在
-windows 终端（终端编码为 gbk，文件编码为 utf-8，乱码产生） 
-#分别验证在 pycharm 中和 cmd 中下述的打印结果 
-s=u'林' #当程序执行时，'林'会被以 unicode 形式保存新的内存空间中 
- 
- 
-2. <a name='unicodeencode'></a>指向的是 unicode，因而可以编码成任意格式，都不会报 encode 错误 
-s1=s.encode('utf-8') 
-s2=s.encode('gbk') 
-print s1 #打印正常否？ 
-print s2 #打印正常否 
- 
- 
-print repr(s) #u'\u6797' 
-print repr(s1) #'\xe6\x9e\x97' 编码一个汉字 utf-8 用 3Bytes 
-print repr(s2) #'\xc1\xd6' 编码一个汉字 gbk 用 2Bytes 
- 
-print type(s) #<type 'unicode'> 
-print type(s1) #<type 'str'> 
-print type(s2) #<type 'str'> 
-python3 中也有两种字符串类型 str 和 bytes 
-python2 中，str 类型和 bytes 类型是同一种类型。以下语句在 python2 中等效： 
-a = 'ab' 
-a = b'ab' 
-python3 中，str 类型和 unicode 类型是同一种类型。以下语句在 python3 中等效： 
-a = 'ab' 
-a = u'ab' 
-python2 unicode 类似于 python3 str; 
-python2 str 类似于 python3 bytes。 
-str 类型变为 unicode 类型 
-#coding:utf-8 
-s='林' #当程序执行时，无需加 u，'林'也会被以 unicode 形式保存新的内存空间中, 
- 
-3. <a name='encode'></a>可以直接 encode 成任意码格式 
-s.encode('utf-8') 
-s.encode('gbk') 
- 
-print(type(s)) #<class 'str'> 
- 
-bytes 类型 
-```python
-x = '春香' 
-print(x)  # 春香 
-s = u'vdgfdghf 董' 
-print('type(s)==%s' % type(s), 'id(s)==%s' % id(s), s) 
-# type(s)==<class 'str'> id(s)==1782182021696 vdgfdghf 董 
-s1 = s.encode('gbk') 
-s2 = s.encode('utf-8') 
-s3 = s2.decode() 
-print('type(s1)==%s' % type(s1), 'id(s1)==%s' % id(s1), s1) 
-# type(s1)==<class 'bytes'> id(s1)==1782182900816 b'vdgfdghf \xb6\xad' 
-print('type(s2)==%s' % type(s2), 'id(s2)==%s' % id(s2), s2) 
-# type(s2)==<class 'bytes'> id(s2)==1782182903408 b'vdgfdghf \xe8\x91\xa3' 
-print('type(s3)==%s' % type(s3), 'id(s3)==%s' % id(s3), s3) 
-# type(s3)==<class 'str'> id(s3)==1993071642976 vdgfdghf 董 
-
-# 可以看到不同编码的字符串，存放在不同的内存地址，bytes 类型字符串在 python3 中，是什么就打印什么 
-# s encode()之后再 decode()已经不是之前的 s 了，重新放置再另一块内存 
-
-# python 进制 
-# python 中二进制用 0b 加相应数字表示，八进制用 0o 加相应数字表示，十六进制用 0x加相应数字表示；bin()方法可以将其他进制的数转换成二进制，oct()将其他进制的数转换成八进制，hex()将其他进制的数转换成十六进制；int()转换成十进制；  
- 
-# 数字转换成二进制，并且指定位数，前面用 0 填充 
-print(format(10, '08b')) # 00001010 
-print(format(10, '010b')) # 0000001010 
- 
-# 十进制数字转换成十六进制 
-print(format(30, '02x')) # 1e 
-print(format(100, '02x')) # 64 
- 
-# python 运算 
-print(20 // 8)  # 2   20 除以 8 的商 
- 
-# 在 Python3 中，/操作符是做浮点除法，而//是做整除（即商没有余数，比如 10//3 其结果就为 3，余数会被截除掉，而(-7)//3 的结果却是-3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向 0 的方向取值。 
-# 在 Python2 中，/就是整除，即和 Python3 中的//操作符一样） 
- 
-# python 中的正无穷或负无穷，使用 float("inf")或 float("-inf")来表示。 
-# 这里有点特殊，写成：float("inf")，float("INF")或者 float('Inf')都是可以的。 
-# 当涉及 > 和 < 比较时，所有数都比无穷小 float("-inf")大，所有数都比无穷大 float("inf")小。 
-# 相等比较时，float("+inf")与 float("+inf")、float("inf")三者相等。 
- 
-
-# 特别地，0 * float('inf') 结果为：nan 
-float('inf') / float('inf')    # 结果为：nan 
-float('inf') - float('inf')    # 结果为：nan 
-float('-inf') - float('-inf')  # 结果也为：nan 
- 
-# nan 代表 Not A Number（不是一个数），它并不等于 0 因为 nan 不是一个数，所以相关计算都无法得到数字。 所有涉及 nan 的操作，返回的都是 nan。 
-
-``` 
- 
- 
-### <a name='python-1'></a>python 三元运算子 
-[on true] if [expression] else [on false] 
-
-### <a name='pythonand'></a>python 支持一个表达式进行多种比较操作，其实这个表达式本质是由多个隐式的 and
-连接起来的多个表达式； 
-```python
-3<4<7  # same as "(3<4) and (4<7)" 
-
-# 在不加括号时候, and 优先级大于 or 
-# x or y 的值只可能是 x 或 y. x 为真就是 x, x 为假就是 y 
-# x and y 的值只可能是 x 或 y. x 为真就是 y, x 为假就是 x
-```
-
-### <a name='pythonisisnot'></a>python 身份运算符 is 和 is not  
-类型注解 
-def add(x:int, y:int) -> int: 
-   return x + y 
-    
-用 : 类型 的形式指定函数的参数类型，用 -> 类型 的形式指定函数的返回值类型。 
-然后特别要强调的是，Python 解释器并不会因为这些注解而提供额外的校验，没有任何
-的类型检查工作。也就是说，这些类型注解加不加，对你的代码来说没有任何影响，只
-是类型检查，高亮显示； 
- 
-变量类型进行注解的方法： 
-a: int = 123 
-b: str = 'hello' 
-python 比较 
-复数不支持比较大小 
-类似元组、字符串、列表这类格式，在进行两者之间的比较时，先从第一个元素
-开始比较 ASCII 码值大小，如果相等，则依次向后比较，如果全部相等，则比
-较数量大小。 
-ASCII 码值大小： 
-数字： 
-0-9: 48-57 
-字母： 
-A-Z：65-90. 
-a-z： 97-122 
-一串数字、字符的 ASCII 码值大小取决于最后一位的 ASCII 码值。 
- 
-python 方法与函数 
-_foo----用来指定私有变量的一种方式.不能用 from module import * 导入； 
-__foo----这个有真正的意义:解析器用_classname__foo 来代替这个名字，以区别
-和其他类相同的命名，它无法直接像公有成员一样随便访问，通过对象名._类名
-__xxx 这样的方式可以访问. 
-
-
-### <a name='-1'></a>如何判断一个值是方法还是函数？ 
-1、 使用 type()来判断，如果是 method 为方法，如果是 function 则是函数。 
-2、 与类和实例无绑定关系的 function 都属于函数（function） 
-3、 与类和实例有绑定关系的 function 都属于方法 
- 
- 
- 
-### <a name='-1'></a>文档字符串 
-在函数的第一个逻辑行的字符串是这个函数的文档字符串。
-文档字符串的惯例是一个多行字符串，它的首行以大写字母开始，句号结尾。第二行是空行，从第三行开始是详细的描述，在函数中使用文档字符串时尽量遵循这个惯例。 
-文档字符串是一个重要工具，用于解释文档程序 ，帮助你的程序文档更加简单易懂。 我们可以在函数体的第一行使用一对三个单引号 或者一对三个双引号来定义文档字符串。 你可以使用 __doc__调用函数中的文档字符串属性;
-
-
-### <a name='-1'></a>了解类型注解么？ 
-def list_to_str (param_list:list,connect_str: str = " ") - > str: 
-    paas 
-python3 中注解用来给参数， 返回值，变量的类型加上注解，对代码没影响 
-Python 提供了一个工具方便我们测试类型注解的正确性 
-pip install mypy mypy demo.py 若无错误则无输出 
-
- 
-### <a name='-1'></a>猴子补丁 
-“猴子补丁”(monkey patching)就是指，在函数或对象已经定义之后，再去改变它们的行为。
-指在运行时动态修改类或模块。运行时动态修改模块、类或函数，通常是添加功能或修正缺陷。猴子补丁在代码运行时内存中）发挥作用，不会修改源码，因此只对当前运行的程序实例有效。因为猴子补丁破坏了封装，而且容易导致程序与补丁代码的实现细节紧密耦合，所以被视为临时的变通方案，不是集成代码的推荐方式。 
-举个例子： 
-import datetime 
-datetime.datetime.now = lambda: datetime.datetime(2012, 12, 12) 
- 
-
- 
-### <a name='CythonPypyCpythonNumba'></a>介绍 Cython，Pypy Cpython Numba 各有什么缺点 
-CPython 是使用最广的 Python 解释器。 
-IPython 是基于 CPython 之上的一个交互式解释器，也就是说，IPython 只是在交互方式上有所增强 
-PyPy 是另一个 Python 解释器，它的目标是执行速度。PyPy 采用 JIT 技术，对 Python 代码进行动态编译（注意不是解释），所以可以显著提高 Python 代码的执行速度。 绝大部分 Python 代码都可以在 PyPy 下运行，但是 PyPy 和 CPython
-有一些是不同的，这就导致相同的 Python 代码在两种解释器下执行可能会有不同的结果。如果你的代码要放到 PyPy 下执行，就需要了解 PyPy 和 CPython 的。
-
-不同点 
-Jython Jython 是将 Python code 在 JVM 上面跑和调用 java code 的解释器。 
-
- 
-提高 python 运行效率的方法 
-1、使用生成器，因为可以节约大量内存 
-2、循环代码优化，避免过多重复代码的执行 
-3、核心模块用 Cython PyPy 等，提高效率 
-4、多进程、多线程、协程 
-5、多个 if elif 条件判断，可以把最有可能先发生的条件放到前面写，这样可以减
-少程序判断的次数，提高效率 
- 
- 
- 
-## <a name='python-1'></a>python 新式类和经典类的区别
-a. 在 python 里凡是继承了 object 的类，都是新式类 
-b. Python3 里只有新式类 
-c. Python2 里面继承 object 的是新式类，没有写父类的是经典类 
-d. 经典类目前在 Python 里基本没有应用 
-e. 保持 class 与 type 的统一对新式类的实例执行 a.__class__与 type(a)的结果是一致的，对于旧式类来说就不一样了。 
-f. 对于多重继承的属性搜索顺序不一样新式类是采用广度优先搜索(C3 算法)， 旧式类采用深度优先搜索; 
-g. 新式类多继承搜索顺序(广度优先)：先在水平方向查找，然后再向上查找；经典类多继承搜索顺序(深度优先)：先深入继承树左侧查找，然后再返回，开始查找右侧； 
-h. 新式类除了拥有经典类的全部特性之外，还有一些新的特性。比如__init__发生了变化，新增了静态方法__new__； 
-
-python 之禅 
-通过 import this 语句可以获取其具体的内容。它告诉大家如何写出高效整洁的代码。 
-如何给变量加注释？ 
-可以通过变量名：类型的方式如下 
-a： str = "this is string type" 
-例举几个规范 Python 代码风格的工具 
-pylint 和 flake8 
-列举 3 条以上 PEP8 编码规范 
-《Python Enhancement Proposal #8》（8 号 Python 增强提案）又叫 PEP8 
-1、顶级定义之间空两行，比如函数或者类定义； 
-2、方法定义、类定义与第一个方法之间，都应该空一行； 
-3、三引号进行注释； 
-4、使用 Pycharm、Eclipse 一般使用 4 个空格来缩进代码。 
- 
- 
- 
-容器类型 
-容器是一种把多个元素组织在一起的数据结构，容器中的元素可以逐个地迭代获
-取。简单来说，就好比一个盒子,我们可以往里面存放数据，也可以从里面一个一
-个地取出数据。 
-在 python 中，属于容器类型地有:list,dict,set,str,tuple.....，容器仅仅只是用来存放
-数据的，我们平常看到的 l = [1,2,3,4]等等，好像我们可以直接从列表这个容器
-中取出元素，但事实上容器并不提供这种能力，而是可迭代对象赋予了容器这种
-能力。 
-python 内置数据类型 
-a.数值类型： 
-整型 int、长整型 long(Python3 中没有 long，只有无限精度的 int)、浮点型 float、 
-复数 complex、布尔型 bool； 
-b.序列对象 
-字符串 str、列表 list、元祖 tuple； 
-c.键值对 
-字典 dict 、集合 set； 
-list 列表 
-有序可重复的元素集合，可嵌套、迭代、修改、分片、追加、删除，成员判断。 
-Python 的列表是一个可变长度的顺序存储结构，每一个位置存放的都是对象的
-指针。 
- 
-del lis[0] 
-lis.pop()----pop 的是从后往前元素； 
-map(str, list)----将列表中的元素转为 str，生成新的 list； 
-list(dict)----使用 list()函数，一个字典作为参数，得到的是字典键值的列表； 
-original_list[-1:] = target_list----将最后一个元素替换成一个列表； 
-l=[1,2,3,4,5],执行 l[1:3]='abc'后，l 变成[1,'a','b','c',4,5]； 
-list = ['a', 'b', 'c', 'd', 'e'] 
-print list[10:] # 打印[]  尝试获取 list[10]和之后的成员，会导致 IndexError. 然而，尝试
-获取列表的切片，开始的 index 超过了成员个数不会产生 IndexError,而是仅仅返回一个
-空列表。 
-列表中的元素可以根据位置传递给几个变量，这样使用必须变量数和元素数量一致： 
-x, y, z = [1, 2, 3] 
-print(x, y, z) 
-[[5 * x + res for res in range(1, 6)] for x in range(0, 5)]----再一个列表中产生 5 组 5 个元素
-的 list； 
-ast.literal_eval(str)----将一个 str(类似与这样的 str--"['Red', 'Green', 'White']")转换成 list; 
-all('target' == element for element in list)----判断 list 中是否有元素等于 target 
-list(set().union(*original_list))----[[10, 20], [40], [30, 56, 25], [10, 20], [33], [40]]-->[33, 40, 
-10, 20, 56, 25, 30] 
-list(itertools.chain(*original_list))----将[[2,4,3],[1,5,6], [9], [7,9,0]]-->[2, 4, 3, 1, 5, 6, 9, 7, 9, 
-0],也可以用如下方法： 
-从一个列表中随机选择 n 个元素作为新的 list----random.sample(original_list, n) 
-```python
-list = [ [ ] ] * 5 
-list  # output? 
-list[0].append(10) 
-list  # output? 
-list[1].append(20) 
-list  # output? 
-list.append(30) 
-list  # output? 
- 
-# [[], [], [], [], []] 
-# [[10], [10], [10], [10], [10]] 
-# [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]] 
-# [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30] 
-```
-第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了 5 个空列
-表。然而，理解表达式 list=[ [ ] ] * 5 的关键一点是它不是创造一个包含五个独立列表的
-列表，而是它是一个创建了包含对同一个列表五次引用的列表。只有了解了这一点，我
-们才能更好的理解接下来的输出结果。 
- 
-list[0].append(10) 将 10 附加在第一个列表上。 
-但由于所有 5 个列表是引用的同一个列表，所以这个结果将是： 
-[[10], [10], [10], [10], [10]] 
- 
-同理，list[1].append(20)将 20 附加在第二个列表上。但同样由于 5 个列表是引用的同一
-个列表，所以输出结果现在是： 
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]] 
- 
-作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是： [[10, 
-20], [10, 20], [10, 20], [10, 20], [10, 20], 30] 
- 
-对 list 排序 foo = [-5,8,0,4,9,-4,-20,-2,8,2,-4],使用 lambda 函数从小到大排序 
->>> foo =  [-5,8,0,4,9,-4,-20,-2,8,2,-4] 
->>> res = sorted(foo, key=lambda x:x) 
->>> res 
-[-20, -5, -4, -4, -2, 0, 2, 4, 8, 8, 9] 
- 
- 
-使用 lambda 函数对 list 排序 foo = [-5,8,0,4,9,-4,-20,-2,8,2,-4]，输出结果为
-[0,2,4,8,8,9,-2,-4,-4,-5,-20]，正数从小到大，负数从大到小 
-（传两个条件，x<0 和 abs(x) 
- 
->>> foo =  [-5,8,0,4,9,-4,-20,-2,8,2,-4] 
->>> res = sorted(foo, key=lambda x:(x<0, abs(x))) 
->>> res 
-[0, 2, 4, 8, 8, 9, -2, -4, -4, -5, -20] 
- 
-python 实现列表去重的方法,先通过集合去重，再转列表
->>> l = [10,23,12,10,24,10,34,12] 
->>> s = set(l) 
->>> s 
-{34, 10, 12, 23, 24} 
->>> [x for x in s] 
-[34, 10, 12, 23, 24] 
-```python
-# 用 list 类的 sort 方法 
-l1 = ['b','c','d','c','a','a'] 
-l2 = list(set(l1)) 
-l2.sort(key=l1.index) 
-print(l2) 
-# 用 sorted()函数 
-l1 = ['b','c','d','c','a','a'] 
-l2 = sorted(set(l1),key=l1.index) 
-print(l2) 
-# 也可以遍历 
-l1 = ['b','c','d','c','a','a'] 
-l2 = [] 
-for i in l1: 
-    if not i in l2: 
-        l2.append(i) 
-print(l2) 
-
-```
-
-list.extend(iterable)----表示将一个可迭代对象中的元素追加到列表中； 
-itertools.combinations(list, num)----表示获取一个列表的元素个数为 num 的子 list; 
-itertools.tee(iterable, num)----表示从一个迭代器中对象返回 num 个独立的迭代器； 
-map(str, list)----将列表中的元素转为 str，生成新的 list； 
-itertools.groupby(list, key=)----groupby()把迭代器中相邻的，指定特征重复的元素挑出来
-放在一起; 
-operator.itemgetter()----使用 itemgetter()参数规定分组依据; 
- 
- 
-tuple 元组 
-元组也是序列结构，但是是一种不可变序列，你可以简单的理解为内容不可变的
-列表。 
-元组对象进行重新赋值或者更新时会导致运行时异常； 
-元组中不允许的操作，确切的说是元组没有的功能： 
-修改、新增元素、删除某个元素（但可以删除整个元组）、所有会对元组内部元
-素发生修改动作的方法。例如，元组没有 remove，append，pop 等方法。 
-元组只保证它的一级子元素不可变，对于嵌套的元素内部，不保证不可变！ 
-color1 = "Red", "Green", "Orange"   # 可以这样定义，color1 表示的是一个 tuple； 
-x = () # 创建一个空元组； 
-tuplex = 5 # 创建一个元素的元组 (5,) 
-tuple.count(element) # 得到元组中 element 元素出现的次数； 
-```python
-for vlan_min, vlan_max in [(200, 300)]: 
-      print(vlan_min, vlan_max)    
-# output:200 300 
-```
- 
-str 字符串 
-字符串是不可变的序列数据类型，不能直接修改字符串本身，和数字类型一样！
-Python3 全面支持 Unicode 编码，所有的字符串都是 Unicode 字符串。 
-
-Python 的转义字符 
-字符串前加 u、r、b 
-u"中文字符组成的字符串" 
-作用：以 Unicode 格式 进行编码，一般用在中文字符串前面，防止因为源码储存格式
-问题，导致再次使用时出现乱码。 
-r"\n\n\n\n”  # 表示一个普通生字符串 \n\n\n\n，而不表示换行 
-作用：去掉反斜杠的转义机制，常用于正则表达式，对应着 re 模块。 
-b’Hello World’   # 表示这是一个 bytes 对象 
-作用：b" "前缀表示：后面字符串是 bytes 类型。在网络编程中，服务器和浏览器只认
-bytes 类型数据。在 Python3 中，bytes 和 str 的互相转换方式是 str.encode(‘utf-8’)和
-bytes.decode(‘utf-8’)。 
- 
-str.translate({32: None})----去掉 str 中的空格； 
-s.translate(table)-----table 是字符映射转换表表，是通过 maketrans()方法转换而来的。 
-intab = "aeiou" 
-outtab = "12345" 
-trantab1 = str.maketrans(intab,outtab) # 创建字符映射转换表,将 intab 映射成 outtab; 
-之后使用 s.translate(trantabl1),将 s 转换； 
- 
- 
-string.title()---所有单词的首字母大写，其余小写，非字母后的第一个字母将装换成大写字母； 
- 
- 
-字符串的 strip()方法是用，当 strip()有参数时，这个参数可以理解成要删除的字符序列，是否被删除的前提是字符串的开头和结尾是不是包含要删除的字符，如果有就继续处理，没有的话就不会删除中间的字符的； 
- 
-
-a. count 使用 
-```python
-def test_count(): 
-   s = 'The quick brown fox jumps over the lazy dog.' 
-   print('the occurrence times of character %s is %s' % ('e', s.count('e'))) 
- 
- 
-test_count() 
-# the occurrence times of character e is 3 
-
-``` 
- 
-b. 判断字符串是不是数字 
-def test_string_whether_numeric(): 
-   st = 'sd234' 
-   try: 
-       num = float(st) 
-   except (ValueError, TypeError): 
-       print('not numeric') 
-        
-        
-c. 字符装换成一个 int 列表 
-```python
-by = b'ABm' 
-print(list(by)) 
-# [65, 66, 109]
-``` 
- 
-d. unicode 字符 
-print(u'\u0050\u0079\u0074\u0068\u006f\u006e')  # Python   
- 
- 
-e. 两个相同的字符串指向同一内存地址 
-```python
-st1 = 'dong' 
-st2 = 'dong' 
-print('st1 的内存地址==%s\nst2 的内存地址==%s' % (hex(id(st1)), hex(id(st2)))) 
-# st1 的内存地址==0x21b3f5dc4f0 
-# st2 的内存地址==0x21b3f5dc4f0 
-
-``` 
- 
-f. 字符串中添加尾随和前导零 
-```python
-def test_add_trailing_and_leading_zeroes_to_a_string(): 
-   st = 'dgfr45sfry4'
-   print('origin string---%s, len(st)---%s' % (st, len(st))) 
-   st1 = st.ljust(15, '0')
-   print('add trailing zeroes---', st1)
-   st2 = st.ljust(15, '*') 
-   print('add trailing *---', st2)
-   st3 = st.rjust(15, '0')
-   print('add leading zeroes---', st3)
-   st4 = st.rjust(15, '*') 
-   print('add leading zeroes---', st4) 
-
-
-test_add_trailing_and_leading_zeroes_to_a_string() 
-# origin string---dgfr45sfry4, len(st)---11 
-# add trailing zeroes--- dgfr45sfry40000 
-# add trailing *--- dgfr45sfry4**** 
-# add leading zeroes--- 0000dgfr45sfry4 
-# add leading zeroes--- ****dgfr45sfry4 
 ```
  
  
-g. zfill 使用，接收一个数字，表示讲字符串前边填充 0.     
-```python
-def test_combination_3_digit(): 
-   nums = [] 
-   for x in range(15): 
-       num = str(x).zfill(3) 
-       nums.append(num) 
-   return nums 
- 
-print(test_combination_3_digit()) 
-# ['000', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '012', '013', '014'] 
-```
- 
- 
-h. 字符串中的 replace 方法 
-st = string1.replace(old, new[, max])  # 会生成一个新对象返回,原来的字符串 string1 还是原来的值 
- 
- 
-i. split 
-```python
-def get_last_part_string(st): 
-   print(st.split('/')) 
-   print(st.rsplit('/')) 
-   print(st.split('/', 1)) 
-   print(st.split('/', 2)) 
-   print(st.split('/', 3)) 
-   return st.rsplit('/', 1)[0], st.rsplit('-', 1)[0] 
-# split(" ")解决不了单词间多空格的问题，s.split()可以解决 
-# s = "a good   example" 
-# s.split(" ") 
-# ['a', 'good', '', '', 'example'] 
-# s.split() 
-# ['a', 'good', 'example'] 
-
-# print(get_last_part_string('https://www.w3resource.com/python-exercises/string')) 
-# output: 
-# ['https:', '', 'www.w3resource.com', 'python-exercises', 'string'] 
-# ['https:', '', 'www.w3resource.com', 'python-exercises', 'string'] 
-# ['https:', '/www.w3resource.com/python-exercises/string'] 
-# ['https:', '', 'www.w3resource.com/python-exercises/string'] 
-# ['https:', '', 'www.w3resource.com', 'python-exercises/string'] 
-# ('https://www.w3resource.com/python-exercises', 'https://www.w3resource.com/python') 
-```
- 
-j. upper()与 lower() 
-st.upper()  # 字符串全大写 
-st.lower()  # 字符串全小写 
- 
- 
-k. startswith() 
-Python startswith() 方法用于检查字符串是否是以指定子字符串开头，如果是则返回 
-True，否则返回 False。如果参数 beg 和 end 指定值，则在指定范围内检查。 
-语法: 
-startswith()方法语法： 
-str.startswith(str, beg=0,end=len(string)); 
-参数: 
-str -- 检测的字符串。 
-strbeg -- 可选参数用于设置字符串检测的起始位置。 
-strend -- 可选参数用于设置字符串检测的结束位置。 
-str = "this is string example....wow!!!"; 
-print str.startswith( 'this' ); # True 
-print str.startswith( 'is', 2, 4 );  # True
-print str.startswith( 'this', 2, 4 );  # False
- 
-dic 字典 
-映射是一种关联式的容器类型，它存储了对象与对象之间的映射关系，字典是
-python 里唯一的映射类型，它存储了键值对的关联，是由键到键值的映射关系。 
-Python 的字典数据类型是基于 hash 散列算法实现的，采用键值对(key:value)的形
-式，根据 key 的值计算 value 的地址，具有非常快的查取和插入速度。 
-字典包含的元素个数不限，值的类型可以是任何数据类型！但是字典的 key 必须
-是不可变的对象，例如整数、字符串、bytes 和元组，最常见的还是将字符串作
-为 key。列表、字典、集合等就不可以作为 key。同时，同一个字典内的 key 必
-须是唯一的，但值则不必。 
-注意：从 Python3.6 开始，字典是有序的！它将保持元素插入时的先后顺序！请
-务必清楚！ 
-字典可精确描述为不定长、可变、散列的集合类型。 
-字典中的键映射多个值 
-如果你想要一个键映射多个值，那么你 就需要将这多个值放到另外的容器中，比如列
-表或者集合里面。 
-你可以很方便的使用 collections 模块中的 defaultdict 来构造这样的字典。 
- 
-defaultdict 的一个特征是它会自动初始化每个 key 刚开始对应的值，所以你只需要 关注
-添加元素操作了。 
->>> from collections import defaultdict 
->>> d = defaultdict(list) 
->>> d 
-defaultdict(<class 'list'>, {}) 
->>> d['a'].append(1) 
->>> d["a"].append(2) 
->>> d 
-defaultdict(<class 'list'>, {'a': [1, 2]}) 
- 
-defaultdict 会自动为将要访问的键（就算目前字典中并不存在 这样的键）创建映射实体。
-如果你并不需要这样的特性，你可以在一个普通的字典上使用 setdefault()方法来代替。 
->>> d = {} 
->>> d.setdefault("a", []).append(1) 
->>> d.setdefault('a', []).append(2) 
->>> d 
-{'a': [1, 2]} 
- 
- 
-### <a name='-1'></a>字典和集合解析 
-```python
-my_dict = {i: i * i for i in range(10)} 
-my_set = {i * i for i in range(10)} 
-print('dict==%s, set==%s' % (my_dict, my_set)) 
-# dict=={0: 0, 1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81},  
-# set=={0, 1, 64, 4, 36, 9, 16, 49, 81, 25}
-``` 
- 
-### <a name='-1'></a>遍历字典两种方式 
-```python
-dic = {'name': 'dong', 'age': 20, 'gender': (0, 1)} 
-for k in dic: 
-    print('key==%s, value==%s' % (k, dic[k])) 
- 
-# key==name, value==dong 
-# key==age, value==20 
-# key==gender, value==(0, 1) 
- 
-for key, value in dic.items(): 
-    print('key==%s, value==%s' % (key, value)) 
-
-```     
-     
-### <a name='key'></a>判断字典中是否有某一 key 
-print('name' in dic) # True 
-print('ag' not in dic) # True 
- 
- 
- 
-### <a name='-1'></a>获得字典的最大深度： 
-def get_depth_dictionary(d): 
-    if isinstance(d, dict): 
-        return 1 + (max(map(get_depth_dictionary, d.values())) if d else 0) 
-    return 0 
-排序一个字典,根据值排序----sorted(original_dict.items(), key=itemgetter(1)) 
-几个字典合并到一块----迭代执行 dict().update(dict1), 或者此方式：{**dict1, **dict2}; 
-字典中删除一个 key----del dict[key] 
-两个字典值相加----collections.Counter(dict1) + collection.Counter(dict2) 
-itertools.product('ab', range(3)) --> ('a',0) ('a',1) ('a',2) ('b',0) ('b',1) ('b',2) 
-dict(collections.Counter(string))----将一个 string 中某个字符以及其出现的次数构造成字
-典:{'w': 1, '3': 1, 'r': 2}; 
-defaultdict()用法----定义一个普通的 dict 时，取值时，如果键不在 dict 中，会直接报
-keyError， 
-但是如果是 defaultdict(factory_function)定义的字典，就取工厂函数的默认值，此工厂函
-数值得是 set,int,list,str: 
-```python
-dict1 = defaultdict(set) 
-dict2 = defaultdict(int) 
-dict3 = defaultdict(str) 
-dict4 = defaultdict(list) 
- 
-print(dict1[1]) 
-print(dict2[1]) 
-print(dict3[1]) 
-print(dict4[1]) 
-# set() 
-# 0 
-#  
-# []
-``` 
-dict1.pop(key)函数-----意思是将 key-value 对从 dict 移除，并且返回值未此 key 对应的
-value； 
-取两个字典的交集可以按此进行操作-----set(dict1.items()) & set(dict2.items())-得到的是
-类似于此形式的集合{('key1', 1)}； 
-dict(x=list(range(11, 20)), y=list(range(21, 30)), z=list(range(31, 40))----得到{x: [11,...19], y: 
-[21,...29], z: [30,...39]} 
-collections.defaultdict(list)----用来将同一键的值放在一个列表中； 
-collections.Counter(list1)  == collections.Counter(list2)---用来比较两个 list； 
- 
-### <a name='-1'></a>字典如何删除键和合并两个字典 
->>> d01 = {"name":"dx", "age":20} 
->>> del d01['name'] 
->>> d01 
-{'age': 20} 
->>> d02 = {'name':'shane'} 
->>> d01.update(d02) 
->>> d01 
-{'age': 20, 'name': 'shane'} 
-      
-      
-### <a name='-1'></a>合并两个字典 
-# 第一种方式 
-```python
-import uuid
-x = {'name': 'dong', 'age': 10}  
-y = {'host': 'compute', 'id': uuid.uuid4()} 
- 
-z = x.copy() 
-print('z==%s' % z, 'id(x)==%s' % id(x), 'id(z)==%s' % id(z)) 
-# z=={'name': 'dong', 'age': 10} id(x)==2342080434368 id(z)==2342110319872 
-z.update(y) 
-print('z==%s' % z, 'id(z)==%s' % id(z)) 
-# z=={'name': 'dong', 'age': 10, 'host': 'compute', 
-# 'id': UUID('e4379eb9-5d36-4018-baf6-b6d0b0572441')} id(z)==2689673090240 
-# update()是就地和并字典，z 还是同样的内存地址 
-```
- 
-# 第二种方式，python3.5 以上版本 
-```python
-import uuid
-x = {'name': 'dong', 'age': 10}  
-y = {'host': 'compute', 'id': uuid.uuid4()} 
-z = {**x, **y} 
-print('z==%s' % z, 'id(z)==%s' % id(z)) 
-# z=={'name': 'dong', 'age': 10, 'host': 'compute', 
-# 'id': UUID('2f06eb3b-b1f2-4b4b-9321-4a42f5b5f2d5')} id(z)==1376163448128 
-# z 又存储到另一块内存 
-```
- 
-# 第三种方式 
-python3.9 可以使用 "|" 操作符合并两个字典 
->>> z3 = z|y 
-{'a': 1, 'b': 2, 'c': 3, 'd': 4} 
-      
-      
-### <a name='-1'></a>列表嵌套字典的排序，分别根据年龄和姓名排序** 
- 
-foo = [{"name":"zs","age":19},{"name":"ll","age":54}, 
-{"name":"wa","age":17},{"name":"df","age":23}] 
- 
->>> foo = [{"name":"zs","age":19},{"name":"ll","age":54}] 
->>> res = sorted(foo, key=lambda x:x['age'], reverse=False) 
->>> res 
-[{'name': 'zs', 'age': 19}, {'name': 'll', 'age': 54}] 
- 
->>> res = sorted(foo, key=lambda x:x['name'], reverse=False) 
->>> res 
-[{'name': 'll', 'age': 54}, {'name': 'zs', 'age': 19}] 
- 
- 
- 
-### <a name='-1'></a>根据键对字典排序 
- 
-**方法一，zip 函数** 
- 
->>> d = {'name': 'dx', 'age': 20, 'address': 'nj'} 
->>> z = zip(d.keys(), d.values()) 
->>> foo = [i for i in z] 
->>> res = sorted(foo, key=lambda x:x[0], reverse=False) 
->>> res 
-[('address', 'nj'), ('age', 20), ('name', 'dx')] 
- 
-**方法二,不用 zip** 
- 
-dic.items 和 zip(dic.keys(),dic.values())都是为了构造列表嵌套字典的结构，方便后面用
-sorted()构造排序规则 
-
-
->>> res = sorted(d.items(), key=lambda x:x[0], reverse=False) 
->>> res 
-[('address', 'nj'), ('age', 20), ('name', 'dx')] 
-
-
-## <a name='bytes'></a>bytes 字节
-在 Python3 以后，字符串和 bytes 类型彻底分开了。字符串是以字符为单位进行处理的，bytes 类型是以字节为单位处理的。 
-bytes 数据类型在所有的操作和使用甚至内置方法上和字符串数据类型基本一样，也是不可变的序列对象。 
-bytes 对象只负责以二进制字节序列的形式记录所需记录的对象，至于该对象到底表示什么（比如到底是什么字符）则由相应的编码格式解码所决定。
-Python3中，bytes 通常用于网络数据传输、二进制图片和文件的保存等等。可以通过调用 bytes()生成 bytes 实例，其值形式为 b'xxxxx'，其中 'xxxxx' 为一至多个转义的十六进制字符串（单个 x 的形式为：\x12，其中\x 为小写的十六进制转义字符，12 为二位十六进制数）组成的序列，每个十六进制数代表一个字节（八位二进制数，取值范围 0-255），对于同一个字符串如果采用不同的编码方式生成 bytes对象，就会形成不同的值. 
-b = b''          # 创建一个空的 bytes 
-b = bytes()      # 创建一个空的 bytes 
-
-## <a name='set'></a>set 集合 
-set 集合是一个无序不重复元素的集，基本功能包括关系测试和消除重复元素。
-集合使用大括号({})框定元素，并以逗号进行分隔。但是注意：如果要创建一个空集合，必须用set()而不是{}，因为后者创建的是一个空字典。集合除了在形式上最外层用的也是花括号外，其它的和字典没有一毛钱关系。 
-集合数据类型的核心在于自动去重。 
-### <a name='-1'></a>创建非空元素 
-set([1, 2, 3, 4, 5]) 
-
-### <a name='setdels1'></a>集合 set 不支持索引；也不支持元素删除，比如 del s[1]； 
-
-### <a name='-1'></a>取两个列表的交集 
-set(list1) & set(list2)  
-集合的交集 
-set1 & set2； 
-### <a name='-1'></a>集合并集 
-set1 | set2  
-color_list_2.union(color_list_1) 
-两集合并集-交集-----set1 ^ set2；
-set().union(*L)----L 为一个列表，其中包含元组元素，指的是获取一个列表中的独一无二的元素； 
- 
-### <a name='-1'></a>集合中添加元素 
-original_set.add("red") 
-original_set.update(["blue", "black"]) 
- 
-### <a name='-1'></a>集合中删除元素 
-original_set.pop()  # 从前往后移除 
-original_set.remove(num)以及 original_set.discard(num)  # 都是移除元素 num； 
- 
-### <a name='set1set2'></a>判断 set1 是否是 set2 的子集合 
-set1.issubset(set2); 
-同理父集合----set1.issuperset(set2) 
-集合的拷贝----set2 = set1.copy(); 
-集合的清理----set1.clear(); 
- 
-### <a name='set1'></a>从 set1 中移除两个集合的交集； 
-set1.difference_update(set2) 
-
-print(s1 - s2) # s1 中有 s2 中没有的元素     # print(s1 + s2)# TypeError: unsupported operand type(s) for +: 'set' and 'set' 
-print(s2 - s1) # s2 中有 s1 中没有的元素 
- 
-### <a name='set1set2-1'></a>取 set1 中的元素且不在 set2 
->>> color_list_1 = set(["White", "Black", "Red"]) 
->>> color_list_2 = set(["Red", "Green"]) 
->>> color_list_1 - color_list_2 
-{'Black', 'White'} 
->>> color_list_1.difference(color_list_2) 
-{'Black', 'White'} 
- 
- 
- 
-### <a name='-1'></a>对称差异，将两个集合的对称差作为新集合返回(即恰好在集合之一中的所有元素) 
-n = [9,8,3,2,2,0,9,7,6,3] 
-all_nums = set([0,1,2,3,4,5,6,7,8,9]) 
-n = set([int(i) for i in n]) 
-n = n.symmetric_difference(all_nums)     # [1, 4, 5] 
 
 
 
@@ -5053,15 +4236,17 @@ iterable -- 可迭代对象
 initializer -- 可选，初始参数 
  
  
-# 求数字列表的乘积 
- 
+### 求数字列表的乘积 
+```python
 lis = [2, 34, 10] 
 product = reduce((lambda x, y : x * y), lis) 
 # 680 
+``` 
+
  
- 
- 
+### functions.wraps
 在类中定义装饰器，并将其作用在其它函数和方法上； 
+```python
 from functools import wraps 
  
  
@@ -5093,18 +4278,20 @@ def add(x, y):
 @Decorate.decorate2 
 def spam(): 
     print('spam') 
- 
+
+``` 
  
  
  
      
-# paritial 
+### paritial
 如果需要减少某个函数的参数个数，可以使用 functools.partial() 。 partial() 函数允许给
 一个或多个参数设置固定的值，减少接下来被调用时的参数个数。假设有下面的函数： 
 def spam(a, b, c, d): 
     print(a, b, c, d) 
      
 现在使用 partial() 函数来固定某些参数值：   
+```shell
 >>> from functools import partial 
 >>> s1 = partial(spam, 1) # a = 1 
 >>> s1(2, 3, 4) 
@@ -5114,24 +4301,26 @@ def spam(a, b, c, d):
 1 2 3 42 
 >>> s3 = partial(spam, 1, 2, d=42) # a = 1, b = 2, d = 42 
 >>> s3(3) 
-1 2 3 42 
+1 2 3 42
+``` 
 可以看出，partial() 固定某些参数并返回一个新的 callable 对象。这个新的 callable 接受
 未赋值的参数，然后跟之前已经赋值过的参数合并起来，最后将所有参数传递给原始函
 数。 
-<5> collections 
+
+
+### collections 
 collections 定义了很多抽象类，如果想自定义容器类的时候可以继承其中的类；
 使用 collections 中的抽象基类，可以确保自定义的容器实现了所有必要的方法，
 并且还能简化类型检查； 
+```python
 num = [2, 3, 4, 3, 3, 0, 10, 4, 4, 4] 
 c = collections.Counter(num) 
 print(c, c.items(), type(c.items())) 
 print(sum(c.values())) # 求数字出现次数的和 
  
-# Counter({4: 4, 3: 3, 2: 1, 0: 1, 10: 1}) dict_items([(2, 1), (3, 3), (4, 4), (0, 1), (10, 1)]) <class 
-'dict_items'> 
-# 10 
- 
- 
+# Counter({4: 4, 3: 3, 2: 1, 0: 1, 10: 1}) dict_items([(2, 1), (3, 3), (4, 4), (0, 1), (10, 1)]) <class 'dict_items'> 
+# 10
+
 import collections 
 import pprint 
  
@@ -5146,9 +4335,9 @@ with open(file_path, 'r') as info:
  
 # file is --abc.txt 
 # dict_items([('G', 13), ('E', 64), ('R', 29), ('M', 17), ('A', 42), ('N', 45), (' ', 86), ('U', 14), ('I', 36), 
-('T', 40), ('Y', 17), ('D', 19), ('\n', 10), ('F', 15), ('O', 31), ('W', 5), ('K', 1), ('P', 4), (',', 7), ('H', 25), 
-('C', 13), ('L', 15), ('(', 1), (':', 1), ('S', 12), (')', 1), ('B', 6), ('3', 2), ('.', 4), ('V', 1), ('1', 3), ('9', 5), 
-('0', 2), ('-', 1)]) 
+# ('T', 40), ('Y', 17), ('D', 19), ('\n', 10), ('F', 15), ('O', 31), ('W', 5), ('K', 1), ('P', 4), (',', 7), ('H', 25), 
+# ('C', 13), ('L', 15), ('(', 1), (':', 1), ('S', 12), (')', 1), ('B', 6), ('3', 2), ('.', 4), ('V', 1), ('1', 3), ('9', 5), 
+# ('0', 2), ('-', 1)]) 
 # Counter({' ': 86, 
 #          'E': 64, 
 #          'N': 45, 
@@ -5183,6 +4372,10 @@ with open(file_path, 'r') as info:
 #          ')': 1, 
 #          'V': 1, 
 #          '-': 1}) 
+
+```
+ 
+ 
  
  
  
@@ -5202,7 +4395,7 @@ collections.OrderDict(original_dict)---记住插入的顺序；
 ###### 利用 collections 库的 Counter 方法统计字符串每个单词出现的次数 
  
 Counter 类中的 most_common()可以给出序列中出现次数最多的元素 
- 
+```shell
 >>> s = "kjalfj;ldsjafl;hdsllfdhg;lahfbl;hl;ahlf;h" 
 >>> from collections import Counter 
 >>> res = Counter(s) 
@@ -5212,28 +4405,20 @@ Counter({'l': 9, ';': 6, 'h': 6, 'f': 5, 'a': 4, 'j': 3, 'd': 3, 's': 2, 'k': 1,
 [('l', 9), (';', 6), ('h', 6)] 
 >>> res['l']    # 在底层实现上，一个 Counter 对象就是一个字典，将元素映射到它出现
 的次数上。 
-# Counter 实例一个鲜为人知的特性是它们可以很容易的跟数学运算操作相结合。比如
-两个 Counter 实例的相加减等。 
- 
- 
- 
- 
- 
-<6> inspect 
-# 获取给定对象的实际模块对象 
+Counter 实例一个鲜为人知的特性是它们可以很容易的跟数学运算操作相结合。比如两个 Counter 实例的相加减等。 
+``` 
+
+
+
+
+### inspect # 获取给定对象的实际模块对象 
 import inspect 
 import math 
 from python.w3resource import sort_tests_69 
  
-print(inspect.getmodule(math.pow)) 
-# <module 'math' (built-in)> 
+print(inspect.getmodule(math.pow))          # <module 'math' (built-in)> 
  
-print(inspect.getmodule(sort_tests_69)) 
-# 
-<module 
-'python.w3resource.sort_tests_69' 
-from 
-'F:\\projects\\python\\w3resource\\sort_tests_69.py'> 
+print(inspect.getmodule(sort_tests_69))            # <module 'python.w3resource.sort_tests_69' from 'F:\\projects\\python\\w3resource\\sort_tests_69.py'> 
  
 inspect.signature(func)----获得函数的参数信息； 
 from inspect import Signature, Parameter 
@@ -5250,8 +4435,7 @@ sig.bind(*args, **kwargs),
 参数名称和参数值可以通过 bound_args.arguments.items()获得； 
 通过将签名和传递的参数绑定起来，可以强制函数调用遵循特定的规则，比如必填、默
 认、重复等等 
-<7> pkg_resources 
-# 获取本地安装的所有模块 
+### pkg_resources 获取本地安装的所有模块 
 import pkg_resources 
  
  
@@ -5287,7 +4471,7 @@ tobytes() -- return the array converted to a string
 <9> itertools 
 itertools.product(*iterables, repeart=1) 
 获取所有迭代器的组合，默认重复一次 
- 
+```shell
 >>>from itertools import product 
 >>> x = product([1,2,3], [4,5]) 
 >>> for a in x: 
@@ -5312,13 +4496,13 @@ itertools.product(*iterables, repeart=1)
 ('4', '2', '4') 
 ('4', '3', '3') 
 ('4', '3', '4') 
+
+```
  
  
- 
-# islice(iterable, [start, ] stop [, step]): 
+### islice(iterable, [start, ] stop [, step])
 创建一个迭代器： iterable[start : stop : step]，跳过前 start 个项， 
-迭代在 stop 所指定的位置停止，step 指定用于跳过项的步幅。迭代默认将从 0 开始，步
-幅默认 1 
+迭代在 stop 所指定的位置停止，step 指定用于跳过项的步幅。迭代默认将从 0 开始，步幅默认 1 
 用 python 快速写斐波那契数列(延迟计算：生成器表达式，仅在需要计算的时候才通过
 yield 产生所需的元素)： 
 def get_fibonacci_numbers(a=0, b=1): 
@@ -5328,7 +4512,7 @@ def get_fibonacci_numbers(a=0, b=1):
          a, b = b, a + b 
 result = list(itertools.islice(get_fibonacci_numbers(), n)) 
  
- 
+
 # itertools.starmap(func, iterables) 
 第一个参数是函数对象，后一个参数是可迭代对象，意思将迭代对象中的参数传给函数。 
 def test_itertools_starmap(): 
@@ -5652,7 +4836,7 @@ json.dump()    # 编码处理文件
 json.load()    # 解码处理文件 
  
  
-#### <a name='json.dump'></a>json.dump 显示中文 
+json.dump 显示中文 
 json dump 有一个 ensure_ascii 参数，当它为 True 的时候，所有非 ASCII 码字符显示为
 \uXXXX 序列，只需在 dump 时将 ensure_ascii 设置为 False 即可，此时存入 json 的中文
 即可正常显示。 
@@ -11611,4 +10795,825 @@ class Solution:
         return ans 
  
  
+# python基础
+
+
+
+## <a name='python-1'></a>python 编码 
+文件以什么编码保存的，就以什么编码方式打开. 
+python2 中默认使用 ascii，python3 中默认使用 utf-8。 
+x="hello",其中的 x，等号，引号，地位都一样，都是普通字符而已，都是以 unicode
+编码的二进制形式存放与内存中的.但是程序在执行过程中，会申请内存（与程序
+代码所存在的内存是俩个空间），可以存放任意编码格式的数据。 比如 x="hello",
+会被 python 解释器识别为字符串，会申请内存空间来存放"hello"，然后让 x 指向
+该内存地址，此时新申请的该内存地址保存也是 unicode 编码的 hello； 如果代
+码换成 x="hello".encode('utf-8'),那么新申请的内存空间里存放的就是 utf-8 编码
+的字符串 hello 了。不同编码的字符串就是存放在不同的内存地址。 
+python2 中有两种字符串类型 str 和 unicode 
+str 类型 
+   当 python 解释器执行到产生字符串的代码时（例如 s='林'），会申请新的
+内存地址，然后将'林'编码成文件开头指定的编码格式，这已经是 encode 之后的
+结果了，所以 s 只能 decode。再次 encode 就会报错。 
+#_*_coding:gbk_*_ 
  
+x='林' 
+print x.encode('gbk') #报错 
+print x.decode('gbk') #结果：林 
+在 python2 中，str 就是编码后的结果 bytes，str=bytes,所以在 python2 中，unicode 字符
+编码的结果是 str/bytes 
+#coding:utf-8 
+s='林' #在执行时,'林'会被以 conding:utf-8 的形式保存到新的内存空间中 
+ 
+print repr(s) #'\xe6\x9e\x97' 三个 Bytes,证明确实是 utf-8 
+print type(s) #<type 'str'> 
+ 
+s.decode('utf-8') 
+s.encode('utf-8') #报错，s 为编码后的结果 bytes，所以只能 decode 
+  Unicode 类型 
+  当 python 解释器执行到产生字符串的代码时（例如 s=u'林'），会申请新的
+内存地址，然后将'林'以 unicode 的格式存放到新的内存空间中，所以 s 只能 encode，
+不能 decode. 
+s=u'林' 
+print repr(s) #u'\u6797' 
+print type(s) #<type 'unicode'> 
+ 
+ 
+s.decode('utf-8') #报错，s 为 unicode，所以只能 encode 
+s.encode('utf-8')  
+  特别说明: 
+  当数据要打印到终端时，要注意一些问题。 
+  当程序执行时，比如:x='林';print(x) #这一步是将 x 指向的那块新的内存空间
+（非代码所在的内存空间）中的内存，打印到终端，而终端仍然是运行于内存中
+的，所以这打印可以理解为从内存打印到内存，即内存->内存，unicode->unicode.
+对于 unicode 格式的数据来说，无论怎么打印，都不会乱码.python3 中的字符串
+与 python2 中的 u'字符串'，都是 unicode，所以无论如何打印都不会乱码.在
+windows 终端（终端编码为 gbk，文件编码为 utf-8，乱码产生） 
+#分别验证在 pycharm 中和 cmd 中下述的打印结果 
+s=u'林' #当程序执行时，'林'会被以 unicode 形式保存新的内存空间中 
+ 
+ 
+2. <a name='unicodeencode'></a>指向的是 unicode，因而可以编码成任意格式，都不会报 encode 错误 
+s1=s.encode('utf-8') 
+s2=s.encode('gbk') 
+print s1 #打印正常否？ 
+print s2 #打印正常否 
+ 
+ 
+print repr(s) #u'\u6797' 
+print repr(s1) #'\xe6\x9e\x97' 编码一个汉字 utf-8 用 3Bytes 
+print repr(s2) #'\xc1\xd6' 编码一个汉字 gbk 用 2Bytes 
+ 
+print type(s) #<type 'unicode'> 
+print type(s1) #<type 'str'> 
+print type(s2) #<type 'str'> 
+python3 中也有两种字符串类型 str 和 bytes 
+python2 中，str 类型和 bytes 类型是同一种类型。以下语句在 python2 中等效： 
+a = 'ab' 
+a = b'ab' 
+python3 中，str 类型和 unicode 类型是同一种类型。以下语句在 python3 中等效： 
+a = 'ab' 
+a = u'ab' 
+python2 unicode 类似于 python3 str; 
+python2 str 类似于 python3 bytes。 
+str 类型变为 unicode 类型 
+#coding:utf-8 
+s='林' #当程序执行时，无需加 u，'林'也会被以 unicode 形式保存新的内存空间中, 
+ 
+3. <a name='encode'></a>可以直接 encode 成任意码格式 
+s.encode('utf-8') 
+s.encode('gbk') 
+ 
+print(type(s)) #<class 'str'> 
+ 
+bytes 类型 
+```python
+x = '春香' 
+print(x)  # 春香 
+s = u'vdgfdghf 董' 
+print('type(s)==%s' % type(s), 'id(s)==%s' % id(s), s) 
+# type(s)==<class 'str'> id(s)==1782182021696 vdgfdghf 董 
+s1 = s.encode('gbk') 
+s2 = s.encode('utf-8') 
+s3 = s2.decode() 
+print('type(s1)==%s' % type(s1), 'id(s1)==%s' % id(s1), s1) 
+# type(s1)==<class 'bytes'> id(s1)==1782182900816 b'vdgfdghf \xb6\xad' 
+print('type(s2)==%s' % type(s2), 'id(s2)==%s' % id(s2), s2) 
+# type(s2)==<class 'bytes'> id(s2)==1782182903408 b'vdgfdghf \xe8\x91\xa3' 
+print('type(s3)==%s' % type(s3), 'id(s3)==%s' % id(s3), s3) 
+# type(s3)==<class 'str'> id(s3)==1993071642976 vdgfdghf 董 
+
+# 可以看到不同编码的字符串，存放在不同的内存地址，bytes 类型字符串在 python3 中，是什么就打印什么 
+# s encode()之后再 decode()已经不是之前的 s 了，重新放置再另一块内存 
+
+# python 进制 
+# python 中二进制用 0b 加相应数字表示，八进制用 0o 加相应数字表示，十六进制用 0x加相应数字表示；bin()方法可以将其他进制的数转换成二进制，oct()将其他进制的数转换成八进制，hex()将其他进制的数转换成十六进制；int()转换成十进制；  
+ 
+# 数字转换成二进制，并且指定位数，前面用 0 填充 
+print(format(10, '08b')) # 00001010 
+print(format(10, '010b')) # 0000001010 
+ 
+# 十进制数字转换成十六进制 
+print(format(30, '02x')) # 1e 
+print(format(100, '02x')) # 64 
+ 
+# python 运算 
+print(20 // 8)  # 2   20 除以 8 的商 
+ 
+# 在 Python3 中，/操作符是做浮点除法，而//是做整除（即商没有余数，比如 10//3 其结果就为 3，余数会被截除掉，而(-7)//3 的结果却是-3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向 0 的方向取值。 
+# 在 Python2 中，/就是整除，即和 Python3 中的//操作符一样） 
+ 
+# python 中的正无穷或负无穷，使用 float("inf")或 float("-inf")来表示。 
+# 这里有点特殊，写成：float("inf")，float("INF")或者 float('Inf')都是可以的。 
+# 当涉及 > 和 < 比较时，所有数都比无穷小 float("-inf")大，所有数都比无穷大 float("inf")小。 
+# 相等比较时，float("+inf")与 float("+inf")、float("inf")三者相等。 
+ 
+
+# 特别地，0 * float('inf') 结果为：nan 
+float('inf') / float('inf')    # 结果为：nan 
+float('inf') - float('inf')    # 结果为：nan 
+float('-inf') - float('-inf')  # 结果也为：nan 
+ 
+# nan 代表 Not A Number（不是一个数），它并不等于 0 因为 nan 不是一个数，所以相关计算都无法得到数字。 所有涉及 nan 的操作，返回的都是 nan。 
+
+``` 
+ 
+ 
+### <a name='python-1'></a>python 三元运算子 
+[on true] if [expression] else [on false] 
+
+### <a name='pythonand'></a>python 支持一个表达式进行多种比较操作，其实这个表达式本质是由多个隐式的 and
+连接起来的多个表达式； 
+```python
+3<4<7  # same as "(3<4) and (4<7)" 
+
+# 在不加括号时候, and 优先级大于 or 
+# x or y 的值只可能是 x 或 y. x 为真就是 x, x 为假就是 y 
+# x and y 的值只可能是 x 或 y. x 为真就是 y, x 为假就是 x
+```
+
+### <a name='pythonisisnot'></a>python 身份运算符 is 和 is not  
+类型注解 
+def add(x:int, y:int) -> int: 
+   return x + y 
+    
+用 : 类型 的形式指定函数的参数类型，用 -> 类型 的形式指定函数的返回值类型。 
+然后特别要强调的是，Python 解释器并不会因为这些注解而提供额外的校验，没有任何
+的类型检查工作。也就是说，这些类型注解加不加，对你的代码来说没有任何影响，只
+是类型检查，高亮显示； 
+ 
+变量类型进行注解的方法： 
+a: int = 123 
+b: str = 'hello' 
+python 比较 
+复数不支持比较大小 
+类似元组、字符串、列表这类格式，在进行两者之间的比较时，先从第一个元素
+开始比较 ASCII 码值大小，如果相等，则依次向后比较，如果全部相等，则比
+较数量大小。 
+ASCII 码值大小： 
+数字： 
+0-9: 48-57 
+字母： 
+A-Z：65-90. 
+a-z： 97-122 
+一串数字、字符的 ASCII 码值大小取决于最后一位的 ASCII 码值。 
+ 
+python 方法与函数 
+_foo----用来指定私有变量的一种方式.不能用 from module import * 导入； 
+__foo----这个有真正的意义:解析器用_classname__foo 来代替这个名字，以区别
+和其他类相同的命名，它无法直接像公有成员一样随便访问，通过对象名._类名
+__xxx 这样的方式可以访问. 
+
+
+### <a name='-1'></a>如何判断一个值是方法还是函数？ 
+1、 使用 type()来判断，如果是 method 为方法，如果是 function 则是函数。 
+2、 与类和实例无绑定关系的 function 都属于函数（function） 
+3、 与类和实例有绑定关系的 function 都属于方法 
+ 
+ 
+ 
+### <a name='-1'></a>文档字符串 
+在函数的第一个逻辑行的字符串是这个函数的文档字符串。
+文档字符串的惯例是一个多行字符串，它的首行以大写字母开始，句号结尾。第二行是空行，从第三行开始是详细的描述，在函数中使用文档字符串时尽量遵循这个惯例。 
+文档字符串是一个重要工具，用于解释文档程序 ，帮助你的程序文档更加简单易懂。 我们可以在函数体的第一行使用一对三个单引号 或者一对三个双引号来定义文档字符串。 你可以使用 __doc__调用函数中的文档字符串属性;
+
+
+### <a name='-1'></a>了解类型注解么？ 
+def list_to_str (param_list:list,connect_str: str = " ") - > str: 
+    paas 
+python3 中注解用来给参数， 返回值，变量的类型加上注解，对代码没影响 
+Python 提供了一个工具方便我们测试类型注解的正确性 
+pip install mypy mypy demo.py 若无错误则无输出 
+
+ 
+### <a name='-1'></a>猴子补丁 
+“猴子补丁”(monkey patching)就是指，在函数或对象已经定义之后，再去改变它们的行为。
+指在运行时动态修改类或模块。运行时动态修改模块、类或函数，通常是添加功能或修正缺陷。猴子补丁在代码运行时内存中）发挥作用，不会修改源码，因此只对当前运行的程序实例有效。因为猴子补丁破坏了封装，而且容易导致程序与补丁代码的实现细节紧密耦合，所以被视为临时的变通方案，不是集成代码的推荐方式。 
+举个例子： 
+import datetime 
+datetime.datetime.now = lambda: datetime.datetime(2012, 12, 12) 
+ 
+
+ 
+### <a name='CythonPypyCpythonNumba'></a>介绍 Cython，Pypy Cpython Numba 各有什么缺点 
+CPython 是使用最广的 Python 解释器。 
+IPython 是基于 CPython 之上的一个交互式解释器，也就是说，IPython 只是在交互方式上有所增强 
+PyPy 是另一个 Python 解释器，它的目标是执行速度。PyPy 采用 JIT 技术，对 Python 代码进行动态编译（注意不是解释），所以可以显著提高 Python 代码的执行速度。 绝大部分 Python 代码都可以在 PyPy 下运行，但是 PyPy 和 CPython
+有一些是不同的，这就导致相同的 Python 代码在两种解释器下执行可能会有不同的结果。如果你的代码要放到 PyPy 下执行，就需要了解 PyPy 和 CPython 的。
+
+不同点 
+Jython Jython 是将 Python code 在 JVM 上面跑和调用 java code 的解释器。 
+
+ 
+提高 python 运行效率的方法 
+1、使用生成器，因为可以节约大量内存 
+2、循环代码优化，避免过多重复代码的执行 
+3、核心模块用 Cython PyPy 等，提高效率 
+4、多进程、多线程、协程 
+5、多个 if elif 条件判断，可以把最有可能先发生的条件放到前面写，这样可以减
+少程序判断的次数，提高效率 
+ 
+ 
+ 
+## <a name='python-1'></a>python 新式类和经典类的区别
+a. 在 python 里凡是继承了 object 的类，都是新式类 
+b. Python3 里只有新式类 
+c. Python2 里面继承 object 的是新式类，没有写父类的是经典类 
+d. 经典类目前在 Python 里基本没有应用 
+e. 保持 class 与 type 的统一对新式类的实例执行 a.__class__与 type(a)的结果是一致的，对于旧式类来说就不一样了。 
+f. 对于多重继承的属性搜索顺序不一样新式类是采用广度优先搜索(C3 算法)， 旧式类采用深度优先搜索; 
+g. 新式类多继承搜索顺序(广度优先)：先在水平方向查找，然后再向上查找；经典类多继承搜索顺序(深度优先)：先深入继承树左侧查找，然后再返回，开始查找右侧； 
+h. 新式类除了拥有经典类的全部特性之外，还有一些新的特性。比如__init__发生了变化，新增了静态方法__new__； 
+
+python 之禅 
+通过 import this 语句可以获取其具体的内容。它告诉大家如何写出高效整洁的代码。 
+如何给变量加注释？ 
+可以通过变量名：类型的方式如下 
+a： str = "this is string type" 
+例举几个规范 Python 代码风格的工具 
+pylint 和 flake8 
+列举 3 条以上 PEP8 编码规范 
+《Python Enhancement Proposal #8》（8 号 Python 增强提案）又叫 PEP8 
+1、顶级定义之间空两行，比如函数或者类定义； 
+2、方法定义、类定义与第一个方法之间，都应该空一行； 
+3、三引号进行注释； 
+4、使用 Pycharm、Eclipse 一般使用 4 个空格来缩进代码。 
+ 
+ 
+ 
+容器类型 
+容器是一种把多个元素组织在一起的数据结构，容器中的元素可以逐个地迭代获
+取。简单来说，就好比一个盒子,我们可以往里面存放数据，也可以从里面一个一
+个地取出数据。 
+在 python 中，属于容器类型地有:list,dict,set,str,tuple.....，容器仅仅只是用来存放
+数据的，我们平常看到的 l = [1,2,3,4]等等，好像我们可以直接从列表这个容器
+中取出元素，但事实上容器并不提供这种能力，而是可迭代对象赋予了容器这种
+能力。 
+python 内置数据类型 
+a.数值类型： 
+整型 int、长整型 long(Python3 中没有 long，只有无限精度的 int)、浮点型 float、 
+复数 complex、布尔型 bool； 
+b.序列对象 
+字符串 str、列表 list、元祖 tuple； 
+c.键值对 
+字典 dict 、集合 set； 
+list 列表 
+有序可重复的元素集合，可嵌套、迭代、修改、分片、追加、删除，成员判断。 
+Python 的列表是一个可变长度的顺序存储结构，每一个位置存放的都是对象的
+指针。 
+ 
+del lis[0] 
+lis.pop()----pop 的是从后往前元素； 
+map(str, list)----将列表中的元素转为 str，生成新的 list； 
+list(dict)----使用 list()函数，一个字典作为参数，得到的是字典键值的列表； 
+original_list[-1:] = target_list----将最后一个元素替换成一个列表； 
+l=[1,2,3,4,5],执行 l[1:3]='abc'后，l 变成[1,'a','b','c',4,5]； 
+list = ['a', 'b', 'c', 'd', 'e'] 
+print list[10:] # 打印[]  尝试获取 list[10]和之后的成员，会导致 IndexError. 然而，尝试
+获取列表的切片，开始的 index 超过了成员个数不会产生 IndexError,而是仅仅返回一个
+空列表。 
+列表中的元素可以根据位置传递给几个变量，这样使用必须变量数和元素数量一致： 
+x, y, z = [1, 2, 3] 
+print(x, y, z) 
+[[5 * x + res for res in range(1, 6)] for x in range(0, 5)]----再一个列表中产生 5 组 5 个元素
+的 list； 
+ast.literal_eval(str)----将一个 str(类似与这样的 str--"['Red', 'Green', 'White']")转换成 list; 
+all('target' == element for element in list)----判断 list 中是否有元素等于 target 
+list(set().union(*original_list))----[[10, 20], [40], [30, 56, 25], [10, 20], [33], [40]]-->[33, 40, 
+10, 20, 56, 25, 30] 
+list(itertools.chain(*original_list))----将[[2,4,3],[1,5,6], [9], [7,9,0]]-->[2, 4, 3, 1, 5, 6, 9, 7, 9, 
+0],也可以用如下方法： 
+从一个列表中随机选择 n 个元素作为新的 list----random.sample(original_list, n) 
+```python
+list = [ [ ] ] * 5 
+list  # output? 
+list[0].append(10) 
+list  # output? 
+list[1].append(20) 
+list  # output? 
+list.append(30) 
+list  # output? 
+ 
+# [[], [], [], [], []] 
+# [[10], [10], [10], [10], [10]] 
+# [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]] 
+# [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30] 
+```
+第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了 5 个空列
+表。然而，理解表达式 list=[ [ ] ] * 5 的关键一点是它不是创造一个包含五个独立列表的
+列表，而是它是一个创建了包含对同一个列表五次引用的列表。只有了解了这一点，我
+们才能更好的理解接下来的输出结果。 
+ 
+list[0].append(10) 将 10 附加在第一个列表上。 
+但由于所有 5 个列表是引用的同一个列表，所以这个结果将是： 
+[[10], [10], [10], [10], [10]] 
+ 
+同理，list[1].append(20)将 20 附加在第二个列表上。但同样由于 5 个列表是引用的同一
+个列表，所以输出结果现在是： 
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]] 
+ 
+作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是： [[10, 
+20], [10, 20], [10, 20], [10, 20], [10, 20], 30] 
+ 
+对 list 排序 foo = [-5,8,0,4,9,-4,-20,-2,8,2,-4],使用 lambda 函数从小到大排序 
+>>> foo =  [-5,8,0,4,9,-4,-20,-2,8,2,-4] 
+>>> res = sorted(foo, key=lambda x:x) 
+>>> res 
+[-20, -5, -4, -4, -2, 0, 2, 4, 8, 8, 9] 
+ 
+ 
+使用 lambda 函数对 list 排序 foo = [-5,8,0,4,9,-4,-20,-2,8,2,-4]，输出结果为
+[0,2,4,8,8,9,-2,-4,-4,-5,-20]，正数从小到大，负数从大到小 
+（传两个条件，x<0 和 abs(x) 
+ 
+>>> foo =  [-5,8,0,4,9,-4,-20,-2,8,2,-4] 
+>>> res = sorted(foo, key=lambda x:(x<0, abs(x))) 
+>>> res 
+[0, 2, 4, 8, 8, 9, -2, -4, -4, -5, -20] 
+ 
+python 实现列表去重的方法,先通过集合去重，再转列表
+>>> l = [10,23,12,10,24,10,34,12] 
+>>> s = set(l) 
+>>> s 
+{34, 10, 12, 23, 24} 
+>>> [x for x in s] 
+[34, 10, 12, 23, 24] 
+```python
+# 用 list 类的 sort 方法 
+l1 = ['b','c','d','c','a','a'] 
+l2 = list(set(l1)) 
+l2.sort(key=l1.index) 
+print(l2) 
+# 用 sorted()函数 
+l1 = ['b','c','d','c','a','a'] 
+l2 = sorted(set(l1),key=l1.index) 
+print(l2) 
+# 也可以遍历 
+l1 = ['b','c','d','c','a','a'] 
+l2 = [] 
+for i in l1: 
+    if not i in l2: 
+        l2.append(i) 
+print(l2) 
+
+```
+
+list.extend(iterable)----表示将一个可迭代对象中的元素追加到列表中； 
+itertools.combinations(list, num)----表示获取一个列表的元素个数为 num 的子 list; 
+itertools.tee(iterable, num)----表示从一个迭代器中对象返回 num 个独立的迭代器； 
+map(str, list)----将列表中的元素转为 str，生成新的 list； 
+itertools.groupby(list, key=)----groupby()把迭代器中相邻的，指定特征重复的元素挑出来
+放在一起; 
+operator.itemgetter()----使用 itemgetter()参数规定分组依据; 
+ 
+ 
+tuple 元组 
+元组也是序列结构，但是是一种不可变序列，你可以简单的理解为内容不可变的
+列表。 
+元组对象进行重新赋值或者更新时会导致运行时异常； 
+元组中不允许的操作，确切的说是元组没有的功能： 
+修改、新增元素、删除某个元素（但可以删除整个元组）、所有会对元组内部元
+素发生修改动作的方法。例如，元组没有 remove，append，pop 等方法。 
+元组只保证它的一级子元素不可变，对于嵌套的元素内部，不保证不可变！ 
+color1 = "Red", "Green", "Orange"   # 可以这样定义，color1 表示的是一个 tuple； 
+x = () # 创建一个空元组； 
+tuplex = 5 # 创建一个元素的元组 (5,) 
+tuple.count(element) # 得到元组中 element 元素出现的次数； 
+```python
+for vlan_min, vlan_max in [(200, 300)]: 
+      print(vlan_min, vlan_max)    
+# output:200 300 
+```
+ 
+str 字符串 
+字符串是不可变的序列数据类型，不能直接修改字符串本身，和数字类型一样！
+Python3 全面支持 Unicode 编码，所有的字符串都是 Unicode 字符串。 
+
+Python 的转义字符 
+字符串前加 u、r、b 
+u"中文字符组成的字符串" 
+作用：以 Unicode 格式 进行编码，一般用在中文字符串前面，防止因为源码储存格式
+问题，导致再次使用时出现乱码。 
+r"\n\n\n\n”  # 表示一个普通生字符串 \n\n\n\n，而不表示换行 
+作用：去掉反斜杠的转义机制，常用于正则表达式，对应着 re 模块。 
+b’Hello World’   # 表示这是一个 bytes 对象 
+作用：b" "前缀表示：后面字符串是 bytes 类型。在网络编程中，服务器和浏览器只认
+bytes 类型数据。在 Python3 中，bytes 和 str 的互相转换方式是 str.encode(‘utf-8’)和
+bytes.decode(‘utf-8’)。 
+ 
+str.translate({32: None})----去掉 str 中的空格； 
+s.translate(table)-----table 是字符映射转换表表，是通过 maketrans()方法转换而来的。 
+intab = "aeiou" 
+outtab = "12345" 
+trantab1 = str.maketrans(intab,outtab) # 创建字符映射转换表,将 intab 映射成 outtab; 
+之后使用 s.translate(trantabl1),将 s 转换； 
+ 
+ 
+string.title()---所有单词的首字母大写，其余小写，非字母后的第一个字母将装换成大写字母； 
+ 
+ 
+字符串的 strip()方法是用，当 strip()有参数时，这个参数可以理解成要删除的字符序列，是否被删除的前提是字符串的开头和结尾是不是包含要删除的字符，如果有就继续处理，没有的话就不会删除中间的字符的； 
+ 
+
+a. count 使用 
+```python
+def test_count(): 
+   s = 'The quick brown fox jumps over the lazy dog.' 
+   print('the occurrence times of character %s is %s' % ('e', s.count('e'))) 
+ 
+ 
+test_count() 
+# the occurrence times of character e is 3 
+
+``` 
+ 
+b. 判断字符串是不是数字 
+def test_string_whether_numeric(): 
+   st = 'sd234' 
+   try: 
+       num = float(st) 
+   except (ValueError, TypeError): 
+       print('not numeric') 
+        
+        
+c. 字符装换成一个 int 列表 
+```python
+by = b'ABm' 
+print(list(by)) 
+# [65, 66, 109]
+``` 
+ 
+d. unicode 字符 
+print(u'\u0050\u0079\u0074\u0068\u006f\u006e')  # Python   
+ 
+ 
+e. 两个相同的字符串指向同一内存地址 
+```python
+st1 = 'dong' 
+st2 = 'dong' 
+print('st1 的内存地址==%s\nst2 的内存地址==%s' % (hex(id(st1)), hex(id(st2)))) 
+# st1 的内存地址==0x21b3f5dc4f0 
+# st2 的内存地址==0x21b3f5dc4f0 
+
+``` 
+ 
+f. 字符串中添加尾随和前导零 
+```python
+def test_add_trailing_and_leading_zeroes_to_a_string(): 
+   st = 'dgfr45sfry4'
+   print('origin string---%s, len(st)---%s' % (st, len(st))) 
+   st1 = st.ljust(15, '0')
+   print('add trailing zeroes---', st1)
+   st2 = st.ljust(15, '*') 
+   print('add trailing *---', st2)
+   st3 = st.rjust(15, '0')
+   print('add leading zeroes---', st3)
+   st4 = st.rjust(15, '*') 
+   print('add leading zeroes---', st4) 
+
+
+test_add_trailing_and_leading_zeroes_to_a_string() 
+# origin string---dgfr45sfry4, len(st)---11 
+# add trailing zeroes--- dgfr45sfry40000 
+# add trailing *--- dgfr45sfry4**** 
+# add leading zeroes--- 0000dgfr45sfry4 
+# add leading zeroes--- ****dgfr45sfry4 
+```
+ 
+ 
+g. zfill 使用，接收一个数字，表示讲字符串前边填充 0.     
+```python
+def test_combination_3_digit(): 
+   nums = [] 
+   for x in range(15): 
+       num = str(x).zfill(3) 
+       nums.append(num) 
+   return nums 
+ 
+print(test_combination_3_digit()) 
+# ['000', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '012', '013', '014'] 
+```
+ 
+ 
+h. 字符串中的 replace 方法 
+st = string1.replace(old, new[, max])  # 会生成一个新对象返回,原来的字符串 string1 还是原来的值 
+ 
+ 
+i. split 
+```python
+def get_last_part_string(st): 
+   print(st.split('/')) 
+   print(st.rsplit('/')) 
+   print(st.split('/', 1)) 
+   print(st.split('/', 2)) 
+   print(st.split('/', 3)) 
+   return st.rsplit('/', 1)[0], st.rsplit('-', 1)[0] 
+# split(" ")解决不了单词间多空格的问题，s.split()可以解决 
+# s = "a good   example" 
+# s.split(" ") 
+# ['a', 'good', '', '', 'example'] 
+# s.split() 
+# ['a', 'good', 'example'] 
+
+# print(get_last_part_string('https://www.w3resource.com/python-exercises/string')) 
+# output: 
+# ['https:', '', 'www.w3resource.com', 'python-exercises', 'string'] 
+# ['https:', '', 'www.w3resource.com', 'python-exercises', 'string'] 
+# ['https:', '/www.w3resource.com/python-exercises/string'] 
+# ['https:', '', 'www.w3resource.com/python-exercises/string'] 
+# ['https:', '', 'www.w3resource.com', 'python-exercises/string'] 
+# ('https://www.w3resource.com/python-exercises', 'https://www.w3resource.com/python') 
+```
+ 
+j. upper()与 lower() 
+st.upper()  # 字符串全大写 
+st.lower()  # 字符串全小写 
+ 
+ 
+k. startswith() 
+Python startswith() 方法用于检查字符串是否是以指定子字符串开头，如果是则返回 
+True，否则返回 False。如果参数 beg 和 end 指定值，则在指定范围内检查。 
+语法: 
+startswith()方法语法： 
+str.startswith(str, beg=0,end=len(string)); 
+参数: 
+str -- 检测的字符串。 
+strbeg -- 可选参数用于设置字符串检测的起始位置。 
+strend -- 可选参数用于设置字符串检测的结束位置。 
+str = "this is string example....wow!!!"; 
+print str.startswith( 'this' ); # True 
+print str.startswith( 'is', 2, 4 );  # True
+print str.startswith( 'this', 2, 4 );  # False
+ 
+dic 字典 
+映射是一种关联式的容器类型，它存储了对象与对象之间的映射关系，字典是
+python 里唯一的映射类型，它存储了键值对的关联，是由键到键值的映射关系。 
+Python 的字典数据类型是基于 hash 散列算法实现的，采用键值对(key:value)的形
+式，根据 key 的值计算 value 的地址，具有非常快的查取和插入速度。 
+字典包含的元素个数不限，值的类型可以是任何数据类型！但是字典的 key 必须
+是不可变的对象，例如整数、字符串、bytes 和元组，最常见的还是将字符串作
+为 key。列表、字典、集合等就不可以作为 key。同时，同一个字典内的 key 必
+须是唯一的，但值则不必。 
+注意：从 Python3.6 开始，字典是有序的！它将保持元素插入时的先后顺序！请
+务必清楚！ 
+字典可精确描述为不定长、可变、散列的集合类型。 
+字典中的键映射多个值 
+如果你想要一个键映射多个值，那么你 就需要将这多个值放到另外的容器中，比如列
+表或者集合里面。 
+你可以很方便的使用 collections 模块中的 defaultdict 来构造这样的字典。 
+ 
+defaultdict 的一个特征是它会自动初始化每个 key 刚开始对应的值，所以你只需要 关注
+添加元素操作了。 
+>>> from collections import defaultdict 
+>>> d = defaultdict(list) 
+>>> d 
+defaultdict(<class 'list'>, {}) 
+>>> d['a'].append(1) 
+>>> d["a"].append(2) 
+>>> d 
+defaultdict(<class 'list'>, {'a': [1, 2]}) 
+ 
+defaultdict 会自动为将要访问的键（就算目前字典中并不存在 这样的键）创建映射实体。
+如果你并不需要这样的特性，你可以在一个普通的字典上使用 setdefault()方法来代替。 
+>>> d = {} 
+>>> d.setdefault("a", []).append(1) 
+>>> d.setdefault('a', []).append(2) 
+>>> d 
+{'a': [1, 2]} 
+ 
+ 
+### <a name='-1'></a>字典和集合解析 
+```python
+my_dict = {i: i * i for i in range(10)} 
+my_set = {i * i for i in range(10)} 
+print('dict==%s, set==%s' % (my_dict, my_set)) 
+# dict=={0: 0, 1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81},  
+# set=={0, 1, 64, 4, 36, 9, 16, 49, 81, 25}
+``` 
+ 
+### <a name='-1'></a>遍历字典两种方式 
+```python
+dic = {'name': 'dong', 'age': 20, 'gender': (0, 1)} 
+for k in dic: 
+    print('key==%s, value==%s' % (k, dic[k])) 
+ 
+# key==name, value==dong 
+# key==age, value==20 
+# key==gender, value==(0, 1) 
+ 
+for key, value in dic.items(): 
+    print('key==%s, value==%s' % (key, value)) 
+
+```     
+     
+### <a name='key'></a>判断字典中是否有某一 key 
+print('name' in dic) # True 
+print('ag' not in dic) # True 
+ 
+ 
+ 
+### <a name='-1'></a>获得字典的最大深度： 
+def get_depth_dictionary(d): 
+    if isinstance(d, dict): 
+        return 1 + (max(map(get_depth_dictionary, d.values())) if d else 0) 
+    return 0 
+排序一个字典,根据值排序----sorted(original_dict.items(), key=itemgetter(1)) 
+几个字典合并到一块----迭代执行 dict().update(dict1), 或者此方式：{**dict1, **dict2}; 
+字典中删除一个 key----del dict[key] 
+两个字典值相加----collections.Counter(dict1) + collection.Counter(dict2) 
+itertools.product('ab', range(3)) --> ('a',0) ('a',1) ('a',2) ('b',0) ('b',1) ('b',2) 
+dict(collections.Counter(string))----将一个 string 中某个字符以及其出现的次数构造成字
+典:{'w': 1, '3': 1, 'r': 2}; 
+defaultdict()用法----定义一个普通的 dict 时，取值时，如果键不在 dict 中，会直接报
+keyError， 
+但是如果是 defaultdict(factory_function)定义的字典，就取工厂函数的默认值，此工厂函
+数值得是 set,int,list,str: 
+```python
+dict1 = defaultdict(set) 
+dict2 = defaultdict(int) 
+dict3 = defaultdict(str) 
+dict4 = defaultdict(list) 
+ 
+print(dict1[1]) 
+print(dict2[1]) 
+print(dict3[1]) 
+print(dict4[1]) 
+# set() 
+# 0 
+#  
+# []
+``` 
+dict1.pop(key)函数-----意思是将 key-value 对从 dict 移除，并且返回值未此 key 对应的
+value； 
+取两个字典的交集可以按此进行操作-----set(dict1.items()) & set(dict2.items())-得到的是
+类似于此形式的集合{('key1', 1)}； 
+dict(x=list(range(11, 20)), y=list(range(21, 30)), z=list(range(31, 40))----得到{x: [11,...19], y: 
+[21,...29], z: [30,...39]} 
+collections.defaultdict(list)----用来将同一键的值放在一个列表中； 
+collections.Counter(list1)  == collections.Counter(list2)---用来比较两个 list； 
+ 
+### <a name='-1'></a>字典如何删除键和合并两个字典 
+>>> d01 = {"name":"dx", "age":20} 
+>>> del d01['name'] 
+>>> d01 
+{'age': 20} 
+>>> d02 = {'name':'shane'} 
+>>> d01.update(d02) 
+>>> d01 
+{'age': 20, 'name': 'shane'} 
+      
+      
+### <a name='-1'></a>合并两个字典 
+# 第一种方式 
+```python
+import uuid
+x = {'name': 'dong', 'age': 10}  
+y = {'host': 'compute', 'id': uuid.uuid4()} 
+ 
+z = x.copy() 
+print('z==%s' % z, 'id(x)==%s' % id(x), 'id(z)==%s' % id(z)) 
+# z=={'name': 'dong', 'age': 10} id(x)==2342080434368 id(z)==2342110319872 
+z.update(y) 
+print('z==%s' % z, 'id(z)==%s' % id(z)) 
+# z=={'name': 'dong', 'age': 10, 'host': 'compute', 
+# 'id': UUID('e4379eb9-5d36-4018-baf6-b6d0b0572441')} id(z)==2689673090240 
+# update()是就地和并字典，z 还是同样的内存地址 
+```
+ 
+# 第二种方式，python3.5 以上版本 
+```python
+import uuid
+x = {'name': 'dong', 'age': 10}  
+y = {'host': 'compute', 'id': uuid.uuid4()} 
+z = {**x, **y} 
+print('z==%s' % z, 'id(z)==%s' % id(z)) 
+# z=={'name': 'dong', 'age': 10, 'host': 'compute', 
+# 'id': UUID('2f06eb3b-b1f2-4b4b-9321-4a42f5b5f2d5')} id(z)==1376163448128 
+# z 又存储到另一块内存 
+```
+ 
+# 第三种方式 
+python3.9 可以使用 "|" 操作符合并两个字典 
+>>> z3 = z|y 
+{'a': 1, 'b': 2, 'c': 3, 'd': 4} 
+      
+      
+### <a name='-1'></a>列表嵌套字典的排序，分别根据年龄和姓名排序** 
+ 
+foo = [{"name":"zs","age":19},{"name":"ll","age":54}, 
+{"name":"wa","age":17},{"name":"df","age":23}] 
+ 
+>>> foo = [{"name":"zs","age":19},{"name":"ll","age":54}] 
+>>> res = sorted(foo, key=lambda x:x['age'], reverse=False) 
+>>> res 
+[{'name': 'zs', 'age': 19}, {'name': 'll', 'age': 54}] 
+ 
+>>> res = sorted(foo, key=lambda x:x['name'], reverse=False) 
+>>> res 
+[{'name': 'll', 'age': 54}, {'name': 'zs', 'age': 19}] 
+ 
+ 
+ 
+### <a name='-1'></a>根据键对字典排序 
+ 
+**方法一，zip 函数** 
+ 
+>>> d = {'name': 'dx', 'age': 20, 'address': 'nj'} 
+>>> z = zip(d.keys(), d.values()) 
+>>> foo = [i for i in z] 
+>>> res = sorted(foo, key=lambda x:x[0], reverse=False) 
+>>> res 
+[('address', 'nj'), ('age', 20), ('name', 'dx')] 
+ 
+**方法二,不用 zip** 
+ 
+dic.items 和 zip(dic.keys(),dic.values())都是为了构造列表嵌套字典的结构，方便后面用
+sorted()构造排序规则 
+
+
+>>> res = sorted(d.items(), key=lambda x:x[0], reverse=False) 
+>>> res 
+[('address', 'nj'), ('age', 20), ('name', 'dx')] 
+
+
+## <a name='bytes'></a>bytes 字节
+在 Python3 以后，字符串和 bytes 类型彻底分开了。字符串是以字符为单位进行处理的，bytes 类型是以字节为单位处理的。 
+bytes 数据类型在所有的操作和使用甚至内置方法上和字符串数据类型基本一样，也是不可变的序列对象。 
+bytes 对象只负责以二进制字节序列的形式记录所需记录的对象，至于该对象到底表示什么（比如到底是什么字符）则由相应的编码格式解码所决定。
+Python3中，bytes 通常用于网络数据传输、二进制图片和文件的保存等等。可以通过调用 bytes()生成 bytes 实例，其值形式为 b'xxxxx'，其中 'xxxxx' 为一至多个转义的十六进制字符串（单个 x 的形式为：\x12，其中\x 为小写的十六进制转义字符，12 为二位十六进制数）组成的序列，每个十六进制数代表一个字节（八位二进制数，取值范围 0-255），对于同一个字符串如果采用不同的编码方式生成 bytes对象，就会形成不同的值. 
+b = b''          # 创建一个空的 bytes 
+b = bytes()      # 创建一个空的 bytes 
+
+## <a name='set'></a>set 集合 
+set 集合是一个无序不重复元素的集，基本功能包括关系测试和消除重复元素。
+集合使用大括号({})框定元素，并以逗号进行分隔。但是注意：如果要创建一个空集合，必须用set()而不是{}，因为后者创建的是一个空字典。集合除了在形式上最外层用的也是花括号外，其它的和字典没有一毛钱关系。 
+集合数据类型的核心在于自动去重。 
+### <a name='-1'></a>创建非空元素 
+set([1, 2, 3, 4, 5]) 
+
+### <a name='setdels1'></a>集合 set 不支持索引；也不支持元素删除，比如 del s[1]； 
+
+### <a name='-1'></a>取两个列表的交集 
+set(list1) & set(list2)  
+集合的交集 
+set1 & set2； 
+### <a name='-1'></a>集合并集 
+set1 | set2  
+color_list_2.union(color_list_1) 
+两集合并集-交集-----set1 ^ set2；
+set().union(*L)----L 为一个列表，其中包含元组元素，指的是获取一个列表中的独一无二的元素； 
+ 
+### <a name='-1'></a>集合中添加元素 
+original_set.add("red") 
+original_set.update(["blue", "black"]) 
+ 
+### <a name='-1'></a>集合中删除元素 
+original_set.pop()  # 从前往后移除 
+original_set.remove(num)以及 original_set.discard(num)  # 都是移除元素 num； 
+ 
+### <a name='set1set2'></a>判断 set1 是否是 set2 的子集合 
+set1.issubset(set2); 
+同理父集合----set1.issuperset(set2) 
+集合的拷贝----set2 = set1.copy(); 
+集合的清理----set1.clear(); 
+ 
+### <a name='set1'></a>从 set1 中移除两个集合的交集； 
+set1.difference_update(set2) 
+
+print(s1 - s2) # s1 中有 s2 中没有的元素     # print(s1 + s2)# TypeError: unsupported operand type(s) for +: 'set' and 'set' 
+print(s2 - s1) # s2 中有 s1 中没有的元素 
+ 
+### <a name='set1set2-1'></a>取 set1 中的元素且不在 set2 
+>>> color_list_1 = set(["White", "Black", "Red"]) 
+>>> color_list_2 = set(["Red", "Green"]) 
+>>> color_list_1 - color_list_2 
+{'Black', 'White'} 
+>>> color_list_1.difference(color_list_2) 
+{'Black', 'White'} 
+ 
+ 
+ 
+### <a name='-1'></a>对称差异，将两个集合的对称差作为新集合返回(即恰好在集合之一中的所有元素) 
+n = [9,8,3,2,2,0,9,7,6,3] 
+all_nums = set([0,1,2,3,4,5,6,7,8,9]) 
+n = set([int(i) for i in n]) 
+n = n.symmetric_difference(all_nums)     # [1, 4, 5] 
