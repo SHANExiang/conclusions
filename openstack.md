@@ -1284,7 +1284,7 @@ service-provider-url通过curl -s http://sp.keystone.demo181:5000/Shibboleth.sso
 11. 
 
 #### 工作流
-![img_1.png](img_1.png)
+![](static/img_14.png)
 1. 用户根据账号密码在idp调POST /v3/auth/tokens生成token；
 2. 调用idp /v3/auth/OS-FEDERATION/saml2/ecp生成ECP包装的SAML断言信息；
 3. 根据传参service_provider的id获得sp的service-provider-url，向sp的PAOS url请求，带断言数据；shibboleth会生成session;
