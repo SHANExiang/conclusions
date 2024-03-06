@@ -6,7 +6,15 @@ nova unrescue <server>
 rescue用指定的image作为系统启动盘引导instance，而把instance原先的系统作为第二个磁盘挂载到系统上，
 相当于把故障电脑磁盘拿出，插到另一台正在运行的电脑上，进而再进行一些拯救工作。
 openstack server restore <server>    # 将软删除的虚机进行恢复
-
+nova hypervisor-list  查看计算节点 
+nova hypervisor-servers 《》  
+nova keypair-list    查看创建虚机的密钥对 
+nova availability-zone-list    
+nova pause/nova unpause 
+nova suspend/resume 
+nova resize id/name <规格> 
+nova image-image <name/id> <快照> 
+nova diagnostics 获取虚机 CPU 内存使用情况
 
 
 1. nova的反亲和机制指的是创建一组虚拟机实例，确保他们不会被调度到同一物理主机上；
@@ -1198,6 +1206,46 @@ cinder to make consistent state between nova and cinder.
 
 
 # keystone
+
+## user 
+指的任何使用 Openstack 的实体，可以是真正的用户，其它系统或者服务； 
+除了 admin、demo 外，openstack 也为 nova，cinder，glance，neutron 服务创建了相应的 user 
+credentials
+是用户用来证明自己身份的信息，可以是用户名/密码，token，API key 等 
+
+authentication 
+是 keystone 验证 user 身份的过程。user 访问 openstack 时，向 keystone 提交用户
+名和密码形式的 credentials，keystone 验证后会给 user 签发一个 token 作为后续
+访问的 credentials。 
+
+token 
+是由字母和数字组成的字符串，user 成功 authentication 后，它由 keystone 分配
+给 user，token 用做访问 service 的 credentials，service 会通过 keystone 验证 token
+的有效性，token 的有效期默认是 24 小时；
+token 每次访问都会产生，默认有效期为 24 小时，增长速度很快，token 表数据越来越多。
+更好的方法是将 token 放到 memcached 中，利用其特性，自动删除不使用的缓存。 
+
+project 
+project 用于将 openstack 的资源(计算、存储、网络)进行分组和隔离； 
+资源的所有权归于 project，而不是 user; 
+每个 user 必须挂在 project 里面才能访问该 project 的资源，一个 user 可以属于多
+个 project; 
+
+service 
+openstack 的服务包括 compute(nova)，block storage(cinder)，object storage(swift)，
+image service(glance)，networking service(neutron)； 
+每个 service 都会提供若干个 endpoint，user 通过 endpoint 访问资源和执行操作； 
+
+endpoint 
+是一个网络上可以访问的地址，通常是一个 URL，service 通过 endpoint 暴露自
+己的 API，keystone 负责管理和维护每个 service 的 endpoint。 
+openstack catalog list----查看 endpoint； 
+
+role  
+keystone 借助 role 来进行鉴权，可以为 user 分配一个或多个 role，service 决定每
+个 role 能干什么，service 通过各自的 policy.json 文件对 role 进行访问控制。 
+
+
 ## LDAP
 轻量目录访问协议
 ### openstack集成ldap
