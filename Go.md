@@ -1,5 +1,5 @@
 
-## Go编译运行
+# Go编译运行
 go 源代码首先要通过 go build 编译为可执行文件，在 linux 平台上为 ELF 格式的可执行文件，编译阶段会经过编译器、汇编器、链接器三个过程最终生成可执行文件。
 1、编译器：.go 源码通过 go 编译器生成为 .s 的 plan9 汇编代码；
 2、汇编器：通过 go 汇编器将编译器生成的 .s 汇编语言转换为机器代码，并写出最终的目标程序.o 文件；
@@ -237,64 +237,6 @@ a、找到键相同的键值对 — 更新键对应的值；
 b、没有找到键相同的键值对 — 在链表的末尾追加新的键值对； 
 
 
-## Go设计模式
-### 单例模式实现两种方式
-一个只允许创建一个实例的类称为单例类，这种模式称为单例模式。
-1. 懒汉式
-```Go
-package singleton
-
-import "sync"
-
-type Foo struct {
-    Name         string
-    Data         []byte
-}
-
-var (
-    instance       *Foo
-    lock           sync.Mutex
-)
-
-func NewInstance1() *Foo {
-    if instance == nil {
-        lock.Lock()
-        if instance == nil {
-            instance = &Foo{
-                Name: "name",
-                Data: []byte{},
-            }
-        }
-        lock.Unlock()
-    }
-    return instance
-}
-```
-
-2. 饿汉式
-```Go
-var singletonInstance *Foo = &Foo{Name: "name", Data: []byte{}}
-```
-
-3. 使用sync.Once库
-```Go
-var once sync.Once
-var instance *Foo
-
-func NewInstance2() *Foo {
-    once.Do(func() {
-        instance = &Foo{
-            Name: "name",
-            Data: []byte{},
-        }
-    })
-    return instance
-}
-```
-
-
-
-
 
 ## 链式调用
 链式调用是一种简化代码的编程方式，能够使代码更简洁、易读。链式调用的原理也非常简单，某个对象调用某个方法后，
@@ -409,10 +351,6 @@ db.Save(&user)
 更新为 20。如果该记录不存在，则会插入一条新记录。 
 需要注意的是，以上方法在执行时都会生成 SQL 语句并执行，可以通过 
 db.Debug().Updates() 等方法查看生成的 SQL 语句。 
-
-
-### sqlite3
-go get -u github.com/mattn/go-sqlite3
 
 
 # Gin
@@ -927,7 +865,14 @@ golang程序变量会携带有一组校验数据，用来证明它的整个生�
     想像一个 io.Reader 类型的变量 r , 调用 r.Read(b) 会使得 r 的值和切片b 的背后存储都逃逸掉，所以会在堆上分配。
 
 
-## etcd
+
+
+
+
+
+
+
+# etcd
 etcd 是一个高度一致的分布式键值存储，它提供了一种可靠的方式来存储需要由分布式系统或机器集群访问的数据。 
 它可以优雅地处理网络分区期间的领导者选举，即使在领导者节点中也可以容忍机器故障。 
 etcd 是用 Go 语言编写的，它具有出色的跨平台支持，小的二进制文件和强大的社区。
@@ -950,7 +895,7 @@ sc query etcd
 4. 查看版本；curl -L http://127.0.0.1:2379/version
 
 
-## 缓存
+# 缓存
 ### 缓存实现高性能
 场景：
 电商某个商品的信息一天内不会变化，但是这个商品一次查询要耗费2s，1天只能被浏览100万次；
@@ -1002,7 +947,7 @@ sc query etcd
 第二步，计算 key 的 Hash 值，在环上顺时针寻找到应选取的虚拟节点，例如是 peer2-1，那么就对应真实节点 peer2。
 
 
-## jwt 
+# jwt 
 JWT就是一种基于Token的轻量级认证模式，服务端认证通过后，会生成一个JSON对象，经过签名后得到一个Token（令牌）再发回给用户，
 用户后续请求只需要带上这个Token，服务端解密之后就能获取该用户的相关信息了。
 
@@ -1021,7 +966,7 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 
 
 
-## defer
+# defer
 1. 多个defer语句，按先进后出的方式执行；
 2. defer声明时，对应的参数会实时解析；
 3. defer、return、返回值三者的执行逻辑-return最先执行，return负责将结果写入返回值中，defer执行收尾工作，最后函数携带当前返回值退出；
@@ -1029,29 +974,29 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 5. panic后面的defer语句不被执行，panic语句前的defer语句会被执行；
 6. 调用os.Exit(0)时defer语句不会被执行；
 
-### defer的底层数据结构
+## defer的底层数据结构
 每个 defer 语句都对应一个_defer 实例，多个实例使用指针连接起来形成一个单连表，保存在 goroutine 数据结构中，
 每次插入_defer 实例，均插入到链表的头部，函数结束再一次从头部取出，从而形成后进先出的效果。
 
 
-## rune
+# rune
 Go字符串底层是通过byte数组实现，中文字符在unicode下占2个字节，在utf-8编码下占3个字节，而golang默认编码正好是utf-8
 byte 等同于int8，常用来处理ascii字符
 rune 等同于int32,常用来处理unicode或utf-8字符
 
 
-## errors包
+# errors包
 1. errors.New创建一个表示特定错误的对象，接受一个字符串类型的参数，返回一个error类型的对象；
 2. errors.Is用于判断给定的错误是否是目标错误类型或者基于目标错误类型包装过的错误，会递归检查错误链，直到找到目标错误类型或者到达错误链的末尾。如果找到目标错误类型，则返回true，否则返回false。
 
 
-## io包
+# io包
 1. io.CopyN(io.Discard, conn, bytesToDiscard)           # 指的是将网络连接中bytesToDiscard大小的字节丢弃掉；
 2. io.ReadAtLeast()                # 能够从数据源读取至少指定数量的字节数据到缓冲区中
 
 
 
-## 反射reflect
+# 反射reflect
 反射是程序在运行时检查其变量和值并找到其类型的能力
 1. 对比变量相等；reflect.DeepEqual(sm1, sm2)
 2. 反射类型Type用于获取类型相关的信息（比如slice的长度，struct的成员，函数的参数个数）；反射类型Value用于获取和修改原始数据的值（修改slice和map中的元素，修改struct的成员变量）
@@ -1152,190 +1097,166 @@ protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=p
 1. 不设置请求参数或者返回体，proto文件中import "google/protobuf/empty.proto"(下载放到同级目录)，google.protobuf.Empty；
 
 
- 
 
-uint 型变量值分别为 1，2，它们相减的结果是多少？ 
-var a uint = 1 
-var b uint = 2 
-fmt.Println(a - b) // 结果会溢出，打印 18446744073709551615，如果是 32 位系统，结
-果是 2^32-1，如果是 64 位系统，结果 2^64-1； 
-fmt.Println(math.MinInt, uint(math.MaxInt * 2)) //-9223372036854775808 
-18446744073709551614 
-uint 范围：32 位系统 4 个字节--0~2^32-1；64 位系统 8 个字节—0~2^64-1。 
-下面这句代码是什么作用，为什么要定义一个空
-值？ 
-type GobCodec struct{ 
-conn io.ReadWriteCloser 
-buf *bufio.Writer 
-dec *gob.Decoder 
-enc *gob.Encoder 
-} 
- 
-type Codec interface { 
-io.Closer 
-ReadHeader(*Header) error 
-ReadBody(interface{}) error 
-Write(*Header, interface{}) error 
-} 
- 
-var _ Codec = (*GobCodec)(nil) 
-答：将 nil 转换为 GobCodec 类型，然后再转换为 Codec 接口，如果转换失
-败，说明 GobCodec 没有实现 Codec 接口的所有方法。 
+# 微服务 
+微服务是一种开发软件的架构和组织方法，其中软件由通过明确定义的 API进行通信的小型独立服务组成。
+微服务架构使应用程序更易于扩展和更快地开发，从而加速创新并缩短新功能的上市时间。 
 
-需要面试者有一定的大型项目经验，了解使用微服务，etcd，gin，gorm，
-gRPC 等典型框架等模型或框架。 
-微服务了解吗？ 
-微服务是一种开发软件的架构和组织方法，其中软件由通过明确定义的 API 
-进行通信的小型独立服务组成。微服务架构使应用程序更易于扩展和更快地开
-发，从而加速创新并缩短新功能的上市时间。 
- 
-微服务示意图 
-微服务有着自主，专用，灵活性等优点。 
-参考资料：什么是微服务？| AWS 
-服务发现是怎么做的？ 
+## 如何设计一个高并发系统
+保证整体可用的同时，能够处理很高的并发用户请求，能够承受很大的流量冲击；
+1. 横向扩展；采用分布式部署，部署多台服务器，将流量分开，分担流量；
+2. 微服务拆分；按功能单一性，拆分成多个服务模块；根据情况，先拆分一轮，后面如果系统更复杂了，可以继续分拆。一个服务的代码不要太多，1万行左右，两三万撑死了吧
+3. 数据库分库分表；数据库2000并发
+4. 池化技术；数据库连接池、http连接池、redis连接池；
+5. 主从分离；实时性要求不高的读请求，都去读从库，写的请求或者实时性要求高的请求，才走主库；
+6. 使用缓存；redis几万并发；
+7. CDN加速静态资源访问；
+8. 消息队列，削峰；单机几万并发
+9. ElasticSearch；es 是分布式的，可以随便扩容，分布式天然就可以支撑高并发，因为动不动就可以扩容加机器来扛更高的并发。那么一些比较简单的查询、统计类的操作，可以考虑用 es 来承载，还有一些全文搜索类的操作，也可以考虑用 es 来承载。
+10. 降级熔断；
+11. 限流；
+12. 异步；
+13. 扩容+切流量；
+
+
+## 接口请求重试方式
+1. 循环重试；直至接口重试成功或者达到最大重试次数
+2. 递归重试；请求失败则继续调用，直到请求成功或达到最大重试次数。
+3. 并发框架异步重试；请求接口转化成一个异步任务，将任务放入线程池中异步执行，并发地重试请求接口。可以在任务执行完成后，判断任务执行结果，如果失败则继续重试。
+4. 消息队列重试；直接把消息投递到消息队列里，通过对消息的消费，来实现重试机制。
+
+在请求重试的时候，我们也要注意一些关键点，以免因为重试，引发更多的问题：
+1. 合理设置重试次数和重试间隔时间，避免频繁地发送请求，同时也不要设置过大的重试次数，以免影响系统的性能和响应时间。
+2. 考虑接口幂等性：如果请求是写操作，而且下游的服务不保证请求的幂等性，那么在重试时需要谨慎处理，可以通过查询等幂等的方式进行重试
+3. 在重试过程中，需要考虑并发的问题。如果多个线程同时进行重试，可能会导致请求重复发送或请求顺序混乱等问题。可以使用锁或者分布式锁来解决并发问题。
+4. 在处理异常时，需要根据具体的异常类型来进行处理。有些异常是可以通过重试来解决的，例如网络超时、连接异常等；而有些异常则需要进行特殊的处理，例如数据库异常、文件读写异常等。
+5. 在使用重试机制时，需要注意不要陷入死循环。如果请求一直失败，重试次数一直增加，可能会导致系统崩溃或者资源耗尽等问题。
+
+
+## 服务发现是怎么做的？
 主要有两种服务发现机制：客户端发现和服务端发现。 
-客户端发现模式：当我们使用客户端发现的时候，客户端负责决定可用服务实
-例的网络地址并且在集群中对请求负载均衡, 客户端访问服务登记表，也就是
-一个可用服务的数据库，然后客户端使用一种负载均衡算法选择一个可用的服
-务实例然后发起请求。该模式如下图所示： 
- 
-客户端发现模式 
+客户端发现模式：当我们使用客户端发现的时候，客户端负责决定可用服务实例的网络地址并且在集群中对请求负载均衡, 客户端访问服务登记表，
+也就是一个可用服务的数据库，然后客户端使用一种负载均衡算法选择一个可用的服务实例然后发起请求。
 服务端发现模式：客户端通过负载均衡器向某个服务提出请求，负载均衡器查
-询服务注册表，并将请求转发到可用的服务实例。如同客户端发现，服务实例
-在服务注册表中注册或注销。 
-服务端发现模式 
-参考资料：「Chris Richardson 微服务系列」服务发现的可行方案以及实践案
-例 
- 
-中间件用过吗？ 
-Middleware 是 Web 的重要组成部分，中间件（通常）是一小段代码，它们接
-受一个请求，对其进行处理，每个中间件只处理一件事情，完成后将其传递给
-另一个中间件或最终处理程序，这样就做到了程序的解耦。 
- 
+询服务注册表，并将请求转发到可用的服务实例。如同客户端发现，服务实例在服务注册表中注册或注销。
+
+中间件用过吗？
+Middleware 是 Web 的重要组成部分，中间件（通常）是一小段代码，它们接受一个请求，对其进行处理，
+每个中间件只处理一件事情，完成后将其传递给另一个中间件或最终处理程序，这样就做到了程序的解耦。 
+
 持久化怎么做的？ 
 所谓持久化就是将要保存的字符串写到硬盘等设备。 
- 
-最简单的方式就是采用 ioutil 的 WriteFile()方法将字符串写到磁盘上，这种方法
-面临格式化方面的问题。 
- 
-更好的做法是将数据按照固定协议进行组织再进行读写，比如 JSON，XML，
-Gob，csv 等。 
- 
-如果要考虑高并发和高可用，必须把数据放入到数据库中，比如 MySQL，
-PostgreDB，MongoDB 等。 
-参考链接：Golang 持久化 
- 
-该试题需要面试者有非常丰富的项目阅历和底层原理经验，熟练使用微服务，
-etcd，gin，gorm，gRPC 等典型框架等模型或框架。 
-go 里用过哪些设计模式 ? 
- 
-工厂方法模式 
-问题描述：假设你正在开发一款物流管理应用。 最初版本只能处理卡
-车运输， 因此大部分代码都在位于名为 卡车的类中。 
-一段时间后， 这款应用变得极受欢迎。 你每天都能收到十几次来自
-海运公司的请求， 希望应用能够支持海上物流功能。 
-解决方案：我们抽象出一个物流工厂，然后分别实例化陆上，海上物
-流等工厂类，再生产对应产品。 
-首先写一个表示通用物流的接口： 
-type iLogistics interface { 
- 
-setName(string) 
- 
-getName() string 
-} 
+ 最简单的方式就是采用 ioutil 的 WriteFile()方法将字符串写到磁盘上，这种方法面临格式化方面的问题。 
+ 更好的做法是将数据按照固定协议进行组织再进行读写，比如 JSON，XML，Gob，csv 等。 
+ 如果要考虑高并发和高可用，必须把数据放入到数据库中，比如 MySQL，PostgreDB，MongoDB 等。 
+
+
+## Go 中发生熔断怎么做的 
+在 Go 中，熔断通常是由于一段服务的连续失败引起的，为避免故障扩散，需要使用熔断机制保护底层资源。
+Go 语言提供了一些库和框架来实现熔断机制，例如：
+Hystrix：Hystrix 是 Netflix 开源的一款熔断器组件，可以在 Go 程序中使用。
+它通过统计系统的服务指标（如请求成功率、平均响应时间等）来观察是否需要进行熔断，一旦达到设定的阈值就会执行熔断操作。 
+Gobreaker：Gobreaker 是一个 Go 实现的熔断器库，支持自定义熔断器状态存
+储和熔断器策略等功能，可以用于保护底层服务或资源不被过度使用。 
+Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支持多种熔断
+器策略和监控方式，可以帮助开发者实现高可用的服务治理。 
+总之，Go 提供了多种熔断器库和框架，开发者可以根据具体情况选择并使用这些库来实现熔断机制，保障程序稳定性和可靠性。 
+
+
+## 服务降级怎么搞
+当 Go 服务发生压力剧增时，为了保证核心业务的正常高效运行，需要采取服务降级措施。
+下面是一些具体做法：
+针对不同服务和页面进行策略性地降级：通过对实际业务使用情况和流量的分析，针对不同服务和页面进行策略性地降级，从而释放服务器资源，提高服务可用性。 
+对某些服务和页面采用简单的处理方式：对于一些重要但非核心的服务和页
+面，可以采用一些简单的处理方式，如缓存数据、使用轻量级组件等，从而减轻服务器压力。 
+通过技术手段实现服务降级：可以通过技术手段实现服务降级，例如使用
+Hystrix 等熔断框架，当系统出现故障或超负荷时，自动切换到备份或降级服务，避免发生系统瘫痪。 
+总之，针对不同的场景和业务需求，开发人员需要根据实际情况采取适当的服务降级措施，确保系统稳定运行。 
+
+
+# go 里用过哪些设计模式? 
+
+## 工厂方法模式 
+问题描述：
+假设你正在开发一款物流管理应用。最初版本只能处理卡车运输，因此大部分代码都在位于名为卡车的类中。 
+一段时间后， 这款应用变得极受欢迎。你每天都能收到十几次来自海运公司的请求，希望应用能够支持海上物流功能。 
+解决方案：我们抽象出一个物流工厂，然后分别实例化陆上，海上物流等工厂类，再生产对应产品。 
+首先写一个表示通用物流的接口：
+```Go
+type iLogistics interface {  
+    setName(string)
+    getName() string 
+}
+```
 之后就是陆上物流的工厂类： 
-type RoadLogistics struct { 
- 
-name string 
-} 
- 
-func (r *RoadLogistics) setName(name string) { 
- 
-r.name = name 
-} 
- 
-func (r *RoadLogistics) getName() string { 
- 
-return r.name 
-} 
- 
-var roadInstance iLogistics = (*RoadLogistics)(nil)  // 验
-证 RoadLogistics 是否实习了接口 iLogistics 
-以及海上物流的工厂类，因为类似这里就省略了。 
+```Go
+type RoadLogistics struct {
+    name string 
+}
+func (r *RoadLogistics) setName(name string) {
+    r.name = name 
+}
+
+func (r *RoadLogistics) getName() string {  
+    return r.name
+}
+``` 
+var roadInstance iLogistics = (*RoadLogistics)(nil)  
+验证 RoadLogistics 是否实习了接口 iLogistics以及海上物流的工厂类，因为类似这里就省略了。
 之后就是具体产品了，比如陆上的有汽车，火车和高铁。 
-type Vehicle struct { 
- 
-RoadLogistics 
+```Go
+type Vehicle struct {
+    RoadLogistics
 } 
  
 func NewVehicle() (v *Vehicle) { 
- 
-v = new(Vehicle) 
- 
-v.RoadLogistics = RoadLogistics{ 
- 
- 
-Name: "vehicle", 
- 
-} 
- 
-return v 
-} 
+    v = new(Vehicle) 
+    v.RoadLogistics = RoadLogistics{ 
+        Name: "vehicle",
+    }
+    return v 
+}
+```
 上面是汽车的例子，我们再写一个火车的例子： 
-type Train struct { 
- 
-RoadLogistics 
-} 
- 
-func NewTrain() (t *Train) { 
- 
-t = new(Train) 
- 
-t.RoadLogistics = RoadLogistics{ 
- 
- 
-Name: "train", 
- 
-} 
- 
-return t 
-} 
+```Go
+type Train struct {  
+    RoadLogistics
+}
+
+func NewTrain() (t *Train) {  
+    t = new(Train)
+    t.RoadLogistics = RoadLogistics{
+        Name: "train",
+    }
+    return t 
+}
+```
 然后我们可以根据类别，直接初始化对应的类： 
-func getLogistics(means string) (i iLogistics, err 
-error){ 
- 
-if  means == "vehicle" { 
- 
- 
-return NewVehicle(), nil 
- 
-}else if means == "train"{ 
- 
- 
-return NewTrain(), nil 
- 
-} 
- 
-return nil, errors.New("unknown means of 
-transportation") 
-} 
+```Go
+func getLogistics(means string) (i iLogistics, err error){
+    if means == "vehicle" {
+        return NewVehicle(), nil
+    } else if means == "train"{
+        return NewTrain(), nil
+    }
+    return nil, errors.New("unknown means of transportation") 
+}
+```
 客户端使用，直接调用 getLogistics 就好。 
-抽象工厂模式 
-抽象工厂模式是一种创建型设计模式，它能创建一系列相关的对象，
-而无需指定其具体类。 
-❓问题描述：假设一下，如果你想要购买一组运动装备，比如一双鞋
-与一件衬衫这样由两种不同产品组合而成的套装。相信你会想去购买
-同一品牌的商品，这样商品之间能够互相搭配起来。 
-解决方案：首先，抽象工厂模式为系列中的每件产品明确声明接口
-（例如 T 恤或者鞋子）。然后，确保所有产品变体都继承这些接口。 
-下面是一个抽象工厂接口，它能产生工厂类 
+
+## 抽象工厂模式 
+抽象工厂模式是一种创建型设计模式，它能创建一系列相关的对象，而无需指定其具体类。 
+❓问题描述：假设一下，如果你想要购买一组运动装备，比如一双鞋与一件衬衫这样由两种不同产品组合而成的套装。
+相信你会想去购买同一品牌的商品，这样商品之间能够互相搭配起来。
+解决方案：首先，抽象工厂模式为系列中的每件产品明确声明接口（例如 T 恤或者鞋子）。然后，确保所有产品变体都继承这些接口。 
+下面是一个抽象工厂接口，它能产生工厂类
+```Go
 type iSportsFactory interface { 
     makeShoe() iShoe 
     makeShirt() iShirt 
 } 
  
-func getSportsFactory(brand string) (iSportsFactory, 
-error) { 
+func getSportsFactory(brand string) (iSportsFactory, error) { 
     if brand == "adidas" { 
         return &adidas{}, nil 
     } 
@@ -1345,8 +1266,10 @@ error) {
     } 
  
     return nil, fmt.Errorf("Wrong brand type passed") 
-} 
+}
+``` 
 现在有一个 adidas 的工厂： 
+```Go
 type adidas struct { 
 } 
  
@@ -1367,8 +1290,10 @@ func (a *adidas) makeShirt() iShirt {
         }, 
     } 
 } 
+```
 和 nike 的工厂（略）。 
 然后是抽象的产品，它有尺寸和 logo 两个属性： 
+```Go
 type iShoe interface { 
     setLogo(logo string) 
     setSize(size int) 
@@ -1396,6 +1321,7 @@ func (s *shoe) setSize(size int) {
 func (s *shoe) getSize() int { 
     return s.size 
 } 
+```
 adidas 工厂必须能生产鞋子： 
 type adidasShoe struct { 
     shoe 
@@ -1411,56 +1337,67 @@ func main() {
     adidasShoe := adidasFactory.makeShoe() 
     adidasShirt := adidasFactory.makeShirt() 
 } 
-工厂方法模式和抽象工厂模式的区别在于：前者实例化具体的产品，
-后者实例化具体的工厂，每个工厂再实例化同样的产品系列。 
- 
-单例模式 
-假设一下，如果你想要为你的工程建立一个日志 Logger 模块，但你
-只需要全局唯一的日志系统，不希望日志被记录到乱七八糟的位置。 
-解决方案：我们需要考虑两个问题：1.如何确保全局唯一，2.如何保证
-并发控制。 
-go 里面有 sync.Once 方法，能非常优雅的解决这些问题。 
-type Logger struct { 
-} 
- 
-var logger *Logger 
- 
-var once sync.Once 
- 
-func getLoggerInstance() *Logger { 
- 
-if logger == nil { 
- 
- 
-once.Do( 
- 
- 
- 
-func() { 
- 
- 
- 
- 
-logger = &Logger{} 
- 
- 
- 
-}) 
- 
-} 
- 
-return logger 
-} 
-sync.Once 内部原理是使用了一个互斥锁，每次检查该变量有无被分
-配（是否为 nil），只有为 nil 才初始化实例。 
-假设你的构造函数有很多参数，那么调用该函数将非常不方便。在 C#
-和 python 这样支持重载的语言还好，对于 go 来说就是灾难。 
-生成器模式 
-❓问题描述：假设一下，我们需要在游戏里设计不同的虚拟房屋，每
-个房子有不同的门和窗户等属性。现在有两种类型的房屋 normal 和
-igloo（木制）。 
-解决方案：我们需要考虑两个问题：1.如何确保全局唯一，2.如何保证
-并发控制。 
+工厂方法模式和抽象工厂模式的区别在于：前者实例化具体的产品，后者实例化具体的工厂，每个工厂再实例化同样的产品系列。 
+
+## 单例模式 
+### 单例模式实现两种方式
+一个只允许创建一个实例的类称为单例类，这种模式称为单例模式。
+1. 懒汉式
+```Go
+package singleton
+
+import "sync"
+
+type Foo struct {
+    Name         string
+    Data         []byte
+}
+
+var (
+    instance       *Foo
+    lock           sync.Mutex
+)
+
+func NewInstance1() *Foo {
+    if instance == nil {
+        lock.Lock()
+        if instance == nil {
+            instance = &Foo{
+                Name: "name",
+                Data: []byte{},
+            }
+        }
+        lock.Unlock()
+    }
+    return instance
+}
+```
+
+2. 饿汉式
+```Go
+var singletonInstance *Foo = &Foo{Name: "name", Data: []byte{}}
+```
+
+3. 使用sync.Once库
+```Go
+var once sync.Once
+var instance *Foo
+
+func NewInstance2() *Foo {
+    once.Do(func() {
+        instance = &Foo{
+            Name: "name",
+            Data: []byte{},
+        }
+    })
+    return instance
+}
+```
+
+## 生成器模式 
+❓问题描述：假设一下，我们需要在游戏里设计不同的虚拟房屋，每个房子有不同的门和窗户等属性。
+现在有两种类型的房屋 normal 和 igloo（木制）。 
+解决方案：我们需要考虑两个问题：1.如何确保全局唯一，2.如何保证并发控制。 
 定义生成器接口： 
 type iBuilder interface { 
     setWindowType() 
@@ -1561,7 +1498,8 @@ iglooHouse.windowType)
     fmt.Printf("Igloo House Num Floor: %d\n", 
 iglooHouse.floor) 
 } 
-原型模式 
+
+## 原型模式 
 原型模式使你能够复制已有对象，无需使代码依赖它们所属的类。 
 ❓问题描述：假设一下，你有一个原型，你想复制出一个一模一样的
 复制品，但不巧的是，类的某些成员（比如登录模块）是私有的。 
@@ -1640,375 +1578,50 @@ func main() {
 } 
  
  
-Go 设计模式常见面试题【2022 版】7 赞同 · 4 评论文章 
-go 的调试/分析工具用过哪些。 
-go 的自带工具链相当丰富， 
- 
-go cover : 测试代码覆盖率； 
- 
-godoc: 用于生成 go 文档； 
- 
-pprof：用于性能调优，针对 cpu，内存和并发； 
- 
-race：用于竞争检测； 
-进程被 kill，如何保证所有 goroutine 顺利退出 
-goroutine 监听 SIGKILL 信号，一旦接收到 SIGKILL，则立刻退出。可采用
-select 方法。 
+# go 的调试/分析工具用过哪些 
+go 的自带工具链相当丰富，
+ go cover : 测试代码覆盖率； 
+ godoc: 用于生成 go 文档； 
+ pprof：用于性能调优，针对 cpu，内存和并发； 
+ race：用于竞争检测； 
+
+
+# 进程被 kill，如何保证所有 goroutine 顺利退出 
+goroutine 监听 SIGKILL 信号，一旦接收到 SIGKILL，则立刻退出。可采用select 方法。 
+```Go
 var wg = &sync.WaitGroup{} 
  
-func main() { 
- 
-wg.Add(1) 
- 
- 
-go func() { 
- 
- 
-c1 := make(chan os.Signal, 1) 
- 
- 
-signal.Notify(c1, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT) 
- 
- 
-fmt.Printf("goroutine 1 receive a signal : %v\n\n", <-c1) 
- 
- 
-wg.Done() 
- 
-}() 
- 
- 
-wg.Wait() 
- 
-fmt.Printf("all groutine done!\n") 
-} 
+func main() {  
+    wg.Add(1)
+    go func() { 
+        c1 := make(chan os.Signal, 1) 
+        signal.Notify(c1, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT) 
+        fmt.Printf("goroutine 1 receive a signal : %v\n\n", <-c1) 
+        wg.Done() 
+    }() 
+    wg.Wait()  
+    fmt.Printf("all groutine done!\n") 
+}
+```
 
-
-Go 中发生熔断怎么做的 
-在 Go 中，熔断通常是由于一段服务的连续失败引起的，为避免故障扩散，需
-要使用熔断机制保护底层资源。Go 语言提供了一些库和框架来实现熔断机
-制，例如： 
-Hystrix：Hystrix 是 Netflix 开源的一款熔断器组件，可以在 Go 程序中使用。
-它通过统计系统的服务指标（如请求成功率、平均响应时间等）来观察是否需
-要进行熔断，一旦达到设定的阈值就会执行熔断操作。 
-Gobreaker：Gobreaker 是一个 Go 实现的熔断器库，支持自定义熔断器状态存
-储和熔断器策略等功能，可以用于保护底层服务或资源不被过度使用。 
-Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支持多种熔断
-器策略和监控方式，可以帮助开发者实现高可用的服务治理。 
-总之，Go 提供了多种熔断器库和框架，开发者可以根据具体情况选择并使用
-这些库来实现熔断机制，保障程序稳定性和可靠性。 
-服务降级怎么搞 
-当 Go 服务发生压力剧增时，为了保证核心业务的正常高效运行，需要采取服
-务降级措施。下面是一些具体做法： 
-针对不同服务和页面进行策略性地降级：通过对实际业务使用情况和流量的分
-析，针对不同服务和页面进行策略性地降级，从而释放服务器资源，提高服务
-可用性。 
-对某些服务和页面采用简单的处理方式：对于一些重要但非核心的服务和页
-面，可以采用一些简单的处理方式，如缓存数据、使用轻量级组件等，从而减
-轻服务器压力。 
-通过技术手段实现服务降级：可以通过技术手段实现服务降级，例如使用 
-Hystrix 等熔断框架，当系统出现故障或超负荷时，自动切换到备份或降级服
-务，避免发生系统瘫痪。 
-总之，针对不同的场景和业务需求，开发人员需要根据实际情况采取适当的服
-务降级措施，确保系统稳定运行。 
- 
-1 亿条数据动态增长，取 top10，怎么实现 
+# 1 亿条数据动态增长，取 top10，怎么实现
 处理 1 亿条数据动态增长并取 TOP10 可以使用堆的方法。具体的做法如下： 
-定义一个大根堆，初始化它的大小为 10，用于存放前 10 大的数据。 
-遍历数据，对于每个新来的数据，与堆顶元素进行比较，如果新数据大于堆顶
-元素，则将新数据插入到堆中，并弹出堆顶元素，以保证堆中始终是前 10 大
-的数据。 
-遍历完所有数据后，堆中剩余元素就是前 10 大的数据，按照从大到小的顺序
-输出即可。 
-由于堆的大小固定为 10，因此算法的时间复杂度为 O(nlogk)，其中 k 为堆的
-大小，也就是 10。 
-需要注意的是，如果数据量非常大，可能会涉及到内存限制问题，因此可以采
-用分布式计算、MapReduce 等方法来处理大规模数据。 
- 
- 
- 
-总结 
-Go 面试复习应该有所侧重，关注切片，通道，异常处理，Goroutine，GMP 模
-型，字符串高效拼接，指针，反射，接口，sync。对于比较难懂的部分，GMP
-模型和 GC 和内存管理，应该主动去看源码，然后慢慢理解。业务代码写多
-了，自然就有理解了。 
- 
-fallthrough 
-如果在执行完每个分支的代码后，还希望继续执行后续分支的代码，可以使
-用 fallthrough 关键字来达到目的。 
- 
- 
-nil 
-nil 只能赋值给指针、chan、func、interface、map 或 slice 类型的变量，也可以
-赋给 error； 
- 
-iota 
-func main() { 
- 
-k := 6 
- 
-switch k { 
- 
-case 4: 
- 
- 
-fmt.Println("was <= 4") 
- 
- 
-fallthrough 
- 
-case 5: 
- 
- 
-fmt.Println("was <= 5") 
- 
- 
-fallthrough 
- 
-case 6: 
- 
- 
-fmt.Println("was <= 6") 
- 
- 
-fallthrough 
- 
-case 7: 
- 
- 
-fmt.Println("was <= 7") 
- 
- 
-fallthrough 
- 
-case 8: 
- 
- 
-fmt.Println("was <= 8") 
- 
- 
-fallthrough 
- 
-default: 
- 
- 
-fmt.Println("default case") 
- 
-} 
-} 
-// was <= 6 
-// was <= 7 
-// was <= 8 
-// default case 
-1、 iota 只能在常量的表达式中使用； 
-2、 每次 const 出现时，都会让 iota 初始化为 0.【自增长】； 
-Go 中 Label 使用 
-Go 语言中有 goto 这个功能，在处理多级嵌套时非常有用。 
-Go 语言支持 label（标签）语法：分别是 break label 和 goto label 、continue label； 
-break label 
-break 一般用来跳出当前所在的循环，但是我们有业务场景，需要使用到跳出带
-外层循环怎么办？break label 跳出循环不再执行 for 循环里的代码。 
-func main() { 
-LABEL1: 
- 
-for i := 0;i < 3;i++ { 
- 
- 
-if i == 2 { 
- 
- 
- 
-break LABEL1 
- 
- 
-} 
- 
- 
-fmt.Println("i==", i) 
- 
-} 
-} 
-//i== 0 
-//i== 1 
-break 标签只能用于 for 循环，不能和 switch 使用，在其他语言里 switch 与 break
-是搭档； 
-goto label 
-goto 可以无条件的跳转执行的位置，但是不能跨函数，需要配合标签使用。 
-func main() { 
- 
-fmt.Println("start") 
- 
-goto LABEL1 
- 
-fmt.Println("goto ...")    //not run 
-LABEL1: 
- 
-fmt.Println("label1...") 
- 
-goto LABEL1 
- 
-fmt.Println("end")  //not run 
-} 
-//start 
-//label1 
-//label1 
-//...  一直循环 label1 
-continue label 
-continue 是继续循环下一个迭代，继续的是最外层循环。 
-func main() { 
-LABEL1: 
- 
-for i := 0;i < 3;i++{ 
- 
- 
-for j := 0;j < 3;j++{ 
- 
- 
- 
-if j == 1{ 
- 
- 
- 
- 
-continue LABEL1 
- 
- 
- 
-} 
- 
- 
- 
-fmt.Printf("i==%v, j==%v\n", i, j) 
- 
- 
-} 
- 
-} 
-} 
-//i==0, j==0 
-//i==1, j==0 
-//i==2, j==0 
- 
- 
-切片 
-数组 
-定义：arr := [...]int{1, 2, 3}或 arr := [3]int{1, 2, 3}     
-如果数组中元素的个数小于或者等于 4 个，那么所有的变量会直接在栈上初始
-化，如果数组元素大于 4 个，变量就会在静态存储区初始化然后拷贝到栈上； 
-数组是固定产长度的，不能动态扩容，在编译期就确定大小。 
- 
- 
-numbers = append(numbers, 2,3,4) ---往 numbers 中添加多个元素 
-将一个切片 append 到另一个切片中  append(slice1, slice...)，返回新的切片 
-copy(numbers1,numbers) ---拷贝 numbers 的内容到 numbers1 
-delete() 函数用于删除集合的元素, 参数为 map 和其对应的 key 
-当切片作为参数传递给函数时，函数内部所做的更改在函数外部也可见；而数组
-不可见； 
-切片初始化三种方式： 
-1、使用下标获取数组或者切片的一部分；不会拷贝原数组或者原切片中的数据，
-它只会创建一个指向原数组的切片结构体，所以修改新切片的数据也会修改原切
-片。 
-2、字面定义；sl := []int{1, 2, 3} --创建一个数组返回一个切片引用； 
-3、make([]T, length, capacity)    必须要有 length 参数，len() ---长度 ，cap() ---
-容量 
- 
-切片初始化加索引 
- 
- 
-append 使用 
-func main() { 
- 
-var a = []int{2: 3, 4, 0: 0} 
- 
-fmt.Println(a) 
-} 
-// 索引 0 值为 0，索引 2 值为 3，没有指定索引的元素会在前一个索引基础之上
-加一 
-切片在扩容时，容量的扩展规律是按容量的 2 倍数进行扩充。 
- 
- 
- 
- 
-切片拷贝三种方式 
-1、使用=操作符拷贝切片，这种就是浅拷贝 
-2、使用[:]下标的方式复制切片，这种也是浅拷贝 
-3、使用 Go 语言的内置函数 copy()进行切片拷贝，这种就是深拷贝 
-深浅拷贝都是进行复制，区别在于复制出来的新对象与原来的对象在它们发生改
-s := make([]int, 5)  # s = [0 0 0 0 0] 
-r := append(s, 1, 2, 3) # r = [0 0 0 0 0 1 2 3] 
-fmt.Println(r, len(r), cap(r)) # len(r)=8, cap(r)=10 
- 
-// 两个切片追加在一起 
-s1 := []int{1, 2, 3} 
-s2 := []int{4, 5} 
-fmt.Println(append(s1, s2...))  # [1 2 3 4 5] 
- 
-a := [5]int{1, 2, 3, 4, 5} 
-t := a[3:4:4] # 意思切取索引 3-->4(不包含 4)，第三个参数用来限制新
-切片的容量，切片容量为第三个参数-第一个参数，如果第二个参数省略的话，
-默认为切片的长度； 
-fmt.Println(t[0]) # 4 
- 
-s1 := []int{1, 2, 3} 
- 
-s2 := s1[1:] 
- 
-s2[1] = 5 
- 
-fmt.Println(s1, "\n", s2) 
-// golang 切片底层的数据结构是数组，当使用 s1[1:] 获得切片 s2，和 s1 共享
-同一个底层数组，这会导致 s2[1] = 4 语句影响 s1 
-变时，是否会相互影响，本质区别就是复制出来的对象与原对象是否会指向同一
-个地址 
- 
- 
-如何判断 2 个字符串切片（slice) 是相等的？ 
-reflect.DeepEqual() ， 但反射非常影响性能。 
- 
-map 
-map 基本用法 
-x := map[string]string{"one": "1", "two": "2"} 
-if v, ok := x["two"]; ok { 
-   fmt.Println("ok==", ok, v) 
-} 
-x["two]返回----值，是否存在 
- 
-通过 make 函数定义 map 
-make(map[string]int) 
-mapCreated := make(map[string]float32)相当于：mapCreated := map[string]float32{}. 
- 
- 
-如果只是 var 声明一个 map，此时不能添加新 key 到 map 中。 
-如果 key 没有在 map 中，取值时去 type 的默认值； 
-m := map[string]int{"1": 1, "2": 2} 
-fmt.Println("value is", m["3"]) 
-//value is 0 
- 
-delete(map, key)  --移除 map 中的元素，如果 key 不存在，该操作不会产生错误； 
-len(map) ---可以获得 map 的长度 
-map 和 slice 一样时引用类型 
-不能通过==进行比较，==只能判断 map 是否是 nil； 
- 
- 
- 
-map 的排序 
-// for-range 遍历 map 
-for key, value := range map1 { 
-} 
-// 如果只想获取 key，可以这么使用： 
-for key := range map1 { 
-} 
-map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷贝到一个切片，
-再对切片排序，然后可以使用切片的 for-range 方法打印出所有的 key 和 value。 
- 
- 
- 
-channel 通道 
-channel（通道）用于在 goroutine 之间传递数据和同步操作。 channel 可以阻塞
-发送方直到接收者准备好接收数据，并且可以阻塞接收方直到有可用的数据发送。
+定义一个大根堆，初始化它的大小为 10，用于存放前 10 大的数据。
+遍历数据，对于每个新来的数据，与堆顶元素进行比较，如果新数据大于堆顶元素，
+则将新数据插入到堆中，并弹出堆顶元素，以保证堆中始终是前 10 大的数据。 
+遍历完所有数据后，堆中剩余元素就是前 10 大的数据，按照从大到小的顺序输出即可。 
+由于堆的大小固定为 10，因此算法的时间复杂度为 O(nlogk)，其中 k 为堆的大小，也就是 10。 
+需要注意的是，如果数据量非常大，可能会涉及到内存限制问题，因此可以采用分布式计算、MapReduce 等方法来处理大规模数据。 
+
+
+
+
+# channel 通道 
+channel（通道）用于在 goroutine 之间传递数据和同步操作。
+channel 可以阻塞发送方直到接收者准备好接收数据，并且可以阻塞接收方直到有可用的数据发送。
 它是 Go 中实现并发的重要机制之一。 
 
-channel 死锁的场景 ok 
+## channel 死锁的场景
 1. 当一个 channel 中没有数据，而直接读取时，会发生死锁： 
 q := make(chan int,2) 
 <-q 
@@ -2017,142 +1630,195 @@ q := make(chan int,2)
 select{ 
    case val:=<-q: 
    default: 
-         ... 
- 
-} 
+         ...
+}
+
 2. 当 channel 数据满了，再尝试写数据会造成死锁； 
 q := make(chan int,2) 
 q<-1 
 q<-2 
 q<-3 
 解决方法，采用 select 
-func main() { 
- 
-q := make(chan int, 2) 
- 
-q <- 1 
- 
-q <- 2 
- 
-select { 
- 
-case q <- 3: 
- 
- 
-fmt.Println("ok") 
- 
-default: 
- 
- 
-fmt.Println("wrong") 
- 
-} 
- 
-} 
+func main() {
+    q := make(chan int, 2)
+    q <- 1
+    q <- 2
+    select {
+    case q <- 3:
+        fmt.Println("ok")
+    default:
+        fmt.Println("wrong")
+    }
+}
+
 3. 向一个关闭的 channel 写数据。 
 注意：一个已经关闭的 channel，只能读数据，不能写数据。 
-对已经关闭的 chan 进行读写会怎么样？ 
-1. 读已经关闭的 chan 能一直读到东西，但是读到的内容根据通道内关闭前是否
-有元素而不同。如果 chan 关闭前，buffer 内有元素还未读,会正确读到 chan 内的
-值，且返回的第二个 bool 值（是否读成功）为 true。如果 chan 关闭前，buffer 内
-有元素已经被读完，chan 内无值，接下来所有接收的值都会非阻塞直接成功，返
-回 channel 元素的零值，但是第二个 bool 值一直为 false。 
+
+## 对已经关闭的 chan 进行读写会怎么样？ 
+1. 读已经关闭的 chan 能一直读到东西，但是读到的内容根据通道内关闭前是否有元素而不同。
+如果 chan 关闭前，buffer 内有元素还未读,会正确读到 chan 内的值，且返回的第二个 bool 值（是否读成功）为 true。
+如果 chan 关闭前，buffer 内有元素已经被读完，chan 内无值，接下来所有接收的值都会非阻塞直接成功，
+返回 channel 元素的零值，但是第二个 bool 值一直为 false。 
 2. 写已经关闭的 chan 会 panic。 
-channel 底层实现？是否线程安全。 
+
+
+## channel 底层实现？是否线程安全。 
 channel 底层实现在 src/runtime/chan.go 中 
-channel 内部是一个循环链表。内部包含 buf, sendx, recvx, lock ,recvq, sendq 几个
-部分； 
+channel 内部是一个循环链表。
+内部包含 buf, sendx, recvx, lock ,recvq, sendq 几个部分； 
 buf 是有缓冲的 channel 所特有的结构，用来存储缓存数据。是个循环链表； 
 sendx 和 recvx 用于记录 buf 这个循环链表中的发送或者接收的 index； 
 lock 是个互斥锁； 
-recvq 和 sendq 分别是接收(<-channel)或者发送(channel <- xxx)的 goroutine 抽象
-出来的结构体(sudog)的队列。是个双向链表。 
+recvq 和 sendq 分别是接收(<-channel)或者发送(channel <- xxx)的 goroutine 抽象出来的结构体(sudog)的队列。是个双向链表。 
 channel 是线程安全的。 
-参考资料：Kitou：Golang 深度剖析 -- channel 的底层实现 
-当 select 监控多个 chan 同时到达就绪态时，如何
-先执行某个任务？ 
+
+
+## 无缓冲的 channel 和有缓冲的 channel 的区别？ 
+无缓冲区 channel：发送的数据如果没有被接收方接收，那么发送方阻塞；如果一直接收不到发送方的数据，接收方阻塞； 
+有缓冲的 channel：发送方在缓冲区满的时候阻塞，接收方不阻塞；接收方在缓冲区为空的时候阻塞，发送方不阻塞。
+
+
+## Go 语言中可以使用 channel 和 mutex 实现阻塞队列 
+```Go
+package main
+
+import ( 
+    "fmt" 
+    "sync" 
+) 
+
+type BlockingQueue struct {  
+    queue     []interface{} 
+    capacity  int 
+    mutex     sync.Mutex 
+    notEmpty *sync.Cond 
+    notFull  *sync.Cond 
+}
+
+func NewBlockingQueue(n int) *BlockingQueue {  
+    bq := &BlockingQueue{
+        queue:    make([]interface{}, 0, n),
+        capacity: n,
+    }
+
+    bq.notEmpty = sync.NewCond(&bq.mutex)  
+    bq.notFull = sync.NewCond(&bq.mutex) 
+    return bq 
+}
+
+func (bq *BlockingQueue) Push(item interface{}) {  
+    bq.mutex.Lock() 
+    defer bq.mutex.Unlock() 
+    for len(bq.queue) == bq.capacity {
+        bq.notFull.Wait()
+    }
+    bq.queue = append(bq.queue, item) 
+    bq.notEmpty.Signal()
+}
+ 
+func (bq *BlockingQueue) Pop() interface{} { 
+    bq.mutex.Lock()
+    defer bq.mutex.Unlock() 
+    for len(bq.queue) == 0 {
+        bq.notEmpty.Wait() 
+    }
+    item := bq.queue[0] 
+    bq.queue = bq.queue[1:] 
+    bq.notFull.Signal() 
+    return item 
+}
+ 
+func main() { 
+    bq := NewBlockingQueue(3) 
+    for i := 0; i < 5; i++ {
+        go func(i int) {
+             bq.Push(i)
+             fmt.Printf("Push %d, queue size: %d\n", i, len(bq.queue)) 
+        }(i) 
+    }
+    for i := 0; i < 5; i++ { 
+        go func() {
+            item := bq.Pop() 
+            fmt.Printf("Pop %v, queue size: %d\n", item, len(bq.queue)) 
+        }() 
+    } 
+}
+```
+在上述代码中，使用了一个 slice 来存放队列元素，同时通过 mutex 来保证线程安全，
+当队列满时生产者需要等待，当队列空时消费者需要等待。
+使用 sync.Cond实现等待通知机制，当队列满时，生产者调用 notFull.Wait()方法进行等待，当队列非满时，
+生产者调用 notEmpty.Signal()方法通知消费者；
+当队列为空时，消费者调用 notEmpty.Wait()方法进行等待，当队列非空时，消费者调用 notFull.Signal()方法通知生产者。 
+该阻塞队列可以用于多线程环境下的任务分发、消息传递等场景。
+
+## channel 为什么需要两个队列实现？
+在 Go 中，每个 channel 都包含两个队列：发送队列和接收队列。
+这是因为channel 的发送和接收操作是异步进行的，发送方和接收方可能会以不同的顺序执行。 
+当发送方向一个未满的 channel 发送数据时，该数据会被添加到发送队列中。
+如果接收方正在等待从 channel 接收数据，则该数据将从发送队列中移除并发送给接收方。
+否则，该数据将一直留在发送队列中，直到有接收方准备好接收。 
+
+类似地，当接收方从一个非空的 channel 接收数据时，该数据会从接收队列中取出并发送给接收方。
+如果发送方正在等待向该 channel 发送数据，则该数据将直接从发送方传递给接收方，而不会先放入接收队列。 
+因此，通过使用这两个队列，channel 可以有效地实现多个 goroutine 之间的同步和通信。
+
+
+## go 通道和锁的使用场景？ 
+在 Go 语言中，协程（Goroutine）之间的通信通常使用通道（Channel）来实现，
+而不需要显式地加锁。这是因为通道本身就是一种并发安全的数据结构，它可以
+保证在多个协程之间进行数据传递时不会出现竞态条件（Race Condition）。 
+通道的实现方式是基于消息传递的模型，即一个协程向通道中发送消息，另一个
+协程从通道中接收消息。在这个过程中，通道会自动进行同步和互斥操作，保证
+每个消息只能被一个协程接收，从而避免了竞态条件的发生。 
+通道适用于以下场景： 
+1. 协程之间需要进行数据传递和同步操作。 
+2. 多个协程需要共享数据，但是不需要进行复杂的同步和互斥操作。 
+3. 协程之间的数据传递是单向的，即一个协程只负责发送数据，另一个协程只负责接收数据。 
+
+而锁适用于以下场景： 
+1. 多个协程需要共享数据，并且需要进行复杂的同步和互斥操作。 
+2. 协程之间的数据传递是双向的，即一个协程既可以发送数据，也可以接收数据。 
+3. 需要对共享数据进行读写操作，而通道只能进行单向的数据传递。 
+总之，在 Go 语言中，通道是一种更加高效、安全和简单的并发编程方式，通常
+优先考虑使用通道来进行协程之间的数据传递和同步操作。而锁则适用于一些复
+杂的同步和互斥操作，或者需要进行读写操作的场景。 
+
+
+# select
+select 可以监听 channel 上的数据流动。
+select 默认是阻塞的，只有当监听的 channel中有发送或接收可以进行时才会运行，当多个 channel 都准备好的时候，select 是随机的选择一个执行的。 
+
+## 当 select 监控多个 chan 同时到达就绪态时，如何先执行某个任务？ 
 可以在子 case 再加一个 for select 语句。 
-func priority_select(ch1, ch2 <-chan string) { 
- 
-for { 
- 
- 
-select { 
- 
- 
-case val := <-ch1: 
- 
- 
- 
-fmt.Println(val) 
- 
- 
-case val2 := <-ch2: 
- 
- 
-priority: 
- 
- 
- 
-for { 
- 
- 
- 
- 
-select { 
- 
- 
- 
- 
-case val1 := <-ch1: 
- 
- 
- 
- 
- 
-fmt.Println(val1) 
- 
- 
- 
- 
-default: 
- 
- 
- 
- 
- 
-break priority 
- 
- 
- 
- 
+func priority_select(ch1, ch2 <-chan string) {
+    for {
+        select {
+        case val := <-ch1:
+            fmt.Println(val)
+        case val2 := <-ch2:
+            priority:
+                for {
+                    select { 
+                    case val1 := <-ch1: 
+                        fmt.Println(val1) 
+                    default: 
+                        break priority 
+                    } 
+                } 
+            fmt.Println(val2)
+        }
+    } 
 } 
  
- 
- 
-} 
- 
- 
- 
-fmt.Println(val2) 
- 
- 
-} 
- 
-} 
-} 
- 
-select 的实现原理？ 
-select 源码位于 src\runtime\select.go，最重要的 scase 数据结构为： 
-type scase struct { 
- 
-c    *hchan         // chan 
- 
-elem unsafe.Pointer // data element 
-} 
-scase.c 为当前 case 语句所操作的 channel 指针，这也说明了一个 case 语句只能
-操作一个 channel。 
-scase.elem 表示缓冲区地址： 
+## select 的实现原理
+select 源码位于 src\runtime\select.go
+最重要的 scase 数据结构为： 
+type scase struct {  
+    c    *hchan         // chan
+    elem unsafe.Pointer // data element 
+}
+scase.c 为当前 case 语句所操作的 channel 指针，这也说明了一个 case 语句只能操作一个 channel。 
+scase.elem 表示缓冲区地址：
 caseRecv ： scase.elem 表示读出 channel 的数据存放地址； 
 caseSend ： scase.elem 表示将要写入 channel 的数据存放地址； 
 select 的主要实现位于：select.go 函数：其主要功能如下： 
@@ -2169,210 +1835,10 @@ index, false)
 \4. 唤醒后返回 channel 对应的 case index 
 4.1 如果是读操作，解锁所有的 channel，然后返回(case index, true) 
 4.2 如果是写操作，解锁所有的 channel，然后返回(case index, false) 
-参考资料：Go select 的使用和实现原理. 
-无缓冲的 channel 和有缓冲的 channel 的区别？ 
-对于无缓冲区 channel： 
-发送的数据如果没有被接收方接收，那么发送方阻塞；如果一直接收不到发送方
-的数据，接收方阻塞； 
-有缓冲的 channel： 
-发送方在缓冲区满的时候阻塞，接收方不阻塞；接收方在缓冲区为空的时候阻塞，
-发送方不阻塞。 
-可以类比生产者与消费者问题。 
- 
- 
-Go 语言中可以使用 channel 和 mutex 实现阻塞队列 
-package main 
 
-import ( 
  
-"fmt" 
- 
-"sync" 
-) 
- 
-type BlockingQueue struct { 
- 
-queue     []interface{} 
- 
-capacity  int 
- 
-mutex     sync.Mutex 
- 
-notEmpty *sync.Cond 
- 
-notFull  *sync.Cond 
-} 
- 
-func NewBlockingQueue(n int) *BlockingQueue { 
- 
-bq := &BlockingQueue{
-queue:    make([]interface{}, 0, n),
-capacity: n,
-} 
- 
-bq.notEmpty = sync.NewCond(&bq.mutex) 
- 
-bq.notFull = sync.NewCond(&bq.mutex) 
- 
-return bq 
-} 
- 
-func (bq *BlockingQueue) Push(item interface{}) { 
- 
-bq.mutex.Lock() 
- 
-defer bq.mutex.Unlock() 
- 
-for len(bq.queue) == bq.capacity { 
- 
- 
-bq.notFull.Wait() 
- 
-} 
- 
-bq.queue = append(bq.queue, item) 
- 
-bq.notEmpty.Signal() 
-} 
- 
-func (bq *BlockingQueue) Pop() interface{} { 
- 
-bq.mutex.Lock() 
- 
-defer bq.mutex.Unlock() 
- 
-for len(bq.queue) == 0 { 
- 
- 
-bq.notEmpty.Wait() 
- 
-} 
- 
-item := bq.queue[0] 
- 
-bq.queue = bq.queue[1:] 
- 
-bq.notFull.Signal() 
- 
-return item 
-} 
- 
-func main() { 
- 
-bq := NewBlockingQueue(3) 
- 
-for i := 0; i < 5; i++ { 
- 
- 
-go func(i int) { 
- 
- 
- 
-bq.Push(i) 
- 
- 
- 
-fmt.Printf("Push %d, queue size: %d\n", i, len(bq.queue)) 
- 
- 
-}(i) 
- 
-} 
- 
-for i := 0; i < 5; i++ { 
- 
- 
-go func() { 
- 
- 
- 
-item := bq.Pop() 
- 
- 
- 
-fmt.Printf("Pop %v, queue size: %d\n", item, len(bq.queue)) 
- 
- 
-}() 
- 
-} 
-} 
-在上述代码中，使用了一个 slice 来存放队列元素，同时通过 mutex 来保证线程
-安全，当队列满时生产者需要等待，当队列空时消费者需要等待。使用 sync.Cond
-实现等待通知机制，当队列满时，生产者调用 notFull.Wait()方法进行等待，当队
-列非满时，生产者调用 notEmpty.Signal()方法通知消费者；当队列为空时，消费
-者调用 notEmpty.Wait()方法进行等待，当队列非空时，消费者调用 notFull.Signal()
-方法通知生产者。 
-该阻塞队列可以用于多线程环境下的任务分发、消息传递等场景。 
- 
-channel 为什么需要两个队列实现？ 
-在 Go 中，每个 channel 都包含两个队列：发送队列和接收队列。这是因为 
-channel 的发送和接收操作是异步进行的，发送方和接收方可能会以不同的顺序
-执行。 
-当发送方向一个未满的 channel 发送数据时，该数据会被添加到发送队列中。如
-果接收方正在等待从 channel 接收数据，则该数据将从发送队列中移除并发送
-给接收方。否则，该数据将一直留在发送队列中，直到有接收方准备好接收。 
- 
-类似地，当接收方从一个非空的 channel 接收数据时，该数据会从接收队列中取
-出并发送给接收方。如果发送方正在等待向该 channel 发送数据，则该数据将直
-接从发送方传递给接收方，而不会先放入接收队列。 
-因此，通过使用这两个队列，channel 可以有效地实现多个 goroutine 之间的同
-步和通信。 
- 
-异常处理 
-Go 有异常类型吗？ok 
-有。Go 用 error 类型代替 try...catch 语句，这样可以节省资源。同时增加代码可
-读性： 
-_, err := funcDemo() 
-if err != nil { 
-  fmt.Println(err) 
-  return 
-} 
-也可以用 errors.New()来定义自己的异常。errors.Error()会返回异常的字符串表示。
-只要实现 error 接口就可以定义自己的异常， 
-type errorString struct { 
-s string 
-} 
- 
-func (e *errorString) Error() string { 
-return e.s 
-} 
- 
-// 多一个函数当作构造函数 
-func New(text string) error { 
-return &errorString{text} 
-} 
- 
- 
- 
- 
-go 通道和锁的使用场景？ 
-在 Go 语言中，协程（Goroutine）之间的通信通常使用通道（Channel）来实现，
-而不需要显式地加锁。这是因为通道本身就是一种并发安全的数据结构，它可以
-保证在多个协程之间进行数据传递时不会出现竞态条件（Race Condition）。 
-通道的实现方式是基于消息传递的模型，即一个协程向通道中发送消息，另一个
-协程从通道中接收消息。在这个过程中，通道会自动进行同步和互斥操作，保证
-每个消息只能被一个协程接收，从而避免了竞态条件的发生。 
-通道适用于以下场景： 
-1. 协程之间需要进行数据传递和同步操作。 
-2. 多个协程需要共享数据，但是不需要进行复杂的同步和互斥操作。 
-3. 协程之间的数据传递是单向的，即一个协程只负责发送数据，另一个协程只负
-责接收数据。 
-而锁适用于以下场景： 
-1. 多个协程需要共享数据，并且需要进行复杂的同步和互斥操作。 
-2. 协程之间的数据传递是双向的，即一个协程既可以发送数据，也可以接收数
-据。 
-3. 需要对共享数据进行读写操作，而通道只能进行单向的数据传递。 
-总之，在 Go 语言中，通道是一种更加高效、安全和简单的并发编程方式，通常
-优先考虑使用通道来进行协程之间的数据传递和同步操作。而锁则适用于一些复
-杂的同步和互斥操作，或者需要进行读写操作的场景。 
- 
-select 
-select 可以监听 channel 上的数据流动。select 默认是阻塞的，只有当监听的 channel
-中有发送或接收可以进行时才会运行，当多个 channel 都准备好的时候，select 是
-随机的选择一个执行的。 
- 
-goroutine 什么情况会发生内存泄漏？如何避免。 
+
+## goroutine 什么情况会发生内存泄漏？如何避免。
 在 Go 中内存泄露分为暂时性内存泄露和永久性内存泄露。 
 暂时性内存泄露 
 1. 获取长字符串中的一段导致长字符串未释放 
@@ -2380,20 +1846,22 @@ goroutine 什么情况会发生内存泄漏？如何避免。
 3. 在长 slice 新建 slice 导致泄漏 
 4. string 相比切片少了一个容量的 cap 字段，可以把 string 当成一个只读的切片
 类型。获取长 string 或者切片中的一段内容，由于新生成的对象和老的 string 或
-者切片共用一个内存空间，会导致老的 string 和切片资源暂时得不到释放，造成
-短暂的内存泄漏；
+者切片共用一个内存空间，会导致老的 string 和切片资源暂时得不到释放，造成短暂的内存泄漏；
 
 永久性内存泄露 
 1. goroutine 永久阻塞而导致泄漏 
 2. time.Ticker 未关闭导致泄漏 
 3. 不正确使用 Finalizer（Go 版本的析构函数）导致泄漏 
-如果若干个 goroutine，有一个 panic 会怎么做？ 
+
+
+## 如果若干个 goroutine，有一个 panic 会怎么做？
 有一个 panic，那么剩余 goroutine 也会退出，程序退出。如果不想程序退出，那
-么必须通过调用 recover() 方法来捕获 panic 并恢复将要崩掉的程序。 
- 
-recover 的执行时机 ok 
-recover 必须在 defer 函数中运行。recover 捕获的是祖父级调用时
-的异常，直接调用时无效。 
+么必须通过调用 recover() 方法来捕获 panic 并恢复将要崩掉的程序。  
+
+# recover
+
+## recover 的执行时机 
+recover 必须在 defer 函数中运行。recover 捕获的是祖父级调用时的异常，直接调用时无效。 
 func main() { 
     recover() 
     panic(1) 
@@ -2404,70 +1872,52 @@ func main() {
     defer recover() 
     panic(1) 
 } 
-// panic: 1 
+// panic: 1
+
 defer 调用时多层嵌套依然无效。 
-func main() { 
- 
-defer func() { 
- 
- 
-func() { 
- 
- 
- 
-recover() 
- 
- 
- 
-fmt.Println("recover...") 
- 
- 
-}() 
- 
-}() 
- 
-panic(1) 
-} 
- 
+func main() {  
+    defer func() {
+        func() {
+            recover()
+            fmt.Println("recover...")
+        }()
+    }()
+    panic(1) 
+}
 // recover... 
 // panic: 1 
+
 必须在 defer 函数中直接调用才有效。 
-func main() { 
- 
-defer func() { 
- 
- 
-recover() 
- 
- 
-fmt.Println("recover...") 
- 
-}() 
- 
-panic("") 
-} 
- 
+func main() {  
+    defer func() {
+        recover()
+        fmt.Println("recover...")
+    }()
+    panic("") 
+}
 //recover... 
- 
- 
-参考理解：goroutine 配上 panic 会怎样。 
-为什么有协程泄露(Goroutine Leak)？ 
+
+
+## 为什么有协程泄露(Goroutine Leak)？ 
 协程泄漏是指协程创建之后没有得到释放。主要原因有： 
 1. 缺少接收器，导致发送阻塞 
 2. 缺少发送器，导致接收阻塞 
 3. 死锁。多个协程由于竞争资源导致死锁。 
 4．创建协程的没有回收。 
-Go 可以限制运行时操作系统线程的数量吗？ 常见
-的 goroutine 操作函数有哪些？ 
+
+
+## Go 可以限制运行时操作系统线程的数量吗？ 常见的 goroutine 操作函数有哪些？ 
 可以，使用 runtime.GOMAXPROCS(num int)可以设置线程数目。该值默认为 CPU
 逻辑核数，如果设的太大，会引起频繁的线程切换，降低性能。 
 runtime.Gosched()，用于让出 CPU 时间片，让出当前 goroutine 的执行权限，调
 度器安排其它等待的任务运行，并在下次某个时候从该位置恢复执行。 
 runtime.Goexit()，调用此函数会立即使当前的 goroutine 的运行终止（终止协程），
 而其它的 goroutine 并不会受此影响。runtime.Goexit 在终止当前 goroutine 前会先
-执行此 goroutine 的还未执行的 defer 语句。请注意千万别在主函数调用
-runtime.Goexit，因为会引发 panic。 
-如何控制协程数目 ok 
+执行此 goroutine 的还未执行的 defer 语句。
+请注意千万别在主函数调用runtime.Goexit，因为会引发 panic。 
+
+
+## 如何控制协程数目 
 The GOMAXPROCS variable limits the number of operating system threads 
 that can execute user-level Go code simultaneously. There is no limit to the 
 number of threads that can be blocked in system calls on behalf of Go code; 
@@ -2478,8 +1928,7 @@ GOMAXPROCS 的默认值等于 CPU 的逻辑核数，同一时间，一个核只�
 一个线程，然后运行被调度的协程。因此对于 CPU 密集型的任务，若该值过大，
 例如设置为 CPU 逻辑核数的 2 倍，会增加线程切换的开销，降低性能。对于 
 I/O 密集型应用，适当地调大该值，可以提高 I/O 吞吐率。 
-另外对于协程，可以用带缓冲区的 channel 来控制，下面的例子是协程数为 1024
-的例子 
+另外对于协程，可以用带缓冲区的 channel 来控制，下面的例子是协程数为 1024的例子 
 var wg sync.WaitGroup 
 ch := make(chan struct{}, 1024) 
 for i:=0; i<20000; i++{ 
@@ -2491,182 +1940,122 @@ for i:=0; i<20000; i++{
     } 
 } 
 wg.Wait() 
+
 此外还可以用协程池：其原理无外乎是将上述代码中通道和协程函数解耦，并封
 装成单独的结构体。常见第三方协程池库，比如 tunny 等。 
-defer 可以捕获 goroutine 的子 goroutine 吗？ 
+
+
+## defer 可以捕获 goroutine 的子 goroutine 吗？ 
 不可以。它们处于不同的调度器 P 中。对于子 goroutine，必须通过 recover() 机
-制来进行恢复，然后结合日志进行打印（或者通过 channel 传递 error），下面是
-一个例子： 
+制来进行恢复，然后结合日志进行打印（或者通过 channel 传递 error），下面是一个例子： 
 // 心跳函数 
 func Ping(ctx context.Context) error { 
-    ... code ... 
-  
- 
-go func() { 
- 
- 
-defer func() { 
- 
- 
- 
-if r := recover(); r != nil { 
- 
- 
- 
- 
-log.Errorc(ctx, "ping panic: %v, stack: %v", r, 
-string(debug.Stack())) 
- 
- 
- 
+    ... code ...
+    go func() {
+        defer func() {
+            if r := recover(); r != nil {
+                log.Errorc(ctx, "ping panic: %v, stack: %v", r, string(debug.Stack()))
+            }
+        }()
+        ... code ...
+    }() 
+    ... code ...
+    return nil
 } 
+
+
+## go 竞态条件了解吗？ 
+所谓竞态竞争，就是当两个或以上的 goroutine 访问相同资源时候，对资源进行读/写。 
+比如 var a int = 0，有两个协程分别对 a+=1，我们发现最后 a 不一定为 2.这就是竞态竞争。 
+通常我们可以用 go run -race xx.go 来进行检测。
+解决方法是，对临界区资源上锁，或者使用原子操作(atomics)，原子操作的开销小于上锁。 
  
- 
-}() 
-  
-        ... code ... 
- 
-}() 
-  
-    ... code ... 
-  
- 
-return nil 
-} 
-go 竞态条件了解吗？ 
-所谓竞态竞争，就是当两个或以上的 goroutine 访问相同资源时候，对资源进行
-读/写。 
-比如 var a int = 0，有两个协程分别对 a+=1，我们发现最后 a 不一定为 2.这就是
-竞态竞争。 
-通常我们可以用 go run -race xx.go 来进行检测。 
-解决方法是，对临界区资源上锁，或者使用原子操作(atomics)，原子操作的开销
-小于上锁。 
- 
-（Goroutine）有三个函数，分别打印"cat", 
-"fish","dog"要求每一个函数都用一个 goroutine，
-按照顺序打印 100 次。 
-此题目考察 channel，用三个无缓冲 channel，如果一个 channel 收到信号则通
-知下一个。 
+## 有三个函数，分别打印"cat", "fish","dog"要求每一个函数都用一个 goroutine，按照顺序打印 100 次。 
+此题目考察 channel，用三个无缓冲 channel，如果一个 channel 收到信号则通知下一个。 
+```Go
 package main 
- 
-import ( 
- 
-"fmt" 
- 
-"time" 
+
+import (  
+    "fmt"
+    "time" 
 ) 
  
 var dog = make(chan struct{}) 
 var cat = make(chan struct{}) 
 var fish = make(chan struct{}) 
  
-func Dog() { 
- 
-<-fish 
- 
-fmt.Println("dog") 
- 
-dog <- struct{}{} 
-} 
- 
-func Cat() { 
- 
-<-dog 
- 
-fmt.Println("cat") 
- 
-cat <- struct{}{} 
-} 
- 
+func Dog() {
+    <-fish 
+    fmt.Println("dog")
+    dog <- struct{}{} 
+}
+
+func Cat() {
+    <-dog
+    fmt.Println("cat")
+    cat <- struct{}{} 
+}
+
 func Fish() { 
+    <-cat
+    fmt.Println("fish")
+    fish <- struct{}{} 
+}
+
+func main() {  
+    for i := 0; i < 100; i++ {
+        go Dog()
+        go Cat()
+        go Fish()
+    }
+    fish <- struct{}{} 
  
-<-cat 
- 
-fmt.Println("fish") 
- 
-fish <- struct{}{} 
-} 
- 
-func main() { 
- 
-for i := 0; i < 100; i++ { 
- 
- 
-go Dog() 
- 
- 
-go Cat() 
- 
- 
-go Fish() 
- 
-} 
- 
-fish <- struct{}{} 
- 
- 
-time.Sleep(10 * time.Second) 
-} 
-两个协程交替打印 10 个字母和数字 
+    time.Sleep(10 * time.Second) 
+}
+```
+
+## 两个协程交替打印 10 个字母和数字 
 思路：采用 channel 来协调 goroutine 之间顺序。 
 主线程一般要 waitGroup 等待协程退出，这里简化了一下直接 sleep。 
+```Go
 package main 
- 
-import ( 
- 
-"fmt" 
- 
-"time" 
-) 
- 
+
+import (  
+    "fmt"
+    "time" 
+)
+
 var word = make(chan struct{}, 1) 
 var num = make(chan struct{}, 1) 
  
-func printNums() { 
- 
-for i := 0; i < 10; i++ { 
- 
- 
-<-word 
- 
- 
-fmt.Println(1) 
- 
- 
-num <- struct{}{} 
- 
-} 
-} 
-func printWords() { 
- 
-for i := 0; i < 10; i++ { 
- 
- 
-<-num 
- 
- 
-fmt.Println("a") 
- 
- 
-word <- struct{}{} 
- 
-} 
-} 
- 
-func main() { 
- 
-num <- struct{}{} 
- 
-go printNums() 
- 
-go printWords() 
- 
-time.Sleep(time.Second * 1) 
-} 
-启动 2 个 groutine 2 秒后取消， 第一个协程 1 秒
-执行完，第二个协程 3 秒执行完。 
-思路：采用 ctx, _ := context.WithTimeout(context.Background(), time.Second*2)实现 2s
-取消。协程执行完后通过 channel 通知，是否超时。 
+func printNums() {  
+    for i := 0; i < 10; i++ {
+        <-word
+        fmt.Println(1)
+        num <- struct{}{}
+    } 
+}
+
+func printWords() {
+    for i := 0; i < 10; i++ {
+        <-num
+        fmt.Println("a")
+        word <- struct{}{}
+    }
+}
+
+func main() {
+    num <- struct{}{}
+    go printNums()
+    go printWords()
+    time.Sleep(time.Second * 1)
+}
+```
+
+
+## 启动 2 个 groutine 2 秒后取消， 第一个协程 1 秒 执行完，第二个协程 3 秒执行完。 
+思路：采用 ctx, _ := context.WithTimeout(context.Background(), time.Second*2)实现 2s 取消。
+协程执行完后通过 channel 通知，是否超时。 
 package main 
  
 import ( 
@@ -3200,41 +2589,10 @@ warmMapedFileEnable=true
 
 
 
-# 微服务
 
 
-## 如何设计一个高并发系统
-保证整体可用的同时，能够处理很高的并发用户请求，能够承受很大的流量冲击；
-1. 横向扩展；采用分布式部署，部署多台服务器，将流量分开，分担流量；
-2. 微服务拆分；按功能单一性，拆分成多个服务模块；根据情况，先拆分一轮，后面如果系统更复杂了，可以继续分拆。一个服务的代码不要太多，1万行左右，两三万撑死了吧
-3. 数据库分库分表；数据库2000并发
-4. 池化技术；数据库连接池、http连接池、redis连接池；
-5. 主从分离；实时性要求不高的读请求，都去读从库，写的请求或者实时性要求高的请求，才走主库；
-6. 使用缓存；redis几万并发；
-7. CDN加速静态资源访问；
-8. 消息队列，削峰；单机几万并发
-9. ElasticSearch；es 是分布式的，可以随便扩容，分布式天然就可以支撑高并发，因为动不动就可以扩容加机器来扛更高的并发。那么一些比较简单的查询、统计类的操作，可以考虑用 es 来承载，还有一些全文搜索类的操作，也可以考虑用 es 来承载。
-10. 降级熔断；
-11. 限流；
-12. 异步；
-13. 扩容+切流量；
 
-
-## 接口请求重试方式
-1. 循环重试；直至接口重试成功或者达到最大重试次数
-2. 递归重试；请求失败则继续调用，直到请求成功或达到最大重试次数。
-3. 并发框架异步重试；请求接口转化成一个异步任务，将任务放入线程池中异步执行，并发地重试请求接口。可以在任务执行完成后，判断任务执行结果，如果失败则继续重试。
-4. 消息队列重试；直接把消息投递到消息队列里，通过对消息的消费，来实现重试机制。
-
-在请求重试的时候，我们也要注意一些关键点，以免因为重试，引发更多的问题：
-1. 合理设置重试次数和重试间隔时间，避免频繁地发送请求，同时也不要设置过大的重试次数，以免影响系统的性能和响应时间。
-2. 考虑接口幂等性：如果请求是写操作，而且下游的服务不保证请求的幂等性，那么在重试时需要谨慎处理，可以通过查询等幂等的方式进行重试
-3. 在重试过程中，需要考虑并发的问题。如果多个线程同时进行重试，可能会导致请求重复发送或请求顺序混乱等问题。可以使用锁或者分布式锁来解决并发问题。
-4. 在处理异常时，需要根据具体的异常类型来进行处理。有些异常是可以通过重试来解决的，例如网络超时、连接异常等；而有些异常则需要进行特殊的处理，例如数据库异常、文件读写异常等。
-5. 在使用重试机制时，需要注意不要陷入死循环。如果请求一直失败，重试次数一直增加，可能会导致系统崩溃或者资源耗尽等问题。
-
-
-## flag
+# flag
 // 定义命令行参数
 name := flag.String("name", "World", "Name to greet")
 // 定义短参数
@@ -3244,7 +2602,7 @@ flag.Parse()
 
 
 
-## regexp
+# regexp
 // 定义正则表达式
 r := regexp.MustCompile(`\d+`)
 // 在字符串中查找匹配项
@@ -3698,6 +3056,329 @@ init 函数没有入口参数和返回值：
 • 
 不同包的 init 函数按照包导入的依赖关系决定执行顺序。
 
+ 
+
+uint 型变量值分别为 1，2，它们相减的结果是多少？ 
+var a uint = 1 
+var b uint = 2 
+fmt.Println(a - b) // 结果会溢出，打印 18446744073709551615，如果是 32 位系统，结
+果是 2^32-1，如果是 64 位系统，结果 2^64-1； 
+fmt.Println(math.MinInt, uint(math.MaxInt * 2)) //-9223372036854775808 
+18446744073709551614 
+uint 范围：32 位系统 4 个字节--0~2^32-1；64 位系统 8 个字节—0~2^64-1。 
+下面这句代码是什么作用，为什么要定义一个空
+值？ 
+type GobCodec struct{ 
+conn io.ReadWriteCloser 
+buf *bufio.Writer 
+dec *gob.Decoder 
+enc *gob.Encoder 
+} 
+ 
+type Codec interface { 
+io.Closer 
+ReadHeader(*Header) error 
+ReadBody(interface{}) error 
+Write(*Header, interface{}) error 
+} 
+
+var _ Codec = (*GobCodec)(nil) 
+答：将 nil 转换为 GobCodec 类型，然后再转换为 Codec 接口，如果转换失败，说明 GobCodec 没有实现 Codec 接口的所有方法。 
+
+
+
+fallthrough 
+如果在执行完每个分支的代码后，还希望继续执行后续分支的代码，可以使
+用 fallthrough 关键字来达到目的。 
+ 
+ 
+nil 
+nil 只能赋值给指针、chan、func、interface、map 或 slice 类型的变量，也可以
+赋给 error； 
+ 
+iota 
+func main() { 
+ 
+k := 6 
+ 
+switch k { 
+ 
+case 4: 
+ 
+ 
+fmt.Println("was <= 4") 
+ 
+ 
+fallthrough 
+ 
+case 5: 
+ 
+ 
+fmt.Println("was <= 5") 
+ 
+ 
+fallthrough 
+ 
+case 6: 
+ 
+ 
+fmt.Println("was <= 6") 
+ 
+ 
+fallthrough 
+ 
+case 7: 
+ 
+ 
+fmt.Println("was <= 7") 
+ 
+ 
+fallthrough 
+ 
+case 8: 
+ 
+ 
+fmt.Println("was <= 8") 
+ 
+ 
+fallthrough 
+ 
+default: 
+ 
+ 
+fmt.Println("default case") 
+ 
+} 
+} 
+// was <= 6 
+// was <= 7 
+// was <= 8 
+// default case 
+1、 iota 只能在常量的表达式中使用； 
+2、 每次 const 出现时，都会让 iota 初始化为 0.【自增长】； 
+Go 中 Label 使用 
+Go 语言中有 goto 这个功能，在处理多级嵌套时非常有用。 
+Go 语言支持 label（标签）语法：分别是 break label 和 goto label 、continue label； 
+break label 
+break 一般用来跳出当前所在的循环，但是我们有业务场景，需要使用到跳出带
+外层循环怎么办？break label 跳出循环不再执行 for 循环里的代码。 
+func main() { 
+LABEL1: 
+ 
+for i := 0;i < 3;i++ { 
+ 
+ 
+if i == 2 { 
+ 
+ 
+ 
+break LABEL1 
+ 
+ 
+} 
+ 
+ 
+fmt.Println("i==", i) 
+ 
+} 
+} 
+//i== 0 
+//i== 1 
+break 标签只能用于 for 循环，不能和 switch 使用，在其他语言里 switch 与 break
+是搭档； 
+goto label 
+goto 可以无条件的跳转执行的位置，但是不能跨函数，需要配合标签使用。 
+func main() { 
+ 
+fmt.Println("start") 
+ 
+goto LABEL1 
+ 
+fmt.Println("goto ...")    //not run 
+LABEL1: 
+ 
+fmt.Println("label1...") 
+ 
+goto LABEL1 
+ 
+fmt.Println("end")  //not run 
+} 
+//start 
+//label1 
+//label1 
+//...  一直循环 label1 
+continue label 
+continue 是继续循环下一个迭代，继续的是最外层循环。 
+func main() { 
+LABEL1: 
+ 
+for i := 0;i < 3;i++{ 
+ 
+ 
+for j := 0;j < 3;j++{ 
+ 
+ 
+ 
+if j == 1{ 
+ 
+ 
+ 
+ 
+continue LABEL1 
+ 
+ 
+ 
+} 
+ 
+ 
+ 
+fmt.Printf("i==%v, j==%v\n", i, j) 
+ 
+ 
+} 
+ 
+} 
+} 
+//i==0, j==0 
+//i==1, j==0 
+//i==2, j==0 
+ 
+ 
+切片 
+数组 
+定义：arr := [...]int{1, 2, 3}或 arr := [3]int{1, 2, 3}     
+如果数组中元素的个数小于或者等于 4 个，那么所有的变量会直接在栈上初始
+化，如果数组元素大于 4 个，变量就会在静态存储区初始化然后拷贝到栈上； 
+数组是固定产长度的，不能动态扩容，在编译期就确定大小。 
+ 
+ 
+numbers = append(numbers, 2,3,4) ---往 numbers 中添加多个元素 
+将一个切片 append 到另一个切片中  append(slice1, slice...)，返回新的切片 
+copy(numbers1,numbers) ---拷贝 numbers 的内容到 numbers1 
+delete() 函数用于删除集合的元素, 参数为 map 和其对应的 key 
+当切片作为参数传递给函数时，函数内部所做的更改在函数外部也可见；而数组
+不可见； 
+切片初始化三种方式： 
+1、使用下标获取数组或者切片的一部分；不会拷贝原数组或者原切片中的数据，
+它只会创建一个指向原数组的切片结构体，所以修改新切片的数据也会修改原切
+片。 
+2、字面定义；sl := []int{1, 2, 3} --创建一个数组返回一个切片引用； 
+3、make([]T, length, capacity)    必须要有 length 参数，len() ---长度 ，cap() ---
+容量 
+ 
+切片初始化加索引 
+ 
+ 
+append 使用 
+func main() { 
+ 
+var a = []int{2: 3, 4, 0: 0} 
+ 
+fmt.Println(a) 
+} 
+// 索引 0 值为 0，索引 2 值为 3，没有指定索引的元素会在前一个索引基础之上
+加一 
+切片在扩容时，容量的扩展规律是按容量的 2 倍数进行扩充。 
+ 
+ 
+ 
+ 
+切片拷贝三种方式 
+1、使用=操作符拷贝切片，这种就是浅拷贝 
+2、使用[:]下标的方式复制切片，这种也是浅拷贝 
+3、使用 Go 语言的内置函数 copy()进行切片拷贝，这种就是深拷贝 
+深浅拷贝都是进行复制，区别在于复制出来的新对象与原来的对象在它们发生改
+s := make([]int, 5)  # s = [0 0 0 0 0] 
+r := append(s, 1, 2, 3) # r = [0 0 0 0 0 1 2 3] 
+fmt.Println(r, len(r), cap(r)) # len(r)=8, cap(r)=10 
+ 
+// 两个切片追加在一起 
+s1 := []int{1, 2, 3} 
+s2 := []int{4, 5} 
+fmt.Println(append(s1, s2...))  # [1 2 3 4 5] 
+ 
+a := [5]int{1, 2, 3, 4, 5} 
+t := a[3:4:4] # 意思切取索引 3-->4(不包含 4)，第三个参数用来限制新
+切片的容量，切片容量为第三个参数-第一个参数，如果第二个参数省略的话，
+默认为切片的长度； 
+fmt.Println(t[0]) # 4 
+ 
+s1 := []int{1, 2, 3} 
+ 
+s2 := s1[1:] 
+ 
+s2[1] = 5 
+ 
+fmt.Println(s1, "\n", s2) 
+// golang 切片底层的数据结构是数组，当使用 s1[1:] 获得切片 s2，和 s1 共享
+同一个底层数组，这会导致 s2[1] = 4 语句影响 s1 
+变时，是否会相互影响，本质区别就是复制出来的对象与原对象是否会指向同一
+个地址 
+ 
+ 
+如何判断 2 个字符串切片（slice) 是相等的？ 
+reflect.DeepEqual() ， 但反射非常影响性能。 
+ 
+map 
+map 基本用法 
+x := map[string]string{"one": "1", "two": "2"} 
+if v, ok := x["two"]; ok { 
+   fmt.Println("ok==", ok, v) 
+} 
+x["two]返回----值，是否存在 
+ 
+通过 make 函数定义 map 
+make(map[string]int) 
+mapCreated := make(map[string]float32)相当于：mapCreated := map[string]float32{}. 
+ 
+ 
+如果只是 var 声明一个 map，此时不能添加新 key 到 map 中。 
+如果 key 没有在 map 中，取值时去 type 的默认值； 
+m := map[string]int{"1": 1, "2": 2} 
+fmt.Println("value is", m["3"]) 
+//value is 0 
+ 
+delete(map, key)  --移除 map 中的元素，如果 key 不存在，该操作不会产生错误； 
+len(map) ---可以获得 map 的长度 
+map 和 slice 一样时引用类型 
+不能通过==进行比较，==只能判断 map 是否是 nil； 
+ 
+ 
+ 
+map 的排序 
+// for-range 遍历 map 
+for key, value := range map1 { 
+} 
+// 如果只想获取 key，可以这么使用： 
+for key := range map1 { 
+} 
+map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷贝到一个切片，
+再对切片排序，然后可以使用切片的 for-range 方法打印出所有的 key 和 value。
+
+
+# Go 有异常类型吗？ok 
+有。Go 用 error 类型代替 try...catch 语句，这样可以节省资源。同时增加代码可读性： 
+_, err := funcDemo() 
+if err != nil { 
+  fmt.Println(err) 
+  return 
+}
+也可以用 errors.New()来定义自己的异常。errors.Error()会返回异常的字符串表示。
+只要实现 error 接口就可以定义自己的异常， 
+type errorString struct { 
+    s string 
+} 
+
+func (e *errorString) Error() string { 
+    return e.s 
+} 
+
+// 多一个函数当作构造函数 
+func New(text string) error { 
+    return &errorString{text} 
+} 
+ 
+ 
 
 
 ## redis
@@ -3936,3 +3617,5 @@ cluster-announce-bus-port 16371
 17. gin go get -u github.com/gin-gonic/gin 
 18. viper文件读取工具 github.com/spf13/viper
 19. swagger go get -u github.com/swaggo/swag/cmd/swag go get -u github.com/swaggo/gin-swagger go get -u github.com/swaggo/files
+20. sqlite3 go get -u github.com/mattn/go-sqlite3
+

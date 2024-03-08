@@ -53,6 +53,14 @@ docker export -o nginx-test.tar nginx-test
 docker import nginx-test.tar nginx:imp或cat nginx-test.tar | docker import - nginx:imp
 export命令是从容器（container）中导出tar文件，而save命令则是从镜像（images）中导出
 
+Dockerfile中COPY将本地文件拷贝到容器中；ADD本地自动解压文档文件到容器中；
+
+Docker image是由一系列Docker只读层创建出来的；Docker layer在Dockerfile配置文件中完成一条配置指令即表示一个Docker layer；
+
+docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/service/logs/dev/nonick/nonick-notifier-service -v /etc/localtime:/etc/localtime -p 8081 notifier:0912 bash
+
+docker启动的容器卷模式为ro，此时不能再文件夹内新建文件；除非在docker run时加上--privileged；
+
 
 ## docker-compose使用
 docker-compose up -d
@@ -63,3 +71,9 @@ docker-compose restart    # 重启docker-compose文件中的容器
 
 ## 容器时间和宿主机一致
 将宿主机的时区文件映射到容器中  -v /etc/localtime:/etc/localtime
+
+
+## 容器化技术在底层的运行原理
+每个容器运行在它自己的命名空间中，但是，确实与其它运行中的容器共用相同的系统内核。
+隔离的产生是由于系统内核清楚地知道命名空间及其中的进程，且这些进程调用系统api时，内核保证进程只能访问属于其命名空间中的资源。
+
