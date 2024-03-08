@@ -1592,7 +1592,7 @@ selete * from testtable limit 2 offset 1;
 2.offset X 是跳过 X 个数据，limit Y 是选取 Y 个数据 
 3.limit X,Y 中 X 表示跳过 X 个数据，读取 Y 个数据 
 IFNULL 语法：IFNULL(A,B)，如果不为空返回第一个参数 A，为空返回参数 B 
- 
+
 #### <a name='-1'></a>消除重复行 
 数据表 student 有 id,name,score,city 字段，其中 name 中的名字可有重复，需要消除重复行,请写 sql 语句 
 select distinct name from student;
