@@ -9,6 +9,7 @@
 * [在哪些地方适合创建索引？](#-1)
 * [当前读和快照读](#-1)
 * [MVCC](#MVCC)
+* [read view在MVCC里如何工作？](#readviewMVCC)
 * [为什么 MySQL 索引结构采用 B+树](#MySQLB)
 * [执行 SQL 响应比较慢，你有哪些排查思路？](#SQL)
 * [MySQL 执行查询的过程](#MySQL)
@@ -22,6 +23,7 @@
 * [为什么使用 MySQL 的最左匹配原则](#MySQL-1)
 * [聚簇索引和非聚簇索引](#-1)
 * [mysql 什么情况下不会使用索引](#mysql)
+* [索引失效的情况](#-1)
 * [索引下推](#-1)
 * [数据库主键使用自增主键、UUID、雪花算法ID](#UUIDID)
 	* [自增主键](#-1)
@@ -39,6 +41,13 @@
 * [为什么红黑树不适合做索引？](#-1)
 * [回表](#-1)
 * [索引覆盖](#-1)
+* [mysql是怎么加锁的？](#mysql-1)
+* [mysql数据存储](#mysql-1)
+* [mysql buffer pool](#mysqlbufferpool)
+* [mysql日志](#mysql-1)
+* [mysql主从复制过程](#mysql-1)
+	* [主从同步延时问题](#-1)
+* [分库分表](#-1)
 * [不符合范式会出现哪些异常](#-1)
 * [事务特性](#-1)
 * [事务控制语句](#-1)
@@ -93,10 +102,16 @@
 		* [7. FOREIGN KEY 外键约束](#FOREIGNKEY)
 	* [TRUNCATE](#TRUNCATE)
 	* [备份与还原](#-1)
+	* [修改表字段](#-1)
+	* [表中增加字段](#-1)
+	* [修改表中值](#-1)
+	* [插入数据](#-1)
+	* [查看表的schema](#schema)
 * [锁表](#-1)
 * [用户和权限管理](#-1)
 * [为什么 SELECT COUNT(*) FROM table 在 InnoDB 比 MyISAM 慢](#SELECTCOUNTFROMtableInnoDBMyISAM)
 * [explain](#explain)
+* [count(*)](#count)
 * [drop,delete 与 truncate 的区别](#dropdeletetruncate)
 * [基于 Redis 和 Mysql 的架构，如何保证数据一致性](#RedisMysql)
 * [MySQL 中 in 和 exists 区别](#MySQLinexists)
@@ -115,6 +130,17 @@
 * [InnoDB 引擎的行锁是怎么实现的？](#InnoDB-1)
 * [什么是死锁？怎么解决？](#-1)
 * [根据加锁的范围，MySQL 里面的锁大致可以分成全局锁、表级锁和行锁三类](#MySQL-1)
+	* [全局锁](#-1)
+	* [表级锁](#-1)
+		* [表锁](#-1)
+		* [MDL（metadata lock，元数据锁)](#MDLmetadatalock)
+		* [意向锁](#-1)
+		* [AUTO-INC锁](#AUTO-INC)
+	* [行锁](#-1)
+		* [Record Lock](#RecordLock)
+		* [Gap Lock](#GapLock)
+		* [Next-Key Lock](#Next-KeyLock)
+	* [死锁和死锁检测](#-1)
 * [说说什么是锁升级？](#-1)
 
 <!-- vscode-markdown-toc-config
@@ -282,7 +308,7 @@ update 语句，有索引情况，直接对行数据加锁；update user set age
 update 语句，无索引情况，MySQL 会为这张表中所有行加行锁，没错，是所有行。但是呢，在加上行锁后，MySQL 会进行一遍过滤，发现不满足的行就释放锁，最终只留下符合条件的行；update user set age=11 where age=10 
 
 
-## read view在MVCC里如何工作？
+## <a name='readviewMVCC'></a>read view在MVCC里如何工作？
 Read View 有四个重要的字段：
 m_ids：指的是在创建 Read View 时，当前数据库中「活跃事务」的事务 id 列表，注意是一个列表，“活跃事务”指的就是，启动了但还没提交的事务。
 min_trx_id：指的是在创建 Read View 时，当前数据库中「活跃事务」中事务 id 最小的事务，也就是 m_ids 的最小值。
@@ -753,7 +779,7 @@ explain select * from staffs where id = 1 # extra 字段是 NULL，说明没有�
 由于覆盖索引可以减少树的搜索次数，显著提升查询性能，所以使用覆盖索引是一个常用的性能优化手段。 
 
 
-## mysql是怎么加锁的？
+## <a name='mysql-1'></a>mysql是怎么加锁的？
 加锁的对象是针对索引；
 用非唯一索引进行等值查询的时候：
 因为存在两个索引，一个是主键索引，一个是非唯一索引（二级索引），所以在加锁时，同时会对这两个索引都加锁，
@@ -765,7 +791,7 @@ explain select * from staffs where id = 1 # extra 字段是 NULL，说明没有�
 当查询的记录「不存在」时，扫描到第一条不符合条件的二级索引记录，该二级索引的 next-key 锁会退化成间隙锁。
 因为不存在满足查询条件的记录，所以不会对主键索引加锁。
 
-## mysql数据存储
+## <a name='mysql-1'></a>mysql数据存储
 1. 每创建一个database（数据库）都会在/var/lib/mysql/目录里面创建一个以database为名的目录，然后保存表结构和表数据的文件都会存放在这个目录里； 
     db.opt，用来存储当前数据库的默认字符集和字符校验规则。 
     t_order.frm，t_order 的表结构会保存在这个文件。在 MySQL 中建立一张表都会生成一个.frm 文件，该文件是用来保存每个表的元数据信息的，主要包含表结构定义。
@@ -794,13 +820,13 @@ explain select * from staffs where id = 1 # extra 字段是 NULL，说明没有�
 8. 如果一个数据页存不了一条记录，InnoDB 存储引擎会自动将溢出的数据存放到「溢出页」中。
 
 
-## mysql buffer pool
+## <a name='mysqlbufferpool'></a>mysql buffer pool
 buffer pool，缓存池--连续的16k大小的页；读取数据从buffer pool中取；修改数据时，如果数据存在buffer pool中，则直接在内存中修改，然后合适的时机再将此页数据写入磁盘；
 
 buffer pool除了缓存页和数据页，还包括undo页，插入缓存、自适应哈希索引、锁信息等；
 默认大小是128M，可以通过innodb_buffer_pool_size参数调整缓冲池的大小。
 
-## mysql日志
+## <a name='mysql-1'></a>mysql日志
 1. undo log(回滚日志)
     Innodb存储引擎日志，用于事务回滚和MVCC；
 2. redo log(重做日志)
@@ -818,7 +844,7 @@ buffer pool除了缓存页和数据页，还包括undo页，插入缓存、自�
     commit 阶段：把 XID 写入到 binlog，然后将 binlog 持久化到磁盘（sync_binlog = 1 的作用），接着调用引擎的提交事务接口，将 redo log 状态设置为 commit，此时该状态并不需要持久化到磁盘，只需要 write 到文件系统的 page cache 中就够了，因为只要 binlog 写磁盘成功，就算 redo log 的状态还是 prepare 也没有关系，一样会被认为事务已经执行成功；
 
 
-## mysql主从复制过程
+## <a name='mysql-1'></a>mysql主从复制过程
 MySQL 集群的主从复制过程梳理成 3 个阶段：
 1. 写入 Binlog：主库写 binlog 日志，提交事务，并更新本地存储数据。
 2. 同步 Binlog：把 binlog 复制到所有从库上，每个从库把 binlog 写到暂存日志中。
@@ -830,7 +856,7 @@ MySQL 集群的主从复制过程梳理成 3 个阶段：
 3. 从库会创建一个用于回放 binlog 的线程，去读 relay log 中继日志，然后回放 binlog 更新存储引擎中的数据，最终实现主从的数据一致性。
 
 
-### 主从同步延时问题
+### <a name='-1'></a>主从同步延时问题
 有两种场景：
 1. 由于从库从主库拷贝日志以及串行执行 SQL 的特点，在高并发场景下，从库的数据一定会比主库慢一些，是有延时的。所以经常出现，刚写入主库的数据可能是读不到的，要过几十毫秒，甚至几百毫秒才能读取到。
 2. 如果主库突然宕机，然后恰好数据还没同步到从库，那么有些数据可能在从库上是没有的，有些数据可能就丢失了。
@@ -840,7 +866,7 @@ MySQL 集群的主从复制过程梳理成 3 个阶段：
 2. 打开 MySQL 支持的并行复制，多个库并行复制。如果说某个库的写入并发就是特别高，单库写并发达到了 2000/s，并行复制还是没意义。
 3. 重写代码，写代码的同学，要慎重，插入数据时立马查询可能查不到。
 
-## 分库分表
+## <a name='-1'></a>分库分表
 中间件：
 Cobar
 TDDL
@@ -1836,19 +1862,19 @@ source 备份文件
 2. 在不登录的情况下 
 mysql -u 用户名 -p 密码 库名 < 备份文件 
 
-### 修改表字段
+### <a name='-1'></a>修改表字段
 alter table backups extra_attrs extra_attributes varchar(1000); 
 
-### 表中增加字段
+### <a name='-1'></a>表中增加字段
 alter table blog_article add cover_image_url varchar(255) DEFAULT '' COMMENT '封面图片地址';
 
-### 修改表中值
+### <a name='-1'></a>修改表中值
 update quota_usages set in_use=0 where id=5;
 
-### 插入数据
+### <a name='-1'></a>插入数据
 INSERT INTO users (name, email) VALUES ('John Doe', 'johndoe@example.com');
 
-### 查看表的schema
+### <a name='schema'></a>查看表的schema
 show create table <table_name>
 
 
@@ -2041,7 +2067,7 @@ analyze table t 命令可以用来重新统计索引信息。
 例如possilbe_key,key,key_len 等字段,分别说明了此语句可能会使用的索引,实际使用的索引以及使用的索引长度. 
  
 
-## count(*) 
+## <a name='count'></a>count(*) 
 在不同的 MySQL 引擎中，count(*) 有不同的实现方式。select count(*) from t 
  MyISAM 引擎把一个表的总行数存在了磁盘上，因此执行 count(*) 的时候会直接返回这个数，效率很高； 
  而 InnoDB 引擎就麻烦了，它执行 count(*) 的时候，需要把数据一行一行地从引擎里面读出来，然后累积计数。 
@@ -2479,7 +2505,7 @@ MVCC 只在 committed read（读提交）和 repeatable read （可重复读）�
 
 ## <a name='MySQL-1'></a>根据加锁的范围，MySQL 里面的锁大致可以分成全局锁、表级锁和行锁三类 
 
-### 全局锁
+### <a name='-1'></a>全局锁
 MySQL 提供了一个加全局读锁的方法，命令是 Flush tables with read lock(FTWRL)。
 当你需要让整个库处于只读状态的时候，可以使用这个命令，之后其他线程的以下语句会被阻塞：数据更新语句（数据的增删改）、数据定义语句（包括建表、修改表结构等）和更新类事务的提交语句。 
 全局锁的典型使用场景是，做全库逻辑备份。也就是把整库每个表都 select 出来存成文本。
@@ -2494,13 +2520,13 @@ single-transaction 方法只适用于所有的表使用事务引擎的库。
 而将整个库设置为 readonly 之后，如果客户端发生异常，则数据库就会一
 直保持 readonly 状态，这样会导致整个库长时间处于不可写状态，风险较高。
 
-### 表级锁
+### <a name='-1'></a>表级锁
 表锁；
 元数据锁（MDL）;
 意向锁；
 AUTO-INC 锁；
 
-#### 表锁
+#### <a name='-1'></a>表锁
 表锁的语法是 lock tables … read/write。
 lock tables 语法除了会限制别的线程的读写外，也限定了本线程接下来的操作对象。 
 举个例子, 如果在某个线程 A 中执行 lock tables t1 read, t2 write; 这个语句，则
@@ -2510,7 +2536,7 @@ lock tables 语法除了会限制别的线程的读写外，也限定了本线�
 而对于 InnoDB 这种支持行锁的引擎，一般不使用 lock tables 命令来控制并发，毕竟锁住整个表的影响面还是太大。 
 
 
-#### MDL（metadata lock，元数据锁)
+#### <a name='MDLmetadatalock'></a>MDL（metadata lock，元数据锁)
 MDL 不需要显式使用，在访问一个表的时候会被自动加上。MDL 的作用是，保证读写的正确性。
 你可以想象一下，如果一个查询正在遍历一个表中的数据，而执行期间另一个线程对这个表结构做变更，删了一列，那么查询线程拿到的结果跟表结构对不上，肯定是不行的。
 因此，在 MySQL 5.5 版本中引入了 MDL。
@@ -2521,7 +2547,7 @@ MDL 不需要显式使用，在访问一个表的时候会被自动加上。MDL 
 因此，如果有两个线程要同时给一个表加字段，其中一个要等另一个执行完才能开始执行。 
 事务中的 MDL 锁，在语句执行开始时申请，但是语句结束后并不会马上释放，而会等到整个事务提交后再释放。 
 
-#### 意向锁
+#### <a name='-1'></a>意向锁
 在使用 InnoDB 引擎的表里对某些记录加上「共享锁」之前，需要先在表级别加上一个「意向共享锁」；
 在使用 InnoDB 引擎的表里对某些纪录加上「独占锁」之前，需要先在表级别加上一个「意向独占锁」；
 //先在表上加上意向共享锁，然后对读取的记录加共享锁
@@ -2536,7 +2562,7 @@ select ... for update;
 如果有就意味着表里已经有记录被加了独占锁，这样就不用去遍历表里的记录。
 所以，意向锁的目的是为了快速判断表里是否有记录被加锁。
 
-#### AUTO-INC锁
+#### <a name='AUTO-INC'></a>AUTO-INC锁
 表里的主键通常都会设置成自增的，这是通过对主键字段声明 AUTO_INCREMENT 属性实现的。
 之后可以在插入数据时，可以不指定主键的值，数据库会自动给主键赋值递增的值，这主要是通过 AUTO-INC 锁实现的。
 AUTO-INC 锁是特殊的表锁机制，锁不是再一个事务提交后才释放，而是再执行完插入语句后就会立即释放。
@@ -2554,21 +2580,21 @@ InnoDB 存储引擎提供了个 innodb_autoinc_lock_mode 的系统变量，是�
 类似 insert … select 这样的批量插入数据的语句，自增锁还是要等语句结束后才被释放；
 
 
-### 行锁 
+### <a name='-1'></a>行锁 
 行级锁的类型主要有三类：
 Record Lock，记录锁，也就是仅仅把一条记录锁上；
 Gap Lock，间隙锁，锁定一个范围，但是不包含记录本身；
 Next-Key Lock：Record Lock + Gap Lock 的组合，锁定一个范围，并且锁定记录本身。
 
-#### Record Lock
+#### <a name='RecordLock'></a>Record Lock
 Record Lock 称为记录锁，锁住的是一条记录。而且记录锁是有 S 锁和 X 锁之分的：
 
-#### Gap Lock
+#### <a name='GapLock'></a>Gap Lock
 称为间隙锁，只存在于可重复读隔离级别，目的是为了解决可重复读隔离级别下幻读的现象。
 间隙锁虽然存在 X 型间隙锁和 S 型间隙锁，但是并没有什么区别，间隙锁之间是兼容的，
 即两个事务可以同时持有包含共同间隙范围的间隙锁，并不存在互斥关系，因为间隙锁的目的是防止插入幻影记录而提出的。
 
-#### Next-Key Lock
+#### <a name='Next-KeyLock'></a>Next-Key Lock
 Next-Key Lock 称为临键锁，是 Record Lock + Gap Lock 的组合，锁定一个范围，并且锁定记录本身。
 所以，next-key lock 即能保护该记录，又能阻止其他事务将新纪录插入到被保护记录前面的间隙中。
 
@@ -2580,7 +2606,7 @@ next-key lock 是包含间隙锁+记录锁的，如果一个事务获取了 X �
 
 
 
-### 死锁和死锁检测
+### <a name='-1'></a>死锁和死锁检测
 当并发系统中不同线程出现循环资源依赖，涉及的线程都在等待别的线程释放资源时，就会导致这几个线程都进入无限等待的状态，称为死锁。 
 当出现死锁以后，有两种策略： 
  一种策略是，直接进入等待，直到超时。这个超时时间可以通过参数innodb_lock_wait_timeout 来设置。 

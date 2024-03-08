@@ -1,3 +1,68 @@
+<!-- vscode-markdown-toc -->
+	* [CLI](#CLI)
+	* [kube-apiserver](#kube-apiserver)
+	* [pod](#pod)
+	* [Deployment](#Deployment)
+	* [DaemonSet](#DaemonSet)
+	* [Job](#Job)
+	* [minikube安装](#minikube)
+	* [controller控制器](#controller)
+	* [service](#service)
+	* [Namespace](#Namespace)
+	* [coredns](#coredns)
+	* [kubernetes健康检查机制](#kubernetes)
+	* [kubernetes volume](#kubernetesvolume)
+	* [Secret](#Secret)
+	* [ConfigMap](#ConfigMap)
+	* [Helm](#Helm)
+	* [CNI](#CNI)
+	* [network policy](#networkpolicy)
+	* [k8s部署](#k8s)
+	* [helm](#helm)
+	* [k8s源码](#k8s-1)
+		* [kube-apiserver](#kube-apiserver-1)
+		* [deepcopy-gen使用](#deepcopy-gen)
+		* [client-gen](#client-gen)
+	* [ldap搭建](#ldap)
+	* [ldap使用](#ldap-1)
+* [物理内存](#)
+* [虚拟内存地址](#-1)
+* [进程虚拟内存空间所包含的主要区域](#-1)
+* [内存分段](#-1)
+* [内存分页](#-1)
+* [多级页表](#-1)
+* [TLB](#TLB)
+* [段页式内存管理](#-1)
+* [内存分配的过程](#-1)
+	* [虚拟内存的作用](#-1)
+* [swap机制](#swap)
+* [Linux操作系统的缓存](#Linux)
+	* [预读机制](#-1)
+	* [缓存污染](#-1)
+	* [程序局部性原理](#-1)
+* [管道](#-1)
+* [pdsh](#pdsh)
+* [场景](#-1)
+* [slurm安装](#slurm)
+* [terraform安装](#terraform)
+* [通过terraform编排openstack](#terraformopenstack)
+* [kubeflow](#kubeflow)
+* [rancher](#rancher)
+* [CRD](#CRD)
+* [HPC](#HPC)
+* [tensorflow](#tensorflow)
+* [NPU](#NPU)
+* [queue](#queue)
+* [podgroup](#podgroup)
+* [vcjob](#vcjob)
+* [k8s中使用GPU](#k8sGPU)
+
+<!-- vscode-markdown-toc-config
+	numbering=false
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
 # 快捷键
 1. 从后往前删除   ctrl+w；
 2. 从前往后删除   ctrl+k；
@@ -145,7 +210,7 @@ CA 证书文件（ssl_cacert.pem）---即根证书；
 # kubernetes k8s
 
 
-### CLI
+### <a name='CLI'></a>CLI
 kubectl get all -n <ns>
 kubectl delete namespace --all
 crictl ps -a    # 查看到运行的container
@@ -154,7 +219,7 @@ kubectl config view    # 查看当前的配置文件
 kubectl config set-cluster <cluster-name> --server=<api-server-url>
 kubectl config get-contexts            # 查看当前上下文的信息，包括集群名称
 
-### kube-apiserver
+### <a name='kube-apiserver'></a>kube-apiserver
 1. 配置文件路径  /etc/kubernetes/kube-controller-manager.kubeconfig;
 2. 重启systemctl restart kube-apiserver.service;
 3. 设置日志输出到文件中        --logtostderr=false --log-dir=/var/log/kubernetes
@@ -165,7 +230,7 @@ Stable: 稳定版本，将会得到持续支持
 5. 查看k8s支持的资源  kubectl api-resources
 
 
-### pod
+### <a name='pod'></a>pod
 kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
 1. 容器的集合，紧密相关的一组容器放到一个pod中，同一个pod中的容器共享ip地址和port空间；
 2. 同一pod中的容器始终被一起调度；
@@ -187,7 +252,7 @@ kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:
 
 
 
-### Deployment
+### <a name='Deployment'></a>Deployment
 kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
 1. 创建deployment，会创建指定的pod;
 2. 暴露端口--->kubectl expose deployment kubernetes-bootcamp --type=NodePort --port=8080；
@@ -204,11 +269,11 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 
 
 
-### DaemonSet
+### <a name='DaemonSet'></a>DaemonSet
 
 
 
-### Job
+### <a name='Job'></a>Job
 工作类容器，一次性任务，比如批量处理程序，完成后容器退出；
 1. kubectl get job；pod执行完毕后容器已经退出，pod状态变成Completed；
 2. job并行--->设置参数parallelism，比如parallelism: 2会启动两个pod；
@@ -219,7 +284,7 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 
 
 
-### minikube安装
+### <a name='minikube'></a>minikube安装
 1. curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 2. sudo install minikube-linux-amd64 /usr/local/bin/minikube
 3. 添加用户---adduser dx;设置用户密码---passwd dx
@@ -228,14 +293,14 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 
 
 
-### controller控制器
+### <a name='controller'></a>controller控制器
 1. 通过controller管理pod;
 2. controller种类：Deployment/ReplicaSet/DaemonSet/StatefuleSet/Job等；
 3. 查看k8s master组件状态 kubectl get cs；
 4. 
 
 
-### service
+### <a name='service'></a>service
 定义了外界访问一组特定pod的方式，service有自己的IP和Port,为pod提供负载均衡；
 kubernetes运行容器和访问容器，两项任务分别由controller和service执行；
 1. Service的Cluster IP通过iptables映射到Pod IP；
@@ -245,25 +310,25 @@ kubernetes运行容器和访问容器，两项任务分别由controller和servic
 5. port是ClusterIp上监听的端口；
 6. targetPort是Pod监听的端口；
 
-### Namespace
+### <a name='Namespace'></a>Namespace
 如果有多个用户或项目组使用同一个Kubernetes Cluster，如何将他们创建的Controller、Pod等资源分开呢？
 答案就是Namespace。Namespace可以将一个物理的Cluster逻辑上划分成多个虚拟Cluster，每个Cluster就是一个Namespace。
 不同Namespace里的资源是完全隔离的。Kubernetes默认创建了两个Namespace。
 
 
 
-### coredns
+### <a name='coredns'></a>coredns
 DNS服务器，每当有新的Service被创建，coredns会添加该Service的DNS记录，Cluster中的pod可以通过<Service_Name>.<Namespace_Name>访问Service；
 1. nslookup查看Service的DNS信息；
 
 
-### kubernetes健康检查机制
+### <a name='kubernetes'></a>kubernetes健康检查机制
 1. 每个容器启动时，都会执行一个进程，此进程由DockerFile的CMD或ENTRYPOINT指定。如果进程退出时返回码非零，则认为容器故障，k8s会根据restartPolicy进行重启容器；
 2. Liveness探测让用户自定义判断容器是否健康的条件；告诉k8s什么时候通过重启容器实现自愈；探测失败后会重启容器；
 3. Readiness探测；告诉k8s什么时候可以将容器加入到Service负载均衡池中，对外提供服务；探测失败后将容器设置为不可用，不接受Service转发的请求；
 
 
-### kubernetes volume
+### <a name='kubernetesvolume'></a>kubernetes volume
 1. 作用：持久化保存容器中的数据；
 2. volume声明周期独立于容器，pod中的容器可能被销毁和重建，但volume会被保留；
 3. 本质上，volume是一个目录，当volume被mount到pod，pod中的所有容器都可以访问这个volume；
@@ -275,7 +340,7 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 9. 回收PV---删除PVC来回收PV，kubectl delete pvc <pvcName>; kubectl patch pvc <pvcName> -p '{"metadata": "finalizers": null}'；pv状态变成Released-->数据清除完毕，最终变成Available；
 
 
-### Secret
+### <a name='Secret'></a>Secret
 为Pod提供密码、Token、秘钥等敏感数据；
 1. 通过--from-literal创建；kubectl create secret generic mysecret --from-literal=username=admin --from-literal=password=123456
 2. 通过--from-file创建；
@@ -294,7 +359,7 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 7. 使用secret--->通过环境变量；
 
 
-### ConfigMap
+### <a name='ConfigMap'></a>ConfigMap
 为Pod提供配置信息；
 1. 通过--from-literal创建；kubectl create configmap myconfigmap --from-literal=config1=xxx --from-literal=config2=yyy
 2. 通过--from-file创建；kubectl create configmap myconfigmap2 --from-file=./config1 --from-file=./config2
@@ -302,7 +367,7 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 4. 通过yaml配置文件创建；kubectl apply -f configmap4.yaml；
 
 
-### Helm
+### <a name='Helm'></a>Helm
 应用打包工具；
 1. chart；类似apt、yum；它包含一系列 k8s 资源配置文件的模板与参数，可供灵活配置
 2. repo；chart的仓库，其中有很多chart可供选择；
@@ -313,12 +378,12 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 
 
 
-### CNI
+### <a name='CNI'></a>CNI
 container networking interface
 
 
 
-### network policy
+### <a name='networkpolicy'></a>network policy
 1. 通过label选择pod,并指定其他pod或外界如果与这些pod进行通信；当为pod定义network policy时，只有policy允许的流量才能访问pod；
 2. ingress:
   - from:
@@ -328,7 +393,7 @@ container networking interface
   表示只有pod带label access=true的才能和建立network policy的pod进行通信；
 
 
-### k8s部署
+### <a name='k8s'></a>k8s部署
 1. 格式化数据盘并挂载
 sudo cat /etc/fstab |tail -n1
 UUID=36158b9f-f0cb-46e0-9e8c-f9f463be06db /                       xfs     defaults        0 0
@@ -397,20 +462,20 @@ kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboar
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 ```
 
-### helm
+### <a name='helm'></a>helm
 安装helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
     && chmod 700 get_helm.sh \
     && ./get_helm.sh
 
-### k8s源码
+### <a name='k8s-1'></a>k8s源码
 
-#### kube-apiserver
+#### <a name='kube-apiserver-1'></a>kube-apiserver
 对外提供api的方式与其它组件进行交互；
 
 
 
-#### deepcopy-gen使用
+#### <a name='deepcopy-gen'></a>deepcopy-gen使用
 deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 -O zz_generated.deepcopy
 -v 5 指定输出内容的详细程度
 -h boilerplate.txt指定所有生成的文件的头部声明内容
@@ -420,7 +485,7 @@ deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/api
 
 
 
-#### client-gen
+#### <a name='client-gen'></a>client-gen
 client-gen --clientset-name versioned -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 --output-package clientset --go-header-file hack/boilerplate.go.txt -v 5
 volcano.sh/apis增加资源client
 拉代码到本地直接执行./hack/update-codegen.sh即可在本地生成client
@@ -472,10 +537,10 @@ fdisk /dev/sda -l显示磁盘设备sda的详情
 
 
 # ldap
-### ldap搭建
+### <a name='ldap'></a>ldap搭建
 https://blog.csdn.net/qq_37733540/article/details/123988481
 
-### ldap使用
+### <a name='ldap-1'></a>ldap使用
 1. 服务为slapd；
 2. ldapsearch检查内容
 ldapsearch -x -D cn=Manager,dc=my-domain,dc=com -w admin -b "dc=my-domain,dc=com"
@@ -497,25 +562,25 @@ cn-----common name，公共名称；
 
 
 # 内存
-## 物理内存
+## <a name=''></a>物理内存
 平时所称的内存也叫随机访问存储器（ random-access memory ）也叫 RAM 。而 RAM 分为两类：
 一类是静态 RAM（ SRAM ），这类 SRAM 用于 CPU 高速缓存 L1Cache，L2Cache，L3Cache。其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。
 另一类则是动态 RAM ( DRAM )，这类 DRAM 用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。
 
 
 
-## 虚拟内存地址
+## <a name='-1'></a>虚拟内存地址
 64 位虚拟地址的格式为：全局页目录项（9位）+ 上层页目录项（9位）+ 中间页目录项（9位）+ 页表项（9位）+ 页内偏移（12位）。共 48 位组成的虚拟内存地址。
 32 位虚拟地址的格式为：页目录项（10位）+ 页表项（10位） + 页内偏移（12位）。共 32 位组成的虚拟内存地址。
 
-## 进程虚拟内存空间所包含的主要区域
+## <a name='-1'></a>进程虚拟内存空间所包含的主要区域
 1. 用于存放进程程序二进制文件中的机器指令的代码段
 2. 用于存放程序二进制文件中定义的全局变量和静态变量的数据段和 BSS 段。
 3. 用于在程序运行过程中动态申请内存的堆。
 4. 用于存放动态链接库以及内存映射区域的文件映射与匿名映射区。
 5. 用于存放函数调用过程中的局部变量和函数参数的栈。
 
-## 内存分段
+## <a name='-1'></a>内存分段
 程序是由若干个逻辑分段组成的，如可由代码分段、数据分段、栈段、堆段组成。不同的段是有不同的属性的，所以就用分段（Segmentation）的形式把这些段分离出来。
 
 出现内存碎片：
@@ -526,31 +591,31 @@ cn-----common name，公共名称；
 过程就是将某一段的内存写到硬盘上（Swap空间），然后再从硬盘读回到内存，在读回内存时会紧紧跟着被占用的区域，这样可以将碎片连续从而让别的程序转载这些碎片区域。
 
 
-## 内存分页
+## <a name='-1'></a>内存分页
 分页是把整个虚拟和物理内存空间切成一段段固定尺寸的大小。这样一个连续并且尺寸固定的内存空间，我们叫页（Page）。在 Linux 下，每一页的大小为 4KB。
 
 因为内存分页机制分配内存的最小单位是一页，即使程序不足一页大小，我们最少只能分配一个页，所以页内会出现内存浪费，所以针对内存分页机制会有内部内存碎片的现象。
 
 
-## 多级页表
+## <a name='-1'></a>多级页表
 将页表（一级页表）分为 1024 个页表（二级页表），每个表（二级页表）中包含 1024 个「页表项」，形成二级分页。再吧二级分页推广到多级分页；
 一级页表覆盖到了全部虚拟地址空间，二级页表在需要时创建。
 
-## TLB
+## <a name='TLB'></a>TLB
 translation lookaside buffer，通常成为页表缓存、地址旁路缓存、快表等；
 把最常访问的几个页表项存储到访问速度更快的硬件，于是计算机科学家们，就在 CPU 芯片中，加入了一个专门存放程序最常访问的页表项的 Cache，这个 Cache 就是 TLB。
 在 CPU 芯片里面，封装了内存管理单元（Memory Management Unit）芯片，它用来完成地址转换和 TLB 的访问与交互。
 有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表。
 
 
-## 段页式内存管理
+## <a name='-1'></a>段页式内存管理
 内存分段和内存分页组合在同一个系统中使用。
 段页式内存管理实现的方式：
 1. 先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制；
 2. 接着再把每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页；
 这样，地址结构就由段号、段内页号和页内位移三部分组成。
 
-## 内存分配的过程
+## <a name='-1'></a>内存分配的过程
 应用程序通过 malloc 函数申请内存的时候，实际上申请的是虚拟内存，此时并不会分配物理内存。
 当应用程序读写了这块虚拟内存，CPU 就会去访问这个虚拟内存， 这时会发现这个虚拟内存没有映射到物理内存， CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将缺页中断交给内核的 Page Fault Handler （缺页中断函数）处理。
 缺页中断处理函数会看是否有空闲的物理内存：
@@ -561,13 +626,13 @@ translation lookaside buffer，通常成为页表缓存、地址旁路缓存、�
 
 内存溢出(Out Of Memory，简称OOM)是指应用系统中存在无法回收的内存或使用的内存过多，最终使得程序运行要用到的内存大于能提供的最大内存。此时程序就运行不了，系统会提示内存溢出。
 
-### 虚拟内存的作用
+### <a name='-1'></a>虚拟内存的作用
 第一，虚拟内存可以使得进程对运行内存超过物理内存大小，因为程序运行符合局部性原理，CPU 访问内存会有很明显的重复访问的倾向性，对于那些没有被经常使用到的内存，我们可以把它换出到物理内存之外，比如硬盘上的 swap 区域。
 第二，由于每个进程都有自己的页表，所以每个进程的虚拟内存空间就是相互独立的。进程也没有办法访问其他进程的页表，所以这些页表是私有的，这就解决了多进程之间地址冲突的问题。
 第三，页表里的页表项中除了物理地址之外，还有一些标记属性的比特，比如控制一个页的读写权限，标记该页是否存在等。在内存访问方面，操作系统提供了更好的安全性。
 
 
-## swap机制
+## <a name='swap'></a>swap机制
 当系统的物理内存不够用的时候，就需要将物理内存中的一部分空间释放出来，以供当前运行的程序使用。那些被释放的空间可能来自一些很长时间没有什么操作的程序，这些被释放的空间会被临时保存到磁盘，等到那些程序要运行时，再从磁盘中恢复保存的数据到内存中。
 
 另外，当内存使用存在压力的时候，会开始触发内存回收行为，会把这些不常访问的内存先写到磁盘中，然后释放这些内存，给其他更需要的进程使用。再次访问这些内存时，重新从磁盘读入内存就可以了。
@@ -584,12 +649,12 @@ Swap 就是把一块磁盘空间或者本地文件，当成内存来使用，它
 
 Linux提供了两种方法启用Swap，分别是Swap分区和Swap文件；
 
-## Linux操作系统的缓存
+## <a name='Linux'></a>Linux操作系统的缓存
 在应用程序读取文件的数据的时候，Linux操作系统会对读取的文件数据进行缓存，会缓存在文件系统中的Page Cache（页缓存）；
 Page Cache 属于内存空间里的数据，由于内存访问比磁盘访问快很多，在下一次访问相同的数据就不需要通过磁盘 I/O 了，命中缓存就直接返回数据即可。
 因此，Page Cache 起到了加速访问数据的作用。
 
-### 预读机制
+### <a name='-1'></a>预读机制
 Linux 操作系统为基于 Page Cache 的读缓存机制提供预读机制
 比如说，应用程序利用 read 系统调动读取 4KB 数据，实际上内核使用预读机制（ReadaHead） 机制完成了 16KB 数据的读取，也就是通过一次磁盘顺序读将多个 Page 数据装入 Page Cache。
 这样下次读取 4KB 数据后面的数据的时候，就不用从磁盘读取了，直接在 Page Cache 即可命中数据。因此，预读机制带来的好处就是减少了 磁盘 I/O 次数，提高系统磁盘 I/O 吞吐量。
@@ -607,7 +672,7 @@ inactive_list非活跃内存页链表：存放是很少被访问的内存页；
 预读页就只需要加入到 inactive list 区域的头部，当页被真正访问的时候，才将页插入 active list 的头部。如果预读的页一直没有被访问，就会从 inactive list 移除，这样就不会影响 active list 中的热点数据。
 
 
-### 缓存污染
+### <a name='-1'></a>缓存污染
 还是使用「只要数据被访问一次，就将数据加入到活跃 LRU 链表头部（或者 young 区域）」这种方式的话，那么还存在缓存污染的问题。
 当我们在批量读取数据的时候，由于数据被访问了一次，这些大量数据都会被加入到「活跃 LRU 链表」里，然后之前缓存在活跃 LRU 链表（或者 young 区域）里的热点数据全部都被淘汰了，如果这些大量的数据在很长一段时间都不会被访问的话，那么整个活跃 LRU 链表（或者 young 区域）就被污染了。
 
@@ -618,7 +683,7 @@ MySQL Innodb：在内存页被访问第二次的时候，并不会马上将该�
 如果第二次的访问时间与第一次访问的时间在 1 秒内（默认值），那么该页就不会被从 old 区域升级到 young 区域；
 如果第二次的访问时间与第一次访问的时间超过 1 秒，那么该页就会从 old 区域升级到 young 区域；
 
-### 程序局部性原理
+### <a name='-1'></a>程序局部性原理
 时间局部性和空间局部性。时间局部性是指如果程序中的某条指令一旦执行，则不久之后该指令可能再次被执行；如果某块数据被访问，则不久之后该数据可能再次被访问。空间局部性是指一旦程序访问了某个存储单元，则不久之后，其附近的存储单元也将被访问。
 
 
@@ -626,7 +691,7 @@ MySQL Innodb：在内存页被访问第二次的时候，并不会马上将该�
 
 
 # 进程间通信
-## 管道
+## <a name='-1'></a>管道
 mkfifo myPipe    # 创建管道，在目录内生成一个文件，文件类型是p
 echo test > myPipe    # 往管道内写数据,执行命令停在这里不动了，这是因为管道内的数据没有被读取；
 cat < myPipe          # 读取管道内的数据，另一方面上面的echo也正常退出了。
@@ -646,7 +711,7 @@ pdcp的常用选项包括：
 -l：限制并行复制的最大进程数。
 
 
-## pdsh
+## <a name='pdsh'></a>pdsh
 使用pdsh命令在多个远程主机上同时执行命令。需要在每个主机上安装pdsh包。
 使用实例：pdsh -w host1,host2,host3 systemctl restart httpd
 
@@ -725,7 +790,7 @@ sacctmgr modify account my_account_name set QosLevel=normal,long
 
 
 
-## 场景
+## <a name='-1'></a>场景
 1. 2个计算节点，执行三个job，srun ./myapp -p 30000，2个job分别分发到2个计算节点上，第3个job等待；
 srun: job 53 queued and waiting for resources
 srun: job 53 has been allocated resources
@@ -749,7 +814,7 @@ JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
 
 
 
-## slurm安装
+## <a name='slurm'></a>slurm安装
 1. 安装jansson
 wget http://www.digip.org/jansson/releases/jansson-2.13.1.tar.gz
 tar -zxvf ~/jansson-2.13.1.tar.gz
@@ -995,13 +1060,13 @@ systemctl daemon-reload && systemctl restart slurmrestd
 
 # terraform
 
-## terraform安装
+## <a name='terraform'></a>terraform安装
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 sudo yum -y install terraform
 
 
-## 通过terraform编排openstack
+## <a name='terraformopenstack'></a>通过terraform编排openstack
 1. 获得脚本到本地https://github.com/tf-openstack-modules/terraform-openstack-instances；
 2. 增加provider.tf；
 ```shell
@@ -1200,26 +1265,26 @@ output "ip" {
 
 
 # 概念
-## kubeflow
+## <a name='kubeflow'></a>kubeflow
 它提供了一套工具和组件，用于构建、训练、部署和管理机器学习模型的端到端工作流程。
 
-## rancher
+## <a name='rancher'></a>rancher
 Rancher提供了在生产环境中使用的管理Docker和Kubernetes的全栈化容器部署与管理平台。
 也就是提供可视化web界面进行k8s部署；
 
-## CRD
+## <a name='CRD'></a>CRD
 它代表自定义资源定义（Custom Resource Definition）。CRD 允许用户扩展 Kubernetes API，以添加自定义资源和自定义控制器。
 Kubernetes 中的资源（Resource）是 API 对象的实例，例如 Pod、Service、Deployment 等。这些资源都有相应的 API 定义和控制器，用于管理它们的生命周期和状态。
 CRD 允许用户定义自己的资源类型，这些资源类型可以扩展 Kubernetes 的功能，以满足特定的需求。用户可以创建自定义资源定义，定义自己的资源结构和行为，并编写自定义控制器来管理这些资源。
 
-## HPC
+## <a name='HPC'></a>HPC
 高性能计算（High Performance Computing，缩写HPC）指利用聚集起来的计算能力来处理标准工作站无法完成的数据密集型的计算任务。
 
-## tensorflow
+## <a name='tensorflow'></a>tensorflow
 TensorFlow是一个基于数据流编程的符号数学系统，被广泛应用于各类机器学习算法的编程实现。
 PS-worker模型：Parameter Server执行模型相关业务，Work Server训练相关业务，推理计算、梯度计算等。
 
-## NPU
+## <a name='NPU'></a>NPU
 神经处理单元（Neural Processing Unit）的缩写，它是一种专门设计用于进行人工神经网络计算的处理器。NPU 的设计旨在加速深度学习任务，包括图像识别、语音识别、自然语言处理等
 
 
@@ -1232,7 +1297,7 @@ kubectl get configmap -n volcano-system
 kubectl get configmap volcano-scheduler-configmap -n volcano-system -oyaml
 
 
-## queue
+## <a name='queue'></a>queue
 Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。而 VolcanoJob 则是一个 K8s Job 升级版，对应的下一级资源是 PodGroup。换言之，就好比 ReplicaSet 的下一级资源是 Pod 一样。
 1. queue名称不能重复；
 2. 名称限制：a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
@@ -1244,7 +1309,7 @@ Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。�
 
 
 
-## podgroup
+## <a name='podgroup'></a>podgroup
 互相关联的一组pod集合。
 1. 当queue设置Capability为2时，创建vcjob设置tasks.template.spec.containers.resources.requests大于2时，则不能调度；
 podgroup和job都是PENDING状态，podgroup事件信息queue resource quota insufficient，vcjob事件信息是pod group is not ready；
@@ -1260,7 +1325,7 @@ podgroup和job都是PENDING状态，podgroup事件信息queue resource quota ins
 
 
 
-## vcjob
+## <a name='vcjob'></a>vcjob
 1. 当vcjob删除时，跟着vcjob创建的podgroup一同删除了；
 2. svc插件实现同一vcjob中各pod之间的通信；
 3. sla插件，作业最长等待时间sla-waiting-time，表示作业停留在pending状态不被调度的最长等待时间；既可以配置在configmap中，作为sla插件的参数，对经由volcano调度的全部作业生效；也可以单独配置在作业的annotation中，只对改作业生效；
@@ -1324,7 +1389,7 @@ tensorflow: 为job中的所有container开放指定端口；开启svc插件；
 
 # 调度GPU
 
-## k8s中使用GPU
+## <a name='k8sGPU'></a>k8s中使用GPU
 GPUs 只能设置在 limits 部分，这意味着：
 不可以仅指定 requests 而不指定 limits
 可以同时指定 limits 和 requests，不过这两个值必须相等
