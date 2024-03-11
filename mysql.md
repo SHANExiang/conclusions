@@ -826,22 +826,38 @@ buffer pool，缓存池--连续的16k大小的页；读取数据从buffer pool�
 buffer pool除了缓存页和数据页，还包括undo页，插入缓存、自适应哈希索引、锁信息等；
 默认大小是128M，可以通过innodb_buffer_pool_size参数调整缓冲池的大小。
 
+
 ## <a name='mysql-1'></a>mysql日志
 1. undo log(回滚日志)
-    Innodb存储引擎日志，用于事务回滚和MVCC；
+Innodb存储引擎日志，用于事务回滚和MVCC；
+当事务执行过程中发生异常或需要回滚时，回滚日志记录了事务的操作信息，可以用于撤销事务对数据库的修改，实现事务的原子性。
+
 2. redo log(重做日志)
-    Innodb存储引擎日志，用于掉电等故障恢复；
-    当有一条记录需要更新的时候，InnoDB 引擎就会先更新内存（同时标记为脏页），然后将本次对这个页的修改以 redo log 的形式记录下来，这个时候更新就算完成了。
-    后续，InnoDB 引擎会在适当的时候，由后台线程将缓存在 Buffer Pool 的脏页刷新到磁盘里，这就是 WAL （Write-Ahead Logging）技术。
-    WAL 技术指的是， MySQL 的写操作并不是立刻写到磁盘上，而是先写日志，然后在合适的时间再写到磁盘上。
-    redo log 是物理日志，记录的是在某个数据页做了什么修改，比如对 XXX 表空间中的 YYY 数据页 ZZZ 偏移量的地方做了AAA 更新；
+Innodb存储引擎日志，用于掉电等故障恢复；
+主要用于保证事务的持久性（ACID特性中的D：持久性）。当数据库发生故障时，通过重做日志可以将未提交的事务重新执行，确保数据的一致性。
+当有一条记录需要更新的时候，InnoDB 引擎就会先更新内存（同时标记为脏页），然后将本次对这个页的修改以 redo log 的形式记录下来，这个时候更新就算完成了。
+后续，InnoDB 引擎会在适当的时候，由后台线程将缓存在 Buffer Pool 的脏页刷新到磁盘里，这就是 WAL （Write-Ahead Logging）技术。
+WAL 技术指的是， MySQL 的写操作并不是立刻写到磁盘上，而是先写日志，然后在合适的时间再写到磁盘上。
+redo log 是物理日志，记录的是在某个数据页做了什么修改，比如对 XXX 表空间中的 YYY 数据页 ZZZ 偏移量的地方做了AAA 更新；
+
 3. binlog(归档日志)
-    server层日志，用于数据备份和主从复制；
-    binlog 文件保存的是全量的日志，也就是保存了所有数据变更的情况，理论上只要记录在 binlog 上的数据，都可以恢复，所以如果不小心整个数据库的数据被删除了，得用 binlog 文件恢复数据。 
+server层日志，用于数据备份、主从复制、数据恢复；
+binlog 文件保存的是全量的日志，也就是保存了所有数据变更的情况，理论上只要记录在 binlog 上的数据，都可以恢复，
+所以如果不小心整个数据库的数据被删除了，得用 binlog 文件恢复数据。
+
 4. 两阶段提交
-    事务的提交过程有两个阶段，就是将 redo log 的写入拆成了两个步骤：prepare 和 commit，中间再穿插写入binlog，具体如下：
-    prepare 阶段：将 XID（内部 XA 事务的 ID） 写入到 redo log，同时将 redo log 对应的事务状态设置为 prepare，然后将 redo log 持久化到磁盘（innodb_flush_log_at_trx_commit = 1 的作用）；
-    commit 阶段：把 XID 写入到 binlog，然后将 binlog 持久化到磁盘（sync_binlog = 1 的作用），接着调用引擎的提交事务接口，将 redo log 状态设置为 commit，此时该状态并不需要持久化到磁盘，只需要 write 到文件系统的 page cache 中就够了，因为只要 binlog 写磁盘成功，就算 redo log 的状态还是 prepare 也没有关系，一样会被认为事务已经执行成功；
+事务的提交过程有两个阶段，就是将 redo log 的写入拆成了两个步骤：prepare 和 commit，中间再穿插写入binlog，具体如下：
+prepare 阶段：将 XID（内部 XA 事务的 ID） 写入到 redo log，同时将 redo log 对应的事务状态设置为 prepare，然后将 redo log 持久化到磁盘（innodb_flush_log_at_trx_commit = 1 的作用）；
+commit 阶段：把 XID 写入到 binlog，然后将 binlog 持久化到磁盘（sync_binlog = 1 的作用），接着调用引擎的提交事务接口，将 redo log 状态设置为 commit，此时该状态并不需要持久化到磁盘，只需要 write 到文件系统的 page cache 中就够了，因为只要 binlog 写磁盘成功，就算 redo log 的状态还是 prepare 也没有关系，一样会被认为事务已经执行成功；
+
+
+## undo log 撤销过程具体是怎么撤销的?
+每当 InnoDB 引擎对一条记录进行操作（修改、删除、新增）时，要把回滚时需要的信息都记录到 undo log 里，比如：
+在插入一条记录时，要把这条记录的主键值记下来，这样之后回滚时只需要把这个主键值对应的记录删掉就好了；
+在删除一条记录时，要把这条记录中的内容都记下来，这样之后回滚时再把由这些内容组成的记录插入到表中就好了；
+在更新一条记录时，要把被更新的列的旧值记下来，这样之后回滚时再把这些列更新为旧值就好了。
+在发生回滚时，就读取 undo log 里的数据，然后做原先相反操作。比如当 delete 一条记录时，undo log 中会把记录中的内容都记下来，
+然后执行回滚操作的时候，就读取 undo log 里的数据，然后进行 insert 操作。
 
 
 ## <a name='mysql-1'></a>mysql主从复制过程
@@ -1660,6 +1676,15 @@ select * from Employee where First_name like "%o%" order by salart desc;
 输出总支出工资大于 1500000 的部门和对应的支出,并按降序排序； 
 select Department,sum(salary) as sum_s from Employee group by Department having sum_s > 1500000 order by sum_s desc 
 
+19. 学生表(XS)：学生代码(XSDM)、学生名称（XSMC）；
+学科表（XK）:学科代码（XKDM）、学科名称（XKMC）;
+成绩表（CJ）：学生代码（XSDM）、学科代码（XKDM）、成绩（CJ）；
+a. 统计每个学生的总分；
+SELECT XS.XSDM, XS.XSMC, SUM(CJ.CJ) AS 总分 FROM XS JOIN CJ ON XS.XSDM = CJ.XSDM GROUP BY XS.XSDM, XS.XSMC;
+b. 列出没有不及格（>=60）的学生姓名及平均分； 
+SELECT XS.XSMC, AVG(CJ.CJ) AS 平均分 FROM XS JOIN CJ ON XS.XSDM = CJ.XSDM JOIN XK ON CJ.XKDM = XK.XKDM WHERE CJ.CJ >= 60 GROUP BY XS.XSMC;
+
+
 
 ### <a name='-1'></a>数据类型（列类型） 
 #### <a name='-1'></a>1. 数值类型 
@@ -2153,6 +2178,34 @@ drop 语句将表所占用的空间全释放掉。
 如果在这个过程中有其它线程来访问，还是会存在数据一致性问题。
 所以在极端情况下仍要保证Redis 和 Mysql 的数据一致性，只能采用最终一致性方案----基于 RocketMQ 的可靠性通信，来实现最终的一致性。
 可以通过 Cancel 组件监控 Mysql 中的 binlog日志，把更新后的数据同步到 Redis 中。 
+
+## 多级缓存如何保证数据一致性？
+数据库缓存一致的5个方案：
+1. 方案一
+通过redis的过期时间来更新缓存，mysql 数据库更新不会触发redis 更新，只有当redis的key过期后才会重新加载
+这种方案的缺点：
+数据不一致的时间较长，会造成一定的脏数据
+完全依赖过去时间，过期时间太短缓存更新太频繁，过长容易有太长时间更新延迟。
+
+2. 方案二
+在方案一的基础上扩展，让key 的过期时间做兜底，在更新mysql 的同时也会更新redis.
+这种方案的缺点：如果更新mysql 成功，更新redis 失败，又会成为方案一。
+
+3. 方案三
+在方案二的基础上，对redis 的更新操作进行优化，增加消息队列，转为异步更新redis 数据， 将redis 的更新操作交给MQ ，队列来保证可靠性，异步更新redis。
+这种方案的缺点：
+解决不了时序的问题，如果有多个业务实例对同一条数据进行更新，数据更新的先后顺序可能会乱。
+引入mq ,增加的系统复杂性，增加mq的维护成本。
+
+4. 方案四
+将mysql和redis更新放在一个事务中操作，这样能保证达到强一致性。
+这种方案的缺点：
+mysql或者redis任何一个环节出问题，都会造成数据回滚或者撤销。
+如果网络出现超时，不仅可能会造成数据回滚或者撤销，还会有并发问题。
+
+5. 方案五：
+通过订阅mysql的Binlog 日志来更新redis, 把我们搭建的mq消费服务，作为mysql的一个salve ，订阅Binlog，解析出更新的内容，再更新redis
+这种方案的缺点：要单独搭建一个同步服务，并且来引入BinLog同步机制，成本较大。
 
 
 ## <a name='MySQLinexists'></a>MySQL 中 in 和 exists 区别 
