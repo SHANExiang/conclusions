@@ -764,6 +764,67 @@ lastEvent：上次发生限速器事件的时间（通过或者限制都是限�
 
 
 
+## 开发web框架流程
+1. 将所有的HTTP请求转向了我们自己的处理逻辑。
+实现Engine（实现ServeHTTP方法---net/http.Handler接口，然后调用net/http.ListenAndServe进行服务监听），拦截了所有的HTTP请求，拥有了统一的控制入口。
+可以自由定义路由映射的规则，也可以统一添加一些处理逻辑，例如日志、异常处理等。
+
+2. 定义路由映射；
+首先定义了类型HandlerFunc(方法类型)，这是提供给框架用户的，用来定义路由映射的处理方法。
+在Engine中，添加了一张路由映射表router，key 由请求方法和静态路由地址构成，例如GET-/、GET-/hello、POST-/hello，
+这样针对相同的路由，如果请求方法不同,可以映射不同的处理方法(Handler)，value 是用户映射的处理方法。
+当用户调用(*Engine).GET()方法时，会将路由和处理方法注册到映射表 router 中，(*Engine).Run()方法，是 ListenAndServe 的包装。
+Engine实现的 ServeHTTP 方法的作用就是，解析请求的路径，查找路由映射表，如果查到，就执行注册的处理方法。如果查不到，就返回 404 NOT FOUND 。
+
+3. 设计上下文(Context)，封装 Request 和 Response ，提供对 JSON、HTML 等返回类型的支持。
+Web服务来说，无非是根据请求*http.Request，构造响应http.ResponseWriter。
+但是这两个对象提供的接口粒度太细，比如我们要构造一个完整的响应，需要考虑消息头(Header)和消息体(Body)，而 Header 包含了状态码(StatusCode)，
+消息类型(ContentType)等几乎每次请求都需要设置的信息。因此，如果不进行有效的封装，那么框架的用户将需要写大量重复，繁杂的代码，而且容易出错。
+针对常用场景，能够高效地构造出 HTTP 响应是一个好的框架必须考虑的点。
+Context 随着每一个请求的出现而产生，请求的结束而销毁，和当前请求强相关的信息都应由 Context 承载。
+因此，设计 Context 结构，扩展性和复杂性留在了内部，而对外简化了接口。
+路由的处理函数，以及将要实现的中间件，参数都统一使用 Context 实例， Context 就像一次会话的百宝箱，可以找到任何东西。
+
+4. 使用 Trie 树实现动态路由(dynamic route)解析。
+
+5. 实现路由分组控制；
+一个 Group 对象需要具备哪些属性呢？
+首先是前缀(prefix)，比如/，或者/api；
+要支持分组嵌套，那么需要知道当前分组的父亲(parent)是谁；
+中间件是应用在分组上的，那还需要存储应用在该分组上的中间件(middlewares)。
+
+6. 中间件设计
+间件的定义与路由映射的 Handler 一致，处理的输入是Context对象。插入点是框架接收到请求初始化Context对象后，允许用户使用自己定义的中间件做一些额外的处理，
+例如记录日志等，以及对Context进行二次加工。另外通过调用(*Context).Next()函数，中间件可等待用户自己定义的 Handler处理结束后，再做一些额外的操作。
+Context中定义属性handlers []HandlerFunc和index    int，index是记录当前执行到第几个中间件，当在中间件中调用Next方法时，控制权交给了下一个中间件，直到调用到最后一个中间件，然后再从后往前，调用每个中间件在Next方法之后定义的部分。
+func A(c *Context) {
+    part1
+    c.Next()
+    part2
+}
+func B(c *Context) {
+    part3
+    c.Next()
+    part4
+}
+假设我们应用了中间件 A 和 B，和路由映射的 Handler。c.handlers是这样的[A, B, Handler]，c.index初始化为-1。调用c.Next()，接下来的流程是这样的：
+
+c.index++，c.index 变为 0
+0 < 3，调用 c.handlers[0]，即 A
+执行 part1，调用 c.Next()
+c.index++，c.index 变为 1
+1 < 3，调用 c.handlers[1]，即 B
+执行 part3，调用 c.Next()
+c.index++，c.index 变为 2
+2 < 3，调用 c.handlers[2]，即Handler
+Handler 调用完毕，返回到 B 中的 part4，执行 part4
+part4 执行完毕，返回到 A 中的 part2，执行 part2
+part2 执行完毕，结束。
+
+最终的顺序是part1 -> part3 -> Handler -> part 4 -> part2。
+
+
+
 # goroutine
 1. goroutine是由Go的运行时调度和管理的，在语言层面已经内置了调度和上下文切换的机制；
 2. 操作系统线程有固定的栈内存（通常为2MB），一个goroutine的栈在其生命周期开始时只有很小的栈（2KB），goroutine的栈不是固定的，可以按需增加和缩小；
@@ -1452,6 +1513,7 @@ mcache
 3. 标记结束（STW），关闭写屏障 
 4. 清理（并发） 
 基于插入写屏障和删除写屏障在结束时需要 STW 来重新扫描栈，带来性能瓶颈。
+
 混合写屏障分为以下四步： 
 1. GC 开始时，将栈上的全部对象标记为黑色（不需要二次扫描，无需 STW）； 
 2. GC 期间，任何栈上创建的新对象均为黑色 
@@ -2627,13 +2689,8 @@ func (a *A) fun(){}
 
 
  
- 
- 
 
 
-## <a name='lru'></a>lru
-最近最少使用，least recently used
-两个核心的数据结构：map(存储键和值的映射关系)+双向链表(所有值放到链表中)；
 
 
 
@@ -3209,18 +3266,129 @@ sc query etcd
 缓存通常的操作流程：
 应用服务从缓存中读取数据，缓存不存在时，就去数据库中读取，数据库返回数据后再将数据写入到缓存中；缓存存在时直接返回。
 
-### <a name='-1'></a>缓存实现高性能
+第一次请求时将一些耗时操作的结果暂存，以后遇到相同的请求，直接返回暂存的数据，缓存不存在时，调用回调函数获取源数据； 
+
+## 缓存用map键值对有什么问题？
+1）内存不够了怎么办？
+那就随机删掉几条数据好了。随机删掉好呢？还是按照时间顺序好呢？或者是有没有其他更好的淘汰策略呢？
+不同数据的访问频率是不一样的，优先删除访问频率低的数据是不是更好呢？数据的访问频率可能随着时间变化，那优先删除最近最少访问的数据可能是一个更好的选择。
+我们需要实现一个合理的淘汰策略。
+
+2）并发写入冲突了怎么办？
+对缓存的访问，一般不可能是串行的。map 是没有并发保护的，应对并发的场景，修改操作(包括新增，更新和删除)需要加锁。
+
+3）单机性能不够怎么办？
+单台计算机的资源是有限的，计算、存储等都是有限的。随着业务量和访问量的增加，单台机器很容易遇到瓶颈。
+如果利用多台计算机的资源，并行处理提高性能就要缓存应用能够支持分布式，这称为水平扩展(scale horizontally)。
+与水平扩展相对应的是垂直扩展(scale vertically)，即通过增加单个节点的计算、存储、带宽等，来提高系统的性能，硬件的成本和性能并非呈线性关系，
+大部分情况下，分布式系统是一个更优的选择。
+
+
+## 缓存淘汰算法 
+1.1 FIFO(First In First Out) 
+先进先出，也就是淘汰缓存中最老(最早添加)的记录。FIFO 认为，最早添加的记录，其不再被使用的可能性比刚添加的可能性大。
+这种算法的实现也非常简单，创建一个队列，新增记录添加到队尾，每次内存不够时，淘汰队首。
+但是很多场景下，部分记录虽然是最早添加但也最常被访问，而不得不因为呆的时间太长而被淘汰。
+这类数据会被频繁地添加进缓存，又被淘汰出去，导致缓存命中率降低。
+
+1.2 LFU(Least Frequently Used) 
+最少使用，也就是淘汰缓存中访问频率最低的记录。
+LFU 认为，如果数据过去被访问多次，那么将来被访问的频率也更高。
+LFU 的实现需要维护一个按照访问次数排序的队列，每次访问，访问次数加 1，队列重新排序，淘汰时选择访问次数最少的即可。
+LFU 算法的命中率是比较高的，但缺点也非常明显，维护每个记录的访问次数，对内存的消耗是很高的； 
+另外，如果数据的访问模式发生变化，LFU需要较长的时间去适应，也就是说 LFU 算法受历史数据的影响比较大。
+例如某个数据历史上访问次数奇高，但在某个时间点之后几乎不再被访问，但因为历史访问次数过高，而迟迟不能被淘汰。
+
+1.3 LRU(Least Recently Used) 
+最近最少使用，相对于仅考虑时间因素的 FIFO 和仅考虑访问频率 LFU，LRU 算法可以认为是相对平衡的一种淘汰算法。
+LRU 认为，如果数据最近被访问过，那么将来被访问的概率也会更高。
+LRU 算法的实现非常简单，维护一个队列，如果某条记录被访问了，则移动到队尾，那么队首则是最近最少访问的数据，淘汰该条记录即可。
+
+LRU 算法最核心的 2 个数据结构
+字典(map)，存储键和值的映射关系。这样根据某个键(key)查找对应的值(value)的复杂是 O(1)，在字典中插入一条记录的复杂度也是 O(1)。 
+双向链表(double linked list)实现的队列。
+将所有的值放到双向链表中，当访问到某个值时，将其移动到队尾的复杂度是 O(1)，在队尾新增一条记录以及删除一条记录的复杂度均为 O(1)。
+
+```Go
+import "container/list"
+
+type LRU struct {
+	ll             *list.List
+	data           map[string]*list.Element
+}
+
+type entry struct {
+	key   string
+	value Value
+}
+
+// Value use Len to count how many bytes it takes
+type Value interface {
+	Len() int
+}
+
+func (l *LRU) Get(key string) (Value, bool) {
+    if ele, ok := l.data[key]; ok {
+    	l.ll.MoveToFront(ele)
+    	v := ele.Value.(*entry)
+    	return v.value, ok
+	}
+	return nil, false
+}
+
+func (l *LRU) removeOldest() {
+    ele := l.ll.Back()
+    if ele != nil {
+    	l.ll.Remove(ele)
+    	delete(l.data, ele.Value.(*entry).key)
+	}
+}
+
+func (l *LRU) Put(key string, value Value) {
+    if ele, ok := l.data[key]; ok {
+    	l.ll.MoveToFront(ele)
+    	kv := ele.Value.(*entry)
+    	kv.value = value
+	} else {
+		l.ll.PushFront(&entry{value: value, key: key})
+		l.data[key] = ele
+	}
+}
+```
+
+
+
+## 缓存框架特性
+1. 单机缓存和基于 HTTP 的分布式缓存
+核心数据结构Group，负责与用户的交互，并且控制缓存值存储和获取的流程。
+接收key，检查是否被缓存，是的话就返回缓存值；
+没有被缓存时，判断是否从远端节点获取，是的话即与远程节点交互，返回缓存值；
+不从远端节点获取时，调用回调函数，获取值并加入到缓存中，返回缓存值。
+
+2. 最近最少访问(Least Recently Used, LRU) 缓存策略
+
+3. 使用 Go 锁机制防止缓存击穿
+
+4. 使用一致性哈希选择节点，实现负载均衡
+
+5. 使用 protobuf 优化节点间二进制通信
+
+
+
+
+
+## <a name='-1'></a>缓存实现高性能
 场景：
 电商某个商品的信息一天内不会变化，但是这个商品一次查询要耗费2s，1天只能被浏览100万次；
 用户1查询数据1，第一次查询缓存没有，从数据库查询耗费800ms,将数据放入缓存，第二次查询只需查找缓存即可；后续数据修改时，更新数据库的同时更新缓存就ok；
 假如10分钟数据没有变化，1000个人访问同一数据，就第一个人耗时800ms，后续999人只需耗时10ms就能查找到数据。
 
-### <a name='-1'></a>缓存实现高并发
+## <a name='-1'></a>缓存实现高并发
 电商里的商品，3/4放入缓存，1/4放入数据库；高峰期每秒4000个请求，其中3000走缓存，1000走数据库；
 缓存是走内存，内存天然可以支撑4万/s个请求；数据库一般建议并发请求不要超过2000/s。
 
 
-### <a name='-1'></a>缓存雪崩
+## <a name='-1'></a>缓存雪崩
 缓存在同一时刻全部失效，造成瞬时DB请求量大、压力骤增，引起雪崩。缓存雪崩通常因为缓存服务器宕机、缓存的 key 设置了相同的过期时间等引起。
 
 发生缓存雪崩有两个原因：
@@ -3243,7 +3411,7 @@ sc query etcd
 
 
 
-### <a name='-1'></a>缓存击穿
+## <a name='-1'></a>缓存击穿
 一个存在的key，在缓存过期的一刻，同时有大量的请求，这些请求都会击穿到 DB ，造成瞬时DB请求量大、压力骤增。
 解决：
 有两种方案可以解决：
@@ -3254,7 +3422,7 @@ sc query etcd
  3、同时，虽然 VALUE 已经过期，还是直接返回。通过这样的方式，保证服务的可用性，虽然损失了一定的时效性。
 
 
-### <a name='-1'></a>缓存穿透
+## <a name='-1'></a>缓存穿透
 查询一个不存在的数据，因为不存在则不会写到缓存中，所以每次都会去请求 DB，如果瞬间流量过大，穿透到 DB，导致宕机。
 解决方案：
 方案一，缓存空对象。
@@ -3262,7 +3430,7 @@ sc query etcd
 方案二，BloomFilter布隆过滤器。
 在缓存服务的基础上，构建BloomFilter数据结构，在BloomFilter中存储对应的KEY是否存在，如果存在，说明该KEY对应的值不为空。
 
-### 布隆过滤器原理是什么？
+## 布隆过滤器原理是什么？
 布隆过滤器由「初始值都为 0 的位图数组」和「 N 个哈希函数」两部分组成。
 当我们在写入数据库数据时，在布隆过滤器里做个标记，这样下次查询数据是否在数据库时，只需要查询布隆过滤器，
 如果查询到数据没有被标记，说明不在数据库中。
@@ -3285,7 +3453,7 @@ sc query etcd
 
 
 
-### <a name='hash'></a>一致性hash
+## <a name='hash'></a>一致性hash
 一致性哈希算法将 key 映射到 2^32 的空间中，将这个数字首尾相连，形成一个环。
 1. 计算节点/机器(通常使用节点的名称、编号和 IP 地址)的哈希值，放置在环上。
 2. 计算 key 的哈希值，放置在环上，顺时针寻找到的第一个节点，就是应选取的节点/机器。
@@ -3299,7 +3467,7 @@ sc query etcd
 
 
 
-## <a name='rabbitMQ'></a>rabbitMQ
+# <a name='rabbitMQ'></a>rabbitMQ
 rabbitmqctl list_queues  查看队列，并且显示消息数；
 rabbitmqctl list_exchanges  查看交换机；
 http://10.50.7.108:15672    浏览器登录页面，可以查看消息队列集群概况；
@@ -3359,6 +3527,205 @@ transferMsgByHeap=false
 #开启文件预热
 warmMapedFileEnable=true
 
+
+
+# kubernetes k8s
+K8s 是一个管理跨主机容器化应用系统，实现了包括应用部署、高可用管理和弹性伸缩在内的一系列基础功能并封装成为一套完整、简单易用的 RESTful API 对外提供服务。
+
+k8s 整体架构
+k8s 由两种节点组成，master 节点和工作节点；前者是管理节点，后者是容器运行的节点；
+master 主要有三个重要的组件，分别是 APIServer、scheduler 和 controller manager； 
+
+
+### <a name='CLI'></a>CLI
+kubectl get all -n <ns>
+kubectl delete namespace --all
+kubectl delete pod pod_name   
+crictl ps -a    # 查看到运行的container
+kubeadm reset -f ; ipvsadm --clear  ; rm -rf ~/.kube    # 初始化失败时进行重置
+kubectl config view    # 查看当前的配置文件
+kubectl config set-cluster <cluster-name> --server=<api-server-url>
+kubectl config get-contexts            # 查看当前上下文的信息，包括集群名称
+kubectl get pods -l name=nginx 
+kubectl get pod   # 查看创建的 pod 信息 
+kubectl get pod_name container   # 查看 pod 中容器输出的 log 信息 
+kubectl get replicationController -o wide   # 查看 replication controller 的基本信息 
+kubectl get service   # 查看创建的 service 
+kubectl get services   # 查看创建的 services 
+
+
+### <a name='kube-apiserver'></a>kube-apiserver
+1. 配置文件路径  /etc/kubernetes/kube-controller-manager.kubeconfig;
+2. 重启systemctl restart kube-apiserver.service;
+3. 设置日志输出到文件中        --logtostderr=false --log-dir=/var/log/kubernetes
+4. k8s官方将apiversion分成了三个大类型，alpha、beta、stable。 
+Alpha: 未经充分测试，可能存在bug，功能可能随时调整或删除。
+Beta: 经过充分测试，功能细节可能会在未来进行修改。 
+Stable: 稳定版本，将会得到持续支持
+5. 查看k8s支持的资源  kubectl api-resources
+
+
+### <a name='pod'></a>pod
+kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
+1. 容器的集合，紧密相关的一组容器放到一个pod中，同一个pod中的容器共享ip地址和port空间；
+2. 同一pod中的容器始终被一起调度；
+3. 将pod的端口映射到节点的端口--->kubectl expose pod kubernetes-bootcamp --type="NodePort" --port 8000；
+4. 查看服务；kubectl get services；
+5. 删除pod--->kubectl delete pod <pod>；
+6. 给命令起别名--->alias kubectl="minikube kubectl --"
+7. 查看详细信息--->kubectl describe pod nginx；
+8. restartPolicy: Never--->pod启动时，容器失败退出，容器不会重启，控制器会启动新的pod；
+9. restartPolicy: OnFailure--->pod启动时，容器失败会重启；
+10. kubectl logs；
+11. kubectl exec <podName> <cmd>；
+12. pod中容器间的通信；
+    通过共享卷通信；
+    进程间通信IPC；
+    容器间的网络通信；通过localhost通信；需要为在pod中的接收连接的容器分配不通的端口；
+13. pod之间的通信------IP；
+
+
+
+
+### <a name='Deployment'></a>Deployment
+kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
+1. 创建deployment，会创建指定的pod;
+2. 暴露端口--->kubectl expose deployment kubernetes-bootcamp --type=NodePort --port=8080；
+3. 扩容副本--->kubectl scale deployment kubernetes-bootcamp --replicas=3；
+4. 滚动更新--->升级镜像v2-->kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=docker.io/jocatalin/kubernetes-bootcamp:v2--->v1 pod被删除，然后启动v2 pod；
+5. 回退--->kubectl rollout undo deployments/kubernetes-bootcamp；
+6. kubectl rollout undo deployment httpd --to-revision=1;回退到revision记录为1的版本；
+7. 根据yaml文件进行创建pod--->kubectl apply -f deployment-nginx.yaml；每次执行apply会保留当前的配置，保存为一个revision,这样就可以回滚到某个特定的revision；
+    kubectl apply -f httpd.yaml --record；将当前命令记录到revision记录中；
+8. 查看详细信息--->kubectl describe deployment nginx；
+9. 删除deployment--->kubectl delete -f deployment-nginx.yaml或kubectl delete deployment deployment-nginx；
+10. kubectl rollout history deployment httpd   查看revision历史记录；
+
+
+
+
+### <a name='DaemonSet'></a>DaemonSet
+
+
+
+### <a name='Job'></a>Job
+工作类容器，一次性任务，比如批量处理程序，完成后容器退出；
+1. kubectl get job；pod执行完毕后容器已经退出，pod状态变成Completed；
+2. job并行--->设置参数parallelism，比如parallelism: 2会启动两个pod；
+3. 定时job--->schedule指定什么时候运行job，比如*/1 * * * *含义是每一分钟启动一次，也就是每一分钟会启动一个pod指定任务；
+
+
+
+
+
+
+### <a name='minikube'></a>minikube安装
+1. curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+2. sudo install minikube-linux-amd64 /usr/local/bin/minikube
+3. 添加用户---adduser dx;设置用户密码---passwd dx
+4. 添加用户组---groupadd docker;将用户加到用户组中---usermod -aG docker dx;激活对用户组的修改---newgrp docker
+5. 切换dx用户执行minikube start --driver=docker；
+
+
+
+### <a name='controller'></a>controller控制器
+1. 通过controller管理pod;
+2. controller种类：Deployment/ReplicaSet/DaemonSet/StatefuleSet/Job等；
+3. 查看k8s master组件状态 kubectl get cs；
+4. 
+
+
+### <a name='service'></a>service
+定义了外界访问一组特定pod的方式，service有自己的IP和Port,为pod提供负载均衡；
+kubernetes运行容器和访问容器，两项任务分别由controller和service执行；
+1. Service的Cluster IP通过iptables映射到Pod IP；
+2. iptables将访问Service的流量转发到后端Pod，而且使用类似轮询的负载均衡机制；Cluster的每个节点都配置了相同的iptables规则；
+3. Service通过Cluster节点的静态端口对外提供服务；cluster外部可以通过<NodeIP>:<NodePort>访问Service；
+4. nodePort是节点上监视的端口；
+5. port是ClusterIp上监听的端口；
+6. targetPort是Pod监听的端口；
+
+### <a name='Namespace'></a>Namespace
+如果有多个用户或项目组使用同一个Kubernetes Cluster，如何将他们创建的Controller、Pod等资源分开呢？
+答案就是Namespace。Namespace可以将一个物理的Cluster逻辑上划分成多个虚拟Cluster，每个Cluster就是一个Namespace。
+不同Namespace里的资源是完全隔离的。Kubernetes默认创建了两个Namespace。
+
+
+
+### <a name='coredns'></a>coredns
+DNS服务器，每当有新的Service被创建，coredns会添加该Service的DNS记录，Cluster中的pod可以通过<Service_Name>.<Namespace_Name>访问Service；
+1. nslookup查看Service的DNS信息；
+
+
+### <a name='kubernetes'></a>kubernetes健康检查机制
+1. 每个容器启动时，都会执行一个进程，此进程由DockerFile的CMD或ENTRYPOINT指定。如果进程退出时返回码非零，则认为容器故障，k8s会根据restartPolicy进行重启容器；
+2. Liveness探测让用户自定义判断容器是否健康的条件；告诉k8s什么时候通过重启容器实现自愈；探测失败后会重启容器；
+3. Readiness探测；告诉k8s什么时候可以将容器加入到Service负载均衡池中，对外提供服务；探测失败后将容器设置为不可用，不接受Service转发的请求；
+
+
+### <a name='kubernetesvolume'></a>kubernetes volume
+1. 作用：持久化保存容器中的数据；
+2. volume声明周期独立于容器，pod中的容器可能被销毁和重建，但volume会被保留；
+3. 本质上，volume是一个目录，当volume被mount到pod，pod中的所有容器都可以访问这个volume；
+4. volume支持多种后端backend类型，emptyDir、hostPath、GCE Persistent Disk、NFS、Ceph等；
+5. emptyDir类型；就是host上的一个空目录；pod中的所有容器共享emptyDir，pod不存在了，emptyDir才不存在；
+6. PersistentVolume（PV）外部存储系统中的一块存储空间，由管理员创建和维护；
+7. PersistentVolumeClaim（PVC）对PV的申请；普通用户创建和维护；用户可以创建PVC，指明存储资源的容量和访问模式等信息，然后k8s会查找PV；
+8. 当k8s有storage provider时，可以创建nfs、ceph、AWS EBS的PV，然后创建PVC，指定容量+访问模式+class，即将PVC绑定PV；
+9. 回收PV---删除PVC来回收PV，kubectl delete pvc <pvcName>; kubectl patch pvc <pvcName> -p '{"metadata": "finalizers": null}'；pv状态变成Released-->数据清除完毕，最终变成Available；
+
+
+### <a name='Secret'></a>Secret
+为Pod提供密码、Token、秘钥等敏感数据；
+1. 通过--from-literal创建；kubectl create secret generic mysecret --from-literal=username=admin --from-literal=password=123456
+2. 通过--from-file创建；
+    echo admin > ./username
+    echo 123456 > ./password 
+    kubectl create secret generic mysecret2 --from-file=./username --from-file=./password
+3. 通过--from-env-file创建；
+    cat << EOF > env.txt
+    > username=admin
+    > password=123456
+    > EOF
+    kubectl create secret generic mysecret3 --from-env-file=env.txt 
+4. 通过yaml配置文件创建；kubectl apply -f secret4.yaml；敏感数据必须是base64加密的；echo -n admin | base64；
+5. 查看secret--->kubectl edit secret mysecret；通过base64反解码-->echo -n YWRtaW4= |base64 --decode；
+6. 使用secret--->通过volume；将指定的路径下为每条敏感数据建立一个文件，文件名为key，文件内容为value；
+7. 使用secret--->通过环境变量；
+
+
+### <a name='ConfigMap'></a>ConfigMap
+为Pod提供配置信息；
+1. 通过--from-literal创建；kubectl create configmap myconfigmap --from-literal=config1=xxx --from-literal=config2=yyy
+2. 通过--from-file创建；kubectl create configmap myconfigmap2 --from-file=./config1 --from-file=./config2
+3. 通过--from-env-file创建；kubectl create configmap myconfigmap3 --from-env-file=env.txt 
+4. 通过yaml配置文件创建；kubectl apply -f configmap4.yaml；
+
+
+### <a name='Helm'></a>Helm
+应用打包工具；
+1. chart；类似apt、yum；它包含一系列 k8s 资源配置文件的模板与参数，可供灵活配置
+2. repo；chart的仓库，其中有很多chart可供选择；
+3. release；一个chart部署后生成一个release；
+4. helm repo add bitnami https://charts.bitnami.com/bitnami    添加helm chart repo;
+5. helm repo list    查看已经支持的repo仓库列表；
+6. helm search repo bitnami        查找可安装使用的chart列表；
+
+
+
+### <a name='CNI'></a>CNI
+container networking interface
+
+
+
+### <a name='networkpolicy'></a>network policy
+1. 通过label选择pod,并指定其他pod或外界如果与这些pod进行通信；当为pod定义network policy时，只有policy允许的流量才能访问pod；
+2. ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          access: "true"
+  表示只有pod带label access=true的才能和建立network policy的pod进行通信；
 
 
 
@@ -3651,4 +4018,4 @@ cluster-announce-bus-port 16371
 18. viper文件读取工具 github.com/spf13/viper
 19. swagger go get -u github.com/swaggo/swag/cmd/swag go get -u github.com/swaggo/gin-swagger go get -u github.com/swaggo/files
 20. sqlite3 go get -u github.com/mattn/go-sqlite3
-
+21. 热更新  github.com/cosmtrek/air
