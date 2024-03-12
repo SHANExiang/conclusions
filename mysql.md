@@ -1133,11 +1133,11 @@ InnoDB：只有表结构，数据全部存储到 ibd 文件中。
 # SQL
 
 ## <a name='MySQL-1'></a>MySQL 建表的约束条件有哪些
-主键约束（Primay Key Coustraint） 唯一性，非空性 
-唯一约束 （Unique Counstraint）唯一性，可以空，但只能有一个 
-检查约束 (Check Counstraint) 对该列数据的范围、格式的限制 
-默认约束 (Default Counstraint) 该数据的默认值 
-外键约束 (Foreign Key Counstraint) 需要建立两表间的关系并引用主表的列 
+主键约束（Primay Key Coustraint） 唯一性，非空性
+唯一约束 （Unique Counstraint）唯一性，可以空，但只能有一个
+检查约束 (Check Counstraint) 对该列数据的范围、格式的限制
+默认约束 (Default Counstraint) 该数据的默认值
+外键约束 (Foreign Key Counstraint) 需要建立两表间的关系并引用主表的 
 
 
 ## <a name='SQL-1'></a>SQL 约束有哪几种？
