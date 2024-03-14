@@ -181,6 +181,32 @@ python 解释器由一个编译器和一个虚拟机构成，编译器负责将�
 2、当.pyc文件不存在或已损坏：如果在执行Python程序时发现缺少或损坏了对应的.pyc文件，解释器会重新编译源代码并生成新的.pyc文件。
 3、当Python解释器版本发生变化：不同版本的Python解释器可能使用不同的字节码格式，因此在切换Python解释器版本时，旧的.pyc文件可能会被认为不兼容并被重新生成。
 
+
+# 可变和不可变数据类型，简述原理 
+不可变数据类型：数值型、字符串型 string 和元组 tuple
+不允许变量的值发生变化，如果改变了变量的值，相当于是新建了一个对象，而对于相同的值的对象，在内存中则只有一个对象（一个地址）
+
+可变数据类型：列表 list 和字典 dict； 
+允许变量的值发生变化，即如果对变量进行 append、+=等这种操作后，只是改变了变
+量的值，而不会新建一个对象，变量引用的对象的地址也不会变化，不过对于相同的值
+的不同对象，在内存中则会存在不同的对象，即每个对象都有自己的地址，相当于内存
+中对于同值的对象保存了多份，这里不存在引用计数，是实实在在的对象 
+ 
+可变 list，dict，set ，不可变 int string tuple 
+当一个引用传递给函数的时候,函数自动复制一份引用,这个函数里的引用和外边的引用 没有半毛关系了； 
+当函数内的引用指向的是可变对象,对它的操作就和定位了指针地址一样,在内存里进行修改。
+
+1,可变类型有 list,dict.不可变类型有 string，number,tuple. 
+2,当进行修改操作时，可变类型传递的是内存中的地址，也就是说，直接修改内存中的值，并没有开辟新的内存。 
+3,不可变类型被改变时，并没有改变原内存地址中的值，而是开辟一块新的内存，将原
+地址中的值复制过去，对这块新开辟的内存中的值进行操作。 
+
+整数对象和字符串对象是不可变对象，python 会高效地缓存它们，python 缓存的整数范围为(-1, 100); 浮点数对象是可变对象； 
+ 
+ 
+
+
+
 ## <a name='GIL'></a>GIL 
 GIL 是 python 的全局解释器锁，同一进程中假如有多个线程运行，一个线程在运行 python 程序的时候会霸占 python 解释器（加了一把锁即 GIL），使该进程
 内的其他线程无法运行，等该线程运行完后其他线程才能运行。如果线程运行过程中遇到耗时操作，则解释器锁解开，使其他线程运行。
@@ -296,16 +322,19 @@ def foo():
 
 ## <a name='-1'></a>可迭代对象、生成器、迭代器的区别 
 可迭代对象：包含__iter__()方法的对象； 
-迭代器：包含__iter__()和__next__()方法的对象；可以使用 iter() 以从任何序列
-得到迭代器（如 list，tuple，dict，set 等） 
+
+迭代器：包含__iter__()和__next__()方法的对象；可以使用 iter() 以从任何序列得到迭代器（如 list，tuple，dict，set 等） 
+
 生成器：另一种形式的迭代器。要获取下一个元素，则使用成员函数 next()（Python 2）或函数 next() function（Python3）。
 当没有元素时，则引发 StopIteration 异常。只是在需要返回数据的时候使用 yield 语句。每次 next()被调用时，生成器 会返回它脱离的位置（它记忆语句最后一次执行的位置和所有的数据值） 
+
 区别：生成器能做到迭代器能做的所有事，而且因为自动创建 iter()和 next()方法，生成器显得特别简洁，而且生成器也是高效的，使用生成器表达式取代列表解析
 可以同时节省内存。除了创建和保存程序状态的自动方法，当生成器终结时，还会自动抛出 StopIteration 异常。 
 
+
 ## <a name='copydeepcopy'></a>copy 和 deepcopy 区别
-1、复制不可变数据类型，不管 copy 还是 deepcopy，都是同一个地址。当浅复制的值是不可变对象（数值，字符串，元组）时和=“赋值”的情况一样，对象的 id 值与浅复制原来的值相同。 
-2、复制的值是可变对象（列表和字典）
+1. 复制不可变数据类型，不管 copy 还是 deepcopy，都是同一个地址。当浅复制的值是不可变对象（数值，字符串，元组）时和=“赋值”的情况一样，对象的 id 值与浅复制原来的值相同。 
+2. 复制的值是可变对象（列表和字典）
 浅拷贝 copy 有两种情况： 
 第一种情况：复制的对象中无复杂子对象，原来值的改变并不会影响浅复制的值，同时浅复制的值改变也并不会影响原来的值。原来值的 id 值与浅复制原来的值不同。 
 第二种情况：复制的对象中有复杂子对象（例如列表中的一个子元素是一个列表），改变原来的值中的复杂子对象的值，会影响浅复制的值。 
@@ -335,15 +364,161 @@ Python3.4 加入了 asyncio 模块，在 Python3.5 中又提供了 async/await �
 1. 线程和协程推荐在 IO 密集型的任务(比如网络调用)中使用，而在 CPU 密集型的任务中，表现较差。 
 2. 对于 CPU 密集型的任务，则需要多个进程，绕开 GIL 的限制，利用所有可用的 CPU 核心，提高效率。 
 3. 在高并发下的最佳实践就是多进程+协程，既充分利用多核，又充分发挥协程的高效率，可获得极高的性能。 
- 
- 
+
+
 ## <a name='pythonIO'></a>python 中 IO 密集型为什么用多线程
-对于 IO 密集型任务，由于 CPU 经常需要等待 IO 操作完成，因此，在等待过程中，CPU 可以去做其他事情，单个 CPU 利用率很低，可能只有 10%，所以多线程可以提升 cpu 利用率，因此采用多线程可以提高程序执行效率，这实质是并发处理。
-当然，由于多进程可以利用多核 CPU 真正实现并行处理，所以，采用多进程也可以提高 IO 密集型任务的执行效率。
-但是考虑到多线程是共享资源的，因此通信更方便，而多进程之间的资源相互独立，通信不是很方便，因此，综合来看，IO 密集型任务，采用 python 多线程更合适。
-对于计算密集型任务，由于 python 多线程为了实现同步锁安全机制，采用了全局锁机制，导致即使是多核 CPU 或多个 CPU，同一时间，也只有一个线程在执行，因为全局锁只有一个，即在多核 CPU 或多个 CPU 情况下，python 多线程仍然只能并发处理，而不能并行处理。
-而因为计算密集型任务，CPU 几乎不存在空闲时间，使用 python 多线程，CPU 频繁在各个线程之间切换所需时间反而会大大降低程序执行效率。
-而采用 python 多进程，可以实现真正意义上的并行处理，因此，计算密集型任务，采用 python 多进程更合适。 
+在 Python 中,对于 IO 密集型任务,使用多线程可以显著提高程序的性能。这主要有以下几个原因:
+1. IO 操作的阻塞特性
+IO 操作,如读写文件、网络通信等,都是阻塞式的。当一个线程发起 IO 请求时,它会被阻塞,直到 IO 操作完成。在单线程模型下,IO 阻塞会导致整个程序停滞,无法继续执行其他任务。
+2. GIL 的影响
+Python 有全局解释器锁(GIL),导致在任意时刻只能有一个线程在执行 Python 字节码。这意味着 Python 的多线程并不能利用多核 CPU 实现并行计算。但是,当线程执行 IO 操作时,GIL 会被释放,允许其他线程执行。因此,IO 密集型任务可以通过多线程实现并发。
+3. 操作系统的调度
+当一个线程阻塞在 IO 操作上时,操作系统会将其挂起,并切换到其他就绪的线程。这样,在一个线程等待 IO 的同时,其他线程可以继续执行,从而提高了资源利用率和程序的整体性能。
+4. 用户感知的响应速度
+对于一些需要频繁 IO 操作的应用,如 Web 服务器,使用多线程可以显著提高用户感知的响应速度。当一个线程在处理请求时阻塞于 IO,其他线程可以继续处理新的请求,从而缩短了用户的等待时间。
+
+
+## python asyncio
+asyncio是Python标准库中提供的异步I/O框架，用于编写高性能、高并发的网络应用程序。
+它基于事件循环（event loop）的概念，允许在单个线程内处理大量的并发操作，而不会阻塞程序的执行。
+
+以下是asyncio的一些关键概念和组件：
+
+1. 事件循环（Event Loop）：
+   - 所谓事件循环，是指主线程每次将执行序列中的任务清空后，就去事件队列中检查是否有等待执行的任务，如果有则每次取出一个推到执行序列中执行，这个过程是循环往复的。
+   - 事件循环是asyncio的核心，它负责管理和调度所有的异步任务和I/O操作。
+   - 通过`asyncio.get_event_loop()`可以获取当前的事件循环，也可以使用`asyncio.new_event_loop()`创建一个新的事件循环。
+   - 事件循环通过调用`loop.run_until_complete()`或`loop.run_forever()`来启动，直到所有任务完成或手动停止。
+
+2. 协程（Coroutine）：
+   - 协程是使用`async def`定义的特殊函数，它可以被暂停和恢复执行。
+   - 协程通过`await`关键字来等待其他协程或异步操作的完成，而不会阻塞事件循环的执行。
+   - 协程可以使用`asyncio.create_task()`函数将其封装为一个任务（Task）并交给事件循环执行。
+
+3. 任务（Task）：
+   - 任务是对协程的封装，表示一个正在运行或等待运行的协程。
+   - 可以使用`asyncio.create_task()`函数创建一个任务，并将其提交给事件循环执行。
+   - 任务可以使用`await`关键字等待其完成，也可以使用`asyncio.gather()`同时等待多个任务完成。
+
+4. 异步I/O操作：
+   - asyncio提供了各种异步I/O操作的支持，如异步文件读写、异步网络通信等。
+   - 常用的异步I/O操作包括`asyncio.sleep()`、`asyncio.open_connection()`、`asyncio.start_server()`等。
+   - 这些操作允许在等待I/O完成的同时，事件循环可以继续处理其他任务，提高了程序的并发性能。
+
+5. 异步上下文管理器：
+   - asyncio支持使用`async with`语句定义异步上下文管理器，用于管理异步资源的获取和释放。
+   - 常见的异步上下文管理器包括`asyncio.Lock`、`asyncio.Semaphore`等，用于同步和控制并发访问。
+
+6. 异步迭代器和异步生成器：
+   - asyncio支持使用`async for`语句定义异步迭代器，用于异步地迭代可迭代对象。
+   - 异步生成器使用`async def`和`yield`关键字定义，可以生成一系列的值，并在每次生成值时暂停执行。
+
+7. 异步队列和异步管道：
+   - asyncio提供了`asyncio.Queue`和`asyncio.PriorityQueue`等异步队列，用于在协程之间传递数据。
+   - 异步管道`asyncio.Pipe`允许在协程之间进行双向通信。
+
+asyncio还提供了其他功能，如异步子进程管理、异步文件系统操作、异步DNS解析等，使得编写高性能、高并发的异步应用程序变得更加方便和高效。
+
+下面是一个使用Python的`asyncio`模块实现并发的示例：
+
+```python
+import asyncio
+import random
+import time
+
+async def task(name):
+    print(f"Task {name} started.")
+    # 模拟一个耗时的操作
+    await asyncio.sleep(random.randint(1, 5))
+    print(f"Task {name} completed.")
+
+async def main():
+    start_time = time.time()
+    
+    # 创建多个任务
+    tasks = [
+        asyncio.create_task(task("A")),
+        asyncio.create_task(task("B")),
+        asyncio.create_task(task("C")),
+        asyncio.create_task(task("D")),
+    ]
+    
+    # 等待所有任务完成
+    await asyncio.gather(*tasks)
+    
+    end_time = time.time()
+    print(f"Total time: {end_time - start_time:.2f} seconds.")
+
+# 运行异步主函数
+asyncio.run(main())
+```
+
+在这个示例中，我们定义了一个异步函数`task`，它接受一个名称参数。在函数内部，我们使用`asyncio.sleep`模拟一个耗时的操作，随机等待1到5秒钟。
+
+在`main`函数中，我们创建了多个任务，每个任务都是通过调用`asyncio.create_task`创建的。我们将这些任务存储在一个列表中。
+
+接下来，我们使用`asyncio.gather`函数等待所有任务完成。`asyncio.gather`接受任意数量的可等待对象（如协程或任务），并在所有任务完成后返回它们的结果。
+
+最后，我们计算并打印出程序的总执行时间。
+
+运行这个示例，你会看到类似以下的输出：
+
+```
+Task A started.
+Task B started.
+Task C started.
+Task D started.
+Task B completed.
+Task A completed.
+Task D completed.
+Task C completed.
+Total time: 3.14 seconds.
+```
+
+可以看到，所有任务都是并发执行的，它们的启动和完成顺序可能会有所不同，这取决于每个任务的随机等待时间。程序的总执行时间比任务的最长等待时间要短，这是因为任务是并发执行的，而不是串行执行的。
+
+使用`asyncio`模块可以方便地实现并发编程，它允许我们编写异步代码，利用事件循环来管理和调度任务的执行。这对于处理大量的I/O操作、网络请求或其他耗时的任务非常有用，可以显著提高程序的性能和响应速度。
+
+`asyncio`模块中一些常用函数的解释：
+
+1. `asyncio.run(coro)`：
+   - 用于运行传入的协程对象`coro`，并返回协程的结果。
+   - 这是运行异步程序的主入口点，通常在程序的最外层调用。
+   - 它会创建一个新的事件循环，运行协程直到完成，然后关闭事件循环。
+
+2. `asyncio.create_task(coro)`：
+   - 用于将协程对象`coro`封装成一个`Task`对象，并将其提交给事件循环执行。
+   - 返回创建的`Task`对象，可以用于跟踪和控制任务的执行。
+   - 通过`create_task`创建的任务会在事件循环中并发执行。
+
+3. `asyncio.gather(*aws, loop=None, return_exceptions=False)`：
+   - 用于并发地运行多个可等待对象（如协程或任务），并等待它们全部完成。
+   - 接受任意数量的可等待对象作为参数，返回一个包含所有结果的列表。
+   - 如果`return_exceptions`设置为`True`，异常会作为结果返回，而不是引发。
+
+4. `asyncio.sleep(delay, result=None, *, loop=None)`：
+   - 用于在指定的延迟时间`delay`（以秒为单位）后返回一个结果。
+   - 在延迟期间，该函数会将控制权交还给事件循环，允许其他任务执行。
+   - 通常用于模拟耗时的操作或引入延迟。
+
+5. `asyncio.wait(aws, *, loop=None, timeout=None, return_when=ALL_COMPLETED)`：
+   - 用于并发地运行多个可等待对象，并等待它们完成或超时。
+   - 接受一个可等待对象的集合`aws`，返回两个集合：已完成的任务和未完成的任务。
+   - `timeout`参数指定最大等待时间，`return_when`参数指定何时返回（如`FIRST_COMPLETED`、`FIRST_EXCEPTION`）。
+
+6. `asyncio.ensure_future(coro_or_future, *, loop=None)`：
+   - 用于将一个协程对象或`Future`对象封装成一个`Future`对象。
+   - 如果参数已经是`Future`对象，则直接返回它。
+   - 通常用于将协程对象转换为`Future`对象，以便在回调或其他地方使用。
+
+7. `asyncio.get_event_loop()`：
+   - 用于获取当前上下文的事件循环。
+   - 如果当前上下文没有事件循环，则会引发异常。
+   - 通常在协程或回调函数中使用，用于获取当前的事件循环对象。
+
+这些是`asyncio`模块中一些常用的函数，它们提供了创建和管理异步任务、并发执行、延迟操作以及事件循环交互的功能。通过合理使用这些函数，你可以编写高效的异步程序，充分利用并发的优势。
+
+当然，`asyncio`模块还提供了许多其他的函数和类，用于更高级的异步编程场景，如异步上下文管理器、异步迭代器、异步队列等。你可以根据具体的需求进一步探索和使用这些功能。
 
 
 ## <a name='__new____init__'></a>简述__new__和__init__区别
@@ -381,6 +556,7 @@ python 里每一个东西都是对象，它们的核心就是一个结构体：P
 #### <a name='-1'></a>标记清除
 标记-清除机制，顾名思义，首先标记对象（垃圾检测），然后清除垃圾（垃圾回收）。首先初始所有对象标记为白色，并确定根节点对象（这些对象是不会被删除），标记它们为黑色（表示对象有效）。将有效对象引用的对象标记为灰色（表示对象可达，但它们所引用的对象还没检查），检查完灰色对象引用的对象后，将灰色标记为黑色。重复直到不存在灰色节点为止。最后白色结点都是需要清除的对象。 
 解决循环引用： 
+```shell
 >>> a=[1,2] 
 >>> b=[3,4] 
 >>> sys.getrefcount(a) 
@@ -395,26 +571,38 @@ python 里每一个东西都是对象，它们的核心就是一个结构体：P
 3 
 >>> del a 
 >>> del b 
+```
 a 引用 b,b 引用 a,此时两个对象各自被引用了 2 次（去除 getrefcout()的临时引用） 
  
 执行 del 之后，对象 a,b 的引用次数都-1，此时各自的引用计数器都为 1，陷入循环引用
 标记：找到其中的一端 a,因为它有一个对 b 的引用，则将 b 的引用计数-1
 标记：再沿着引用到 b,b 有一个 a 的引用,将 a 的引用计数-1，此时对象 a 和 b 的引用次数全部为 0，被标记为不可达（Unreachable）
 清除: 被标记为不可达的对象就是真正需要被释放的对象 
- 
-### <a name='-1'></a>分代回收 
-分代回收是基于这样的一个统计事实，对于程序，存在一定比例的内存块的生存周期比较短；而剩下的内存块，生存周期会比较长，甚至会从程序开始一直持续到程序结束。生存期较短对象的比例通常在 80%～90%之间。 
-因此，简单地认为：对象存在时间越长，越可能不是垃圾，应该越少去收集。这样在执行标记-清除算法时可以有效减小遍历的对象数，从而提高垃圾回收的速度，是一种以空间换时间的方法策略。 
-Python 将所有的对象分为年轻代（第 0 代）、中年代（第 1 代）、老年代（第 2 代）三代。所有的新建对象默认是 第 0 代对象。当在第 0 代的 gc 扫描中存活下来的对象将被移至第 1 代，在第 1 代的 gc 扫描中存活下来的对象将被移至第 2 代。 
-gc 扫描次数（第 0 代>第 1 代>第 2 代） 
-当某一代中被分配的对象与被释放的对象之差达到某一阈值时，就会触发当前一代的 gc 扫描。当某一代被扫描时，比它年轻的一代也会被扫描，因此，第 2 代的 gc 扫描发生时，第 0，1 代的 gc 扫描也会发生，即为全代扫描。 
->>> import gc  
->>> gc.get_threshold() ## 分代回收机制的参数阈值设置 
-(700, 10, 10) 
-700=新分配的对象数量-释放的对象数量，第 0 代 gc 扫描被触发 
-第一个 10：第 0 代 gc 扫描发生 10 次，则第 1 代的 gc 扫描被触发 
-第二个 10：第 1 代的 gc 扫描发生 10 次，则第 2 代的 gc 扫描被触发 
 
+
+### <a name='-1'></a>分代回收 
+Python 使用一种叫做分代垃圾回收(Generational Garbage Collection)的机制来管理内存。
+这种机制基于这样一个观察:大部分对象的生命周期都很短,而那些生命周期长的对象通常会存活更长时间。
+基于这个观察,Python 将所有对象分为三代:年轻代(Young Generation)、中年代(Middle Generation)和老年代(Old Generation)。
+
+1. 年轻代(Young Generation)
+新创建的对象都会被分配在年轻代。年轻代的空间通常很小,因为大部分新创建的对象都很快就会变得不可达,成为垃圾对象。
+当年轻代空间被填满时,就会触发一次垃圾回收,这被称为 minor collection。 
+在 minor collection 中,垃圾对象被清理,而那些还在使用的对象则被移动到一个叫做 S0 的 Survivor 空间。
+当再次触发 minor collection 时,S0 空间的对象如果还在使用,就会被移动到另一个叫做 S1 的 Survivor 空间,同时年轻代和 S0 空间的垃圾对象被清理。
+这个过程会不断重复,每次 minor collection 都会交换 S0 和 S1 的角色。
+
+2. 中年代(Middle Generation)
+经过几次 minor collection 后仍然存活的对象,会被提升到中年代。中年代的空间比年轻代大,但仍然比老年代小。
+当中年代空间被填满时,会触发一次 major collection,这次回收的成本比 minor collection 高,因为中年代的对象数量比年轻代多,且大部分对象都会存活。
+
+3. 老年代(Old Generation)
+经过多次 major collection 后仍然存活的对象,会被提升到老年代。老年代的空间是最大的,因为它存储的都是生命周期很长的对象。
+当老年代空间被填满时,会触发一次 full collection,这是成本最高的垃圾回收操作,因为它会回收所有代的对象。
+
+这种分代的设计,是基于大部分新创建的对象都是短命的这一假设。
+通过将对象按照年龄分代,Python 可以在大部分时候使用速度较快的 minor collection,
+只在必要时才进行成本较高的 major collection 和 full collection,从而提高了垃圾回收的效率。
 
  
 ### <a name='Python'></a>哪些操作会导致 Python 内存泄露，怎么处理？
@@ -452,10 +640,13 @@ Python 有两种共存的内存管理机制: 引用计数和垃圾回收
 
 在 Python 中是如何管理内存的？ 
 Python 有一个私有堆空间来保存所有的对象和数据结构。作为开发者，我们无法访问它，是解释器在管理它。但是有了核心 API 后，我们可以访问一些工具。 Python 内存管理器控制内存分配。 
-另外，内置垃圾回收器会回收使用所有的未使用内存，所以使其适用于堆空间。 Python 引用了一个内存池(memory pool)机制，即 Pymalloc 机制(malloc:n.分配内存)，用于管理对小块内存的申请和释放。 
+另外，内置垃圾回收器会回收使用所有的未使用内存，所以使其适用于堆空间。 Python 引用了一个内存池(memory pool)机制，即 Pymalloc 机制(malloc:n.分配内存)，用于管理对小块内存的申请和释放。
+
 一、垃圾回收：python 不像 C++，Java 等语言一样，他们可以不用事先声明变量类型而直接对变量进行赋值。对 Python 语言来讲，对象的类型和内存都是在运行时确定的。
-这也是为什么我们称 Python 语言为动态类型的原因（这里我们把动态类型可以简单的归结为对变量内存地址的分配是在运行时自动判断变量类型并对变量进行赋值）。 
-二、引用计数：Python 采用了类似 Windows 内核对象一样的方式来对内存进行管理。每一个对象，都维护这一个对指向该对对象的引用的计数。当变量被绑定在一个对象上的时候，该变量的引用计数就是 1，(还有另外一些情况也会导致变量引用计数的增加),系统会自动维护这些标签，并定时扫描，当某标签的引用计数变为 0 的时候，该对就会被回收。 
+这也是为什么我们称 Python 语言为动态类型的原因（这里我们把动态类型可以简单的归结为对变量内存地址的分配是在运行时自动判断变量类型并对变量进行赋值）。
+
+二、引用计数：Python 采用了类似 Windows 内核对象一样的方式来对内存进行管理。每一个对象，都维护这一个对指向该对对象的引用的计数。当变量被绑定在一个对象上的时候，该变量的引用计数就是 1，(还有另外一些情况也会导致变量引用计数的增加),系统会自动维护这些标签，并定时扫描，当某标签的引用计数变为 0 的时候，该对就会被回收。
+
 三、内存池机制 Python 的内存机制以金字塔行，-1，-2 层主要有操作系统进行操作， 
 第 0 层是 C 中的 malloc，free 等内存分配和释放函数进行操作； 
 第 1 层和第 2 层是内存池，有 Python 的接口函数 PyMem_Malloc 函数实现，当对象小于 256K 时有该层直接分配内存； 
@@ -542,9 +733,437 @@ class Singleton:
         return cls._instance
 ```
 
+# python 上下文管理器的两种方式？ 
+1. __enter__ __exit__ 
+with 声明是从 Python2.5 开始引进的关键词。你应该遇过这样子的代码: 
+with open('foo.txt') as bar: 
+    do something with bar 
+在 with 声明的代码段中，我们可以做一些对象的开始操作和清除操作，还能对
+异常进行处理。这需要实现两个魔术方法: __enter__ 和 __exit__。 
+__enter__(self) 
+__enter__会返回一个值，并赋值给 as 关键词之后的变量。在这里，你可以定义代码段开始的一些操作。 
+__exit__(self, exception_type, exception_value, traceback) 
+__exit__定义了代码段结束后的一些操作，可以这里执行一些清除操作，或者做
+一些代码段结束后需要立即执行的命令，比如文件的关闭，socket 断开等。如果
+代码段成功结束，那么 exception_type, exception_value, traceback 三个参数传进
+来时都将为 None。如果代码段抛出异常，那么传进来的三个参数将分别为: 异常
+的类型，异常的值，异常的追踪栈。 如果__exit__返回 True, 那么 with 声明下的
+代码段的一切异常将会被屏蔽。 如果__exit__返回 None, 那么如果有异常，异常
+将正常抛出，这时候 with 的作用将不会显现出来。 
+举例说明： 
+这该示例中，IndexError 始终会被隐藏，而 TypeError 始终会抛出。 
+class DemoManager(object): 
+ 
+    def __enter__(self): 
+        pass 
+ 
+    def __exit__(self, ex_type, ex_value, ex_tb): 
+        if ex_type is IndexError: 
+            print(ex_value.__class__) 
+            return True 
+        if ex_type is TypeError: 
+            print(ex_value.__class__) 
+            return  # return None 
+ 
+with DemoManager() as nothing: 
+    data = [1, 2, 3] 
+    data[4]  # raise IndexError, 该异常被__exit__处理了 
+ 
+with DemoManager() as nothing: 
+    data = [1, 2, 3] 
+    data['a']  # raise TypeError, 该异常没有被__exit__处理 
+ 
+''' 
+输出: 
+<type 'exceptions.IndexError'> 
+<type 'exceptions.TypeError'> 
+Traceback (most recent call last): 
+  ... 
+'''
+
+with 方法打开处理文件做了什么? 
+
+打开文件在进行读写的时候可能会出现一些异常状况，如果按照常规的 f.open 
+写法，我们需要 try,except,finally，做异常判断，并且文件最终不管遇到什么情况，
+都要执行 finally f.close()关闭文件，with 方法帮我们实现了 finally 中 f.close 
+with 语句适用于对资源进行访问的场合，确保不管使用过程中是否发生异常都会
+执行必要的“清理”操作，释放资源，比如文件使用后自动关闭、线程中锁的自动获取和释放等。
+with 语句即“上下文管理器”，在程序中用来表示代码执行过程中所处的前后环境
+上下文管理器：含有__enter__和__exit__方法的对象就是上下文管理器。 
+__enter__：在执行语句之前，首先执行该方法，通常返回一个实例对象，如果 with 语句有 as 目标，则将对象赋值给 as 目标。 
+__exit__：执行语句结束后，自动调用__exit__方法，用户释放资源，若此方法返
+回布尔值 True，程序会忽略异常。 使用环境：文件读写、线程锁的自动释放等。
 
 
-## <a name='-1'></a>函数 
+
+2. contextlib 实现上下文管理器 
+contextlib 模块中@contextmanager 装饰器 
+@contextmanager 
+def timethis(label): 
+    start_time = time.time() 
+    try: 
+        yield 
+    finally: 
+        end_time = time.time() 
+        print("{}: {}".format(label, (end_time - start_time))) 
+ 
+ 
+with timethis('counting'): 
+    n = 100000 
+    while n > 0: 
+yield 之前的代码会在上下文管理器中作为__enter__()方法执行，所有再 yield 之后的代
+码会作为__exit__()方法执行，如果出现了异常，代码会在 yield 那里抛出； 
+
+
+
+# Python 中的反射 
+反射就是通过字符串的形式，导入模块；通过字符串的形式，去模块寻找指定函数，并执行。
+利用字符串的形式去对象（模块）中操作（查找/获取/删除/添加）成员，一种基于字符串的事件驱动！ 
+自省就是面向对象的语言所写的程序在运行时,所能知道对象的类型。
+简单一句就是运行时能够获得对象的类型.比如 type()，dir()，getattr()，hasattr()，isinstance()。 
+getattr,hasattr,setattr,delattr 对模块的修改都在内存中进行，并不会影响文件中真
+实内容。并且他们的入参可以是模块名；
+
+1. getattr()函数是 Python 自省的核心函数，具体使用大体如下： 
+```python
+class A:  
+    def __init__(self):  
+        self.name = 'zhangjing' 
+       # self.age='24' 
+
+    def method(self):  
+        print("method print") 
+
+Instance = A()
+print(getattr(Instance , 'name, 'not find'))   #如果 Instance 对象中有属性 name 则打印 self.name的值，否则打印'not find' 
+print(getattr(Instance , 'age', 'not find'))   #如果 Instance 对象中有属性 age 则打印 self.age 的值，否则打印'not find'
+print(getattr(Instance, 'method', 'default'))  #如果有方法 method，否则打印其地址，否则打印 default  
+print(getattr(Instance, 'method', 'default')()) #如果有方法 method，运行函数并打印 None 否则打印default
+```
+
+2. hasattr(object, name) 
+说明：判断对象 object 是否包含名为 name 的特性（hasattr 是通过调用 getattr(ojbect, name)是否抛出异常来实现的） 
+
+3. setattr(object, name, value) 
+这是相对应的 getattr()。参数是一个对象,一个字符串和一个任意值。字符串可能会列出
+一个现有的属性或一个新的属性。这个函数将值赋给属性的。该对象允许它提供。例
+如,setattr(x,“foobar”,123)相当于 x.foobar = 123。 
+ 
+4. delattr(object, name) 
+与 setattr()相关的一组函数。参数是由一个对象(记住 python 中一切皆是对象)和一个字
+符串组成的。string 参数必须是对象属性名之一。该函数删除该 obj 的一个由 string 指定
+的属性。delattr(x, 'foobar')=del x.foobar 
+
+
+
+# 面向对象
+
+## 类class
+类以及类中的方法在内存中只有一份，而根据类创建的每一个对象都在内存中需要存一份。只要创建一个对象,其内存空间就会保存一份。
+
+ 普通字段属于对象
+ 静态字段属于类
+ 静态字段在内存中只保存一份
+ 普通字段在每个对象中都要保存一份
+
+```python
+class foo: 
+ 
+    country = '中国'  # 静态字段,保存在类中，仅此一份 
+    def __init__(self,name): 
+ 
+        self.name = name  # 普通字段,封装到对象中 
+ 
+    def show(self): 
+        print(self.name) 
+ 
+ 
+obj = foo("xiaoxiao") 
+print(obj.name)  # 通过对象直接访问普通字段 
+print(foo.country)  # 通过类名直接访问静态字段 
+print(obj.country)  # 对象间接访问静态字段 
+print(foo.name)  #报错,
+```
+
+类中方法,除了类调用类中普通方法不一样,其余的全部都可以通过类或者对象来调用。
+
+由属性的定义和调用要注意一下几点： 
+ 定义时，在普通方法的基础上添加 @property 装饰器；
+ 定义时，属性仅有一个 self 参数 
+ 调用时，无需括号 方法：foo_obj.func() 属性：foo_obj.prop 
+
+属性存在意义是：访问属性时可以制造出和访问字段完全相同的假象 
+Python 的属性的功能是：属性内部进行一系列的逻辑计算，最终将计算结果返回。 
+property 的构造方法中有个四个参数 
+ 第一个参数是方法名，调用 对象.属性 时自动触发执行方法 
+ 第二个参数是方法名，调用 对象.属性 ＝ XXX 时自动触发执行方法 
+ 第三个参数是方法名，调用 del 对象.属性 时自动触发执行方法 
+ 第四个参数是字符串，调用 对象.属性.__doc__ ，此参数是该属性的描述信息
+
+```python
+class Foo1(object): 
+    def get_bar(self): 
+        return 'dong is a genius' 
+ 
+    def set_bar(self, name): 
+        return '%s is a genius, yes, you are right.' % name 
+ 
+    def del_bar(self): 
+        return 'dong is a foolish man' 
+ 
+    BAR = property(get_bar, set_bar, del_bar, 'description dong...') 
+ 
+ 
+# 执行结果 
+# foo = Foo1() 
+# print(foo.BAR)  # 自动调用第一个参数中定义的方法：get_bar 
+# foo.BAR = 'shane'  # 自动调用第二个参数中定义的方法：set_bar 方法，并将“shane”当作参数传入 
+# print(foo.BAR) 
+# del foo.BAR  # 自动调用第三个参数中定义的方法：del_bar 方法 
+# print(foo.BAR.__doc__)  # 自动获取第四个参数中设置的值：description dong...
+```
+ 
+1.凡是类中的方法和函数，都是绑定给对象使用的； 
+2.绑定方法都有自动传值的功能。传递进去的值，就是对象本身。 
+3.如果类想调用绑定方法，就必须遵循函数的参数规则，有几个参数，就必须传递几个参数。 
+当对象在调用类的绑定方法时，也会默认把类当作参数传递进去
+类中方法默认都是绑定给对象使用，当对象调用绑定方法时，会自动将对象作为
+第一个参数传递进去；而类来调用，则必须遵循函数参数一一对应的规则，有几
+个参数，就必须传递几个参数。如果一个方法是用了@classmethod 装饰器，那么
+這个方法绑定到类身上，不管是对象来调用还是类调用，都会将类作为第一个参
+数传递进去。 
+只要你使用关键字 class，Python 解释器在执行的时候就会创建一个对象。下面的代码段： 
+```shell
+>>> class ObjectCreator(object): 
+...      pass 
+...  
+```
+将在内存中创建一个对象，名字就是 ObjectCreator。这个对象（类）自身拥有创建对象（类实例）的能力，而这就是为什么它是一个类的原因。
+但是，它的本质仍然是一个对象，于是乎你可以对它做如下的操作： 
+1) 你可以将它赋值给一个变量 
+2) 你可以拷贝它 
+3) 你可以为它增加属性 
+4) 你可以将它作为函数参数进行传递 
+
+
+## <a name='-1'></a>封装 
+ 属性和方法封装到一个抽象的类中，外界使用类创建对象，然后让对象调用方法，对象方法的细节都被封装到类的内部；一个对象的属性可以是另外一个类创建的对象； 
+ 在对象方法的内部，是可以直接访问对象的属性；
+ 同一个类创建的多个对象之间，它们的属性是互不干扰的；
+ 身份运算符：用于比较两个对象的内存地址是否一致----是否是同一对象的引用；Python 中针对 None 的比较时建议使用 None 判断；is 用于判断两个变量引用对象是否是同一个，==判断引用变量的值是否相等。
+ 内部属性或方法(_internal)：任何以单下划线 _ 开头的名字都应该是内部实现。 同样适用于模块名和模块级别函数。 
+ 私有属性或方法(__private)：不希望外部访问的属性或方法，前面加上两个下划线，外界和子类都不能访问，使用双下划线开始会导致访问名称变成其他形式。 
+```python
+class A(object): 
+    def __init__(self): 
+        self._internal = 0 
+        self.public = 1 
+        self.__private_param = 100 
+ 
+    def public_method(self): 
+        print(self.__private_method) 
+        print(self.__private_param) 
+ 
+    def _internal(self): 
+        pass 
+ 
+    def __private_method(self): 
+        pass 
+     
+class B(A): 
+    def __init__(self): 
+        super(B, self).__init__() 
+        self.__private_param = 100 
+ 
+    def __private_method(self): 
+        pass 
+
+a = A() 
+a.public_method() 
+print(a.__dict__) 
+print(a._A__private_param) 
+print(dir(a))    # '_A__private_method', '_A__private_param','_internal', 'public', 'public_method'  
+
+b = B() 
+print(dir(b))    # '_internal', 'public', 'public_method','_A__private_method', '_A__private_param', '_B__private_method', '_B__private_param', 
+ 
+
+# 内部属性或方法就是：_internal 和_internal_method 
+# 私 有 属 性 或 方 法 就 是 : _A_private_method ， _A_private_method ， 外 部 引 用就是a._A__private_param 
+# 可以看到类 B 继承自 A，并在 B 中定义属性__private_param 和方法__private_method，
+# 这个 B 中新定义的，并不是重写，而 B 中也继承了 A 中的私有属性和方法，也就是说python 这样命名私有属性这样重命名目的就是继承——这种属性通过继承是无法被覆盖的。 
+ 
+# 使用下换线作为后缀可以避免与保留关键字冲突。 
+# 如果想访问属性可以通过属性的 getter（访问器）和 setter（修改器）方法进行对应的操作。如果要做到这点，就可以考虑使用@property 包装器来包装 getter 和setter 方法，使得对属性的访问既安全又方便. 
+```
+
+
+## <a name='-1'></a>继承 
+ 继承用来实现代码的重用；子类拥有父类所有的属性和方法，可以直接使用父类的中封装好的方法，不需要再次开发；子类继承父类，子类的实例可以拥有父类的属性； 
+ 继承传递性； 
+ 重写父类方法： 
+o 覆盖父类中的方法：实现方式就相当于在子类中定义一个和父类同名的方法并实现；运行时，只会调用子类中重写的方法，不会调用父类中封装的方法； 
+o 对父类方法进行扩展：这种情况的意思是说，父类封装的方法实现是子类的一部分，具体实现方式就是在子类重写的父类方法体中，在需要的位置使用 super().父类方法来调用父类方法的执行，代码的其它位置编写子类特有的实现。 
+o 多继承时，避免父类之间存在同名的属性或方法。如果一个类有多个父类时，子类调用方法的顺序是先子类，之后安装类名(A,B,C)中，先搜索 A，之后 B，再者C，最后 object 类，找到最后一个类没有这个方法的话，程序报错。Python 中提供一个内置属性__mro__可以查看方法的搜索顺序，MRO 是 method resolution order，主要用于多继承时判断方法属性的调用顺序。
+
+python 解释器中有一个 C3 算法，来计算通过 super()调用父类的一个顺序，C3 算法的结论的体现保存到 MRO 中去，一个类中调用 super()的时候，拿着当前类的名字，到 MRO 元组中匹配，匹配成功，就调用匹配到的下一个类，上图的
+Grandson()调用顺序是 Son1-->Son2-->Parent-->object o 新式类，旧式类： 
+新式类----以 object 为基类的类，旧式类----不以 object 为基类的类 
+super 用法 
+super().__setter(name, value     没有显式的指明某个类的父类，super()仍然可以有效的工作。 
+ 
+super().parent_function()----调用父类方法； 
+super().__init__()----在__init__()方法中确保父类被正确初始化； 
+super.__setter__(key, value)----调用原生的方法； 
+抽象基类 
+python 通过引入模块 abc 提供官方的解决方案，这个模块为抽象基类提供了支
+持。 
+
+
+## <a name='-1'></a>多态 
+ 不同的子类对象调用相同的父类方法，产生不同的执行结果； 
+ 以继承和重写父类方法为前提； 
+ 类：
+o 创建对象的动作有两步：
+1. 在内存中为对象分配空间，调用__new__()方法完成；
+2. 调用初始化方法__init__为对象初始化；
+
+o Python 中一切皆对象，class A:定义的类属于类对象； 
+
+o 程序运行时，类同样会被加载到内存，类是一个特殊的对象---类对象，类对象在内存够中只有一份； 
+
+o 类属性或类方法： 
+ 类属性----给类对象定义的属性； 
+ Python 中属性获取存在一个向上查找机制；对象调用属性时，如 person01.count，
+
+1. 首先在对象内部查找对象的属性；
+2. 没有找到就会向上寻找类属性；
+
+3. 访问类属性的两种方式：1. 类名.类属性名；2. 对象.类属性。 
+
+ 如果使用对象.类属性 = 值赋值语句时，只会给对象添加一个属性，不会影响类属性的值； 
+ 类方法----修饰器@classmethod 标识； 
+ 静态方法----修饰器@staticmethod 标识； 
+
+## <a name='-1'></a>元类 
+元类就是用来创建这些类（对象）的，元类就是类的类。 
+MyClass = type('MyClass', (), {}) 
+type 实际上是一个元类，type 就是 python 在背后用来创建所有类的元类。 
+ 
+
+### <a name='-1'></a>元类控制器实例的创建 
+Python 是一种动态语言，而动态语言和静态语言最大的不同，就是函数和类不是编译时定义的，而是运行时动态创建的。class 的定义是运行时动态创建的，而创建 class 的方法就是使用 type()函数 
+定义：type(类名, 父类的元组（针对继承的情况，可以为空），包含属性的字典（名称和值）) 
+type()函数既可以返回一个对象的类型，又可以创建出新的类型 
+metaclass 允许你创建类或者修改类。换句话说，你可以把类看成是 metaclass 创建出来的“实例”。 
+一个类定义时 metaclass=定义的元类，元类中定义__call__()方法，当这个类实例化时会调用元类的__call__方法，再调用自己的__init__方法； 
+
+单例模式：metaclass 的实现： 
+class Singleton(type): 
+    def __init__(self, *args, **kwargs): 
+        self._instance = None 
+        super().__init__(*args, **kwargs) 
+ 
+    def __call__(self, *args, **kwargs): 
+        if not self._instance: 
+            self._instance = super().__call__(*args, **kwargs) 
+        return self._instance 
+ 
+ 
+class OnePerson(metaclass=Singleton): 
+    def __init__(self): 
+        print('create OnePerson instance') 
+ 
+缓存实例： 
+class Cached(type): 
+    def __init__(self, *args, **kwargs): 
+        super().__init__(*args, **kwargs) 
+        self.__cached = weakref.WeakValueDictionary() 
+ 
+    def __call__(self, *args): 
+        if args in self.__cached: 
+            return self.__cached[args] 
+        else: 
+            obj = super().__call__(*args) 
+            self.__cached[args] = obj 
+            return obj 
+ 
+ 
+class CachedInstance(metaclass=Cached): 
+    def __init__(self, name): 
+        print('create cached instance({!r})'.format(name)) 
+        self.name = name 
+ 
+一个基本元类通常是继承 type 并重定义它的__new__()方法或者是__init__()方法； 
+比如定义__new__()方法： 
+class MyMeta(type): 
+    def __new__(self, clsname, bases, clsdict): 
+ 
+clsname is name of class being defined, bases is tuple of base classes, clsdict is 
+class dictionary  
+    return super().__new__(cls, clsname, bases, clsdict) 
+另一种定义__init__()方法， 
+class MyMeta(type):
+    def __init__(self, clsname, bases, clsdict):
+        super().__init__(clsname, bases, clsdict) 
+为了使用这个元类，你通常要将它放到到一个顶级父类定义中，然后其他的类继承 
+这个顶级父类。例如： 
+class Root(metaclass=MyMeta):
+    pass 
+class A(Root):
+    pass 
+class B(Root):
+    pass 
+ 
+元类的一个关键特点是它允许你在定义的时候检查类的内容。在重新定义 init()方法中， 
+你可以很轻松的检查类字典、父类等等。并且，一旦某个元类被指定给了某个类，那么
+就会被继承到所有子类中去。 
+ 
+使用 type.new_class()初始化新的类对象。 
+你需要做的只是提供类的名字、父类元组、关键字参数，以及一个用成员变量填充类字
+典的回调函数。 
+一个类的定义如下： 
+class Spam(Base, debug=True, typecheck=False):
+    pass 
+那么可以将其翻译成如下的 new class() 调用形式： 
+Spam = types.new_class('Spam', (Base,),{'debug': True, 'typecheck': False},lambda ns: 
+ns.update(cls_dict)) 
+new class() 第四个参数最神秘，它是一个用来接受类命名空间的映射对象的函数。 
+通常这是一个普通的字典，但是它实际上是 prepare () 方法返回的任意对象。 
+ 
+另一种构造类对象： 
+Stock = collections.nametuple('Stock', ['name', 'shares', 'price']) 
+ 
+ 
+## 定义接口和抽象基类 
+继承 metaclass=abc.ABCMeta，方法加@abstractmethod 
+抽象类的定义就是让别的类继承它并实现特定的抽象方法，抽象类不能被实例化；
+
+python2 和 python3 定义元类的方式 
+在用 class 语句自定义类时，默认 metaclass 是 type，我们也可以指定 metaclass 来创建类。 
+由于 python3 和 python2 在指定类的 metaclass 语法不兼容，下面分别示例python2 和 python3 两个版本。
+
+python2 版本： 
+class Bar(object): 
+    __metaclass__ = MetaClass 
+ 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def print_name(): 
+        print(self.name) 
+ 
+python3 版本： 
+class Bar(object, metaclass=MetaClass): 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def print_name(): 
+        print(self.name) 
+
+
+
+# <a name='-1'></a>函数 
 函数名其实就是指向一段内存空间的地址，既然是地址，那么我们可以利用这种特性来： 
 a. 函数名可以作为一个值; 
 b. 函数名可以作为返回值; 
@@ -671,7 +1290,8 @@ lambda [arg1[, arg2, ... argN]]: expression
 lambda 匿名函数捕获值 
 lambda 表达式允许你定义简单函数,但是它的使用是有限制的。你只能指定单个
 表达式,它的值就是最后的返回值。也就是说不能包含其他的语言特性了，包括多
-个语句、条件表达式、迭代以及异常处理等等。 
+个语句、条件表达式、迭代以及异常处理等等
+```shell
 >>> x = 10 
 >>> a = lambda y: x + y 
 >>> x = 20 
@@ -696,8 +1316,9 @@ lambda 表达式的时候，x 的值是执行时的值。
 >>> for f in funcs: 
 ... print(f(0))        # 0 1 2 3 4 
 
+```
  
-### <a name='-1'></a>内建函数 
+## <a name='-1'></a>内建函数 
 #### <a name='range'></a>range 
 range(1,10)---左开右闭， 
  
@@ -1088,7 +1709,7 @@ if __name__ == "__main__":
 个粒度上。若在一个函数中处理多件事，不利于代码的重用 
  
  
-## <a name='-1'></a>迭代器 
+# <a name='-1'></a>迭代器 
 何为迭代：重复+继续 
 第一，迭代需要重复进行某一操作； 
 第二，本次迭代的要依赖上一次的结果继续往下做，如果中途有任何停顿，都不能算是迭代； 
@@ -1168,7 +1789,7 @@ print(isinstance(g, Iterator)) # False
  
  
  
-## <a name='-1'></a>生成器 
+# <a name='-1'></a>生成器 
 将列表生成式中[]改成()之后数据结构是否改变？ 答案：是，从列表变为生成器。 
 生成器： 
 如果一个函数中有 yield 语句，表明这个函数就不再是一个函数了，而是一个生成器模板，如果调用这个函数的时候，就不再是调用这个函数了，而是创建一个生成器对象。
@@ -1308,46 +1929,37 @@ bb(26)  # name: the5fire age: 26
 
 
 
-## <a name='python-1'></a>python 中的魔法方法 
-在 Python 中，所有以__双下划线包起来的方法，都统称为"魔术方法"。比如我们
-接触最多的__init__. 
+# <a name='python-1'></a>python 中的魔法方法 
+在 Python 中，所有以__双下划线包起来的方法，都统称为"魔术方法"。比如我们接触最多的__init__. 
 有些魔术方法,我们可能以后一辈子都不会再遇到了,这里也就只是简单介绍下; 
 而有些魔术方法,巧妙使用它可以构造出非常优美的代码,比如将复杂的逻辑封装
-成简单的 API。 
+成简单的 API。
+
 __doc__ ----类的描述信息; 
 __module__ ----表示当前操作的对象在那个模块; 
 __class__ ----表示当前操作的对象的类是什么; 
-__name__ ----类调用的时候是类名，本 python 文件执行等于__main__，外部模块
-调用本模块时，是模块名； 
+__name__ ----类调用的时候是类名，本 python 文件执行等于__main__，外部模块调用本模块时，是模块名； 
 __dic__ ----类或对象中的所有成员; 
-__str__ ----如果一个类中定义了__str__方法，那么在打印对象时，默认输出该方
-法的返回值; 
+__str__ ----如果一个类中定义了__str__方法，那么在打印对象时，默认输出该方法的返回值; 
 __getslice__、__setslice__、__delslice__ ----片操作时候被调用； 
-__getitem__、__setitem__、__delitem__ ----用于索引操作，如字典。以上分别表示获
-取、设置、删除数据 
+__getitem__、__setitem__、__delitem__ ----用于索引操作，如字典。以上分别表示获取、设置、删除数据 
 __iter__ ----用于迭代器，之所以列表、字典、元组可以进行 for 循环，是因为类
-型内部定义了 __iter__，一个类可迭代---类中定义__iter__方法，且方法返回一个
-迭代器， 
+型内部定义了 __iter__，一个类可迭代---类中定义__iter__方法，且方法返回一个迭代器， 
 __metaclass__ ----其用来表示该类由谁来实例化创建; 
 __call__ ----对象后面加括号，触发执行。注：构造方法的执行是由创建对象触发
-的，即：对象 = 类名() ；而对于 __call__ 方法的执行是由对象后加括号触发的，
-即：对象() 或者 类()() 
-__init__ __new__ __del__ 
-构造和初始化  
-__init__我们很熟悉了,它在对象初始化的时候调用,我们一般将它理解为"构造函
-数". 
-简化数据结构的初始化-----在基类的初始化方法__init__中对传参与每个实例的
-可允许传参进行校验。 
+的，即：对象 = 类名() ；而对于 __call__ 方法的执行是由对象后加括号触发的，即：对象() 或者 类()()
+
+## __init__ __new__ __del__ 构造和初始化
+__init__我们很熟悉了,它在对象初始化的时候调用,我们一般将它理解为"构造函数". 
+简化数据结构的初始化-----在基类的初始化方法__init__中对传参与每个实例的可允许传参进行校验。 
 定义多个构造器，定义__init__(*args)方法，另外的构造器--定义类方法，调用 cls(*args); 
 __new__()----创建一个未初始化的实例，类方法中调用时，instance = cls.__new__(cls); 
 实际上, 当我们调用 x = SomeClass()的时候调用,__init__并不是第一个执行的, 
 __new__才是。所以准确来说,是__new__和__init__共同构成了"构造函数". 
-__new__是用来创建类并返回这个类的实例, 而__init__只是将传入的参数来初始
-化该实例. 
+__new__是用来创建类并返回这个类的实例, 而__init__只是将传入的参数来初始化该实例. 
 __new__在创建一个实例的过程中必定会被调用,但__init__就不一定，比如通过
 pickle.load 的方式反序列化一个实例时就不会调用__init__。 
-__new__方法总是需要返回该类的一个实例，而__init__不能返回除了 None 的任
-何值。比如下面例子: 
+__new__方法总是需要返回该类的一个实例，而__init__不能返回除了 None 的任何值。比如下面例子: 
 class Foo(object): 
  
     def __init__(self): 
@@ -1356,33 +1968,27 @@ class Foo(object):
  
     def __del__(self): 
         print 'foo __del__' 
-实际中,你很少会用到__new__，除非你希望能够控制类的创建。 如果要讲解
-__new__，往往需要牵扯到 metaclass(元类)的介绍。 
-在对象的生命周期结束时, __del__会被调用,可以将__del__理解为"析构函数". 
-__del__定义的是当一个对象进行垃圾回收时候的行为。 
-有一点容易被人误解, 实际上，x.__del__() 并不是对于 del x 的实现,但是往往执
-行 del x 时会调用 x.__del__(). 
+
+在对象的生命周期结束时, __del__会被调用,可以将__del__理解为"析构函数"。 __del__定义的是当一个对象进行垃圾回收时候的行为。 
+有一点容易被人误解, 实际上，x.__del__() 并不是对于 del x 的实现,但是往往执行 del x 时会调用 x.__del__(). 
 怎么来理解这句话呢? 继续用上面的 Foo 类的代码为例: 
 foo = Foo() 
 foo.__del__() 
 print foo 
 del foo 
 print foo  # NameError, foo is not defined 
-如果调用了 foo.__del__()，对象本身仍然存在. 但是调用了 del foo, 就再也没有
-foo 这个对象了. 
+如果调用了 foo.__del__()，对象本身仍然存在. 但是调用了 del foo, 就再也没有foo 这个对象了. 
 请注意，如果解释器退出的时候对象还存在，就不能保证 __del__ 被确切的执行
-了。所以__del__并不能替代良好的编程习惯。 比如，在处理 socket 时，及时关
-闭结束的连接。 
- 
- 
- 
-__setattr__ __getattr__ __delattr__ 
-属性访问控制 
+了。所以__del__并不能替代良好的编程习惯。 比如，在处理 socket 时，及时关闭结束的连接。 
+
+
+## __setattr__ __getattr__ __delattr__属性访问控制 
 希望 Python 能够定义私有属性，然后提供公共可访问的 getter 和 setter。 
 代理----一种编程模式，将某个操作转移给另一个对象来实现； 
 当需要代理的方法很多时，可以尝试使用__getattr__来实现； 
-__getattr__是在属性不存在的时候才被调用； 
-代 理 模 式 ： 代 理 类 中 实 例 化 时 传 被 代 理 类 的 实 例 ， 并 在 代 理 类 中 实 现
+__getattr__是在属性不存在的时候才被调用；
+
+代理模式：代理类中实例化时传被代理类的实例，并在代理类中实现
 __setattr__/__getattr__/__delattr__方法； 
 有个约定是：只代理那些不以下划线开头的属性；  
 Python 其实可以通过魔术方法来实现封装。 
@@ -1397,12 +2003,10 @@ __getattr__:只有在调用属性时且属性不存在的情况下，触发這�
 __getattr__(self, name) 
 该 方 法 定 义 了 你 试 图 访 问 一 个 不 存 在 的 属 性 时 的 行 为 。 因 此 ， 在 支 持
 __getattribute__的 Python 版本，调用__getattr__前必定会调用 __getattribute__。重
-载该方法可以实现捕获错误拼写然后进行重定向, 或者对一些废弃的属性进行
-警告。 
+载该方法可以实现捕获错误拼写然后进行重定向, 或者对一些废弃的属性进行警告。 
 __delattr__ 与 __setattr__ 很像，只是它定义的是你删除属性时的行为。实现
 __delattr__是同时要避免"无限递归"的错误，__getattribute__同样要避免"无限递归
-"的错误。 需要提醒的是，最好不要尝试去实现__getattribute__，因为很少见到这
-种做法，而且很容易出 bug。 
+"的错误。 需要提醒的是，最好不要尝试去实现__getattribute__，因为很少见到这种做法，而且很容易出 bug。 
 例子说明__setattr__的无限递归错误: 
 def __setattr__(self, name, value): 
     self.name = value 
@@ -1448,9 +2052,7 @@ def __getattr__(self, item):
 def __delattr__(self, item): 
     del self.__dict__[item] 
      
- 
- 
- 
+
  
 __getattribute__ 
 __getattribute__(self, name) 
@@ -1497,11 +2099,11 @@ if __name__ == '__main__':
 3.__getattribute__是属性拦截器，属性调用会传入处理，最后要有返回值，将传入
 属性处理后返回给调用者。 
  
-__get__ __set__ __delete__ 
-描述器就是一个实现了三个核心属性访问操作的类，分别为__get__，__set__和
+
+## __get__ __set__ __delete__描述器
+就是一个实现了三个核心属性访问操作的类，分别为__get__，__set__和
 __delete__方法； 这些方法接受一个实例作为输入，之后相应地操作实例底层的
-字典；描述其只能在类级别被定义；__get__方法就是确保绑定方法对象能被正确
-的创建； 
+字典；描述其只能在类级别被定义；__get__方法就是确保绑定方法对象能被正确的创建； 
 我们知道，距离既可以用单位"米"表示,也可以用单位"英尺"表示。 现在我们定
 义一个类来表示距离,它有两个属性: 米和英尺。 
 class Meter(object): 
@@ -1646,8 +2248,7 @@ __delete__在其拥有者对其进行删除的时候调用。
  
  
  
-__getitem__ __setitem__ __delitem__ 
-构造自定义容器  
+## __getitem__ __setitem__ __delitem__构造自定义容器  
 列表，字典取元素的方式，lst = [1,2,3,4],取第一个元素 lst[0],d ={'name':'xiaohua'} 取元
 素 dd['name'],与__setitem__，__getitem__，delitem__三个函数有关 
 ```python
@@ -1763,56 +2364,8 @@ print(weather)
 能够集成在 Python 标准库中，比如 Counter, OrderedDict 等 
  
  
- 
-python 上下文管理器的两种方式？ 
-1. __enter__ __exit__ 
-with 声明是从 Python2.5 开始引进的关键词。你应该遇过这样子的代码: 
-with open('foo.txt') as bar: 
-    do something with bar 
-在 with 声明的代码段中，我们可以做一些对象的开始操作和清除操作，还能对
-异常进行处理。这需要实现两个魔术方法: __enter__ 和 __exit__。 
-__enter__(self) 
-__enter__会返回一个值，并赋值给 as 关键词之后的变量。在这里，你可以定义代
-码段开始的一些操作。 
-__exit__(self, exception_type, exception_value, traceback) 
-__exit__定义了代码段结束后的一些操作，可以这里执行一些清除操作，或者做
-一些代码段结束后需要立即执行的命令，比如文件的关闭，socket 断开等。如果
-代码段成功结束，那么 exception_type, exception_value, traceback 三个参数传进
-来时都将为 None。如果代码段抛出异常，那么传进来的三个参数将分别为: 异常
-的类型，异常的值，异常的追踪栈。 如果__exit__返回 True, 那么 with 声明下的
-代码段的一切异常将会被屏蔽。 如果__exit__返回 None, 那么如果有异常，异常
-将正常抛出，这时候 with 的作用将不会显现出来。 
-举例说明： 
-这该示例中，IndexError 始终会被隐藏，而 TypeError 始终会抛出。 
-class DemoManager(object): 
- 
-    def __enter__(self): 
-        pass 
- 
-    def __exit__(self, ex_type, ex_value, ex_tb): 
-        if ex_type is IndexError: 
-            print(ex_value.__class__) 
-            return True 
-        if ex_type is TypeError: 
-            print(ex_value.__class__) 
-            return  # return None 
- 
-with DemoManager() as nothing: 
-    data = [1, 2, 3] 
-    data[4]  # raise IndexError, 该异常被__exit__处理了 
- 
-with DemoManager() as nothing: 
-    data = [1, 2, 3] 
-    data['a']  # raise TypeError, 该异常没有被__exit__处理 
- 
-''' 
-输出: 
-<type 'exceptions.IndexError'> 
-<type 'exceptions.TypeError'> 
-Traceback (most recent call last): 
-  ... 
-''' 
-__slots__ __dict__ 
+
+## __slots__ __dict__
 Python 是一门动态语言。通常，动态语言允许我们在程序运行时给对象绑定新的
 属性或方法，当然也可以对已经绑定的属性和方法进行解绑定。但是如果我们需
 要限定自定义类型的对象只能绑定某些属性，可以通过在类中定义__slots__变量
@@ -1823,7 +2376,7 @@ __slots__是什么:是一个类变量,变量值可以是列表,元祖,或者可�
 字典会占用大量内存,如果你有一个属性很少的类,但是有很多实例,为了节省内存可以使
 用__slots__取代实例的__dict__ 
  
-# 限定 Person 对象只能绑定_name, _age 和_gender 属性 
+限定 Person 对象只能绑定_name, _age 和_gender 属性 
 __slots__ = ('_name', '_age', '_gender') 
 #当你定义 __slots__ 后，Python 就会为实例使用一种更加紧凑的内部表示。实例通过
 一个很小的固定大小的数组来构建，而不是为每个实例定义一个字典，这跟元组或列表
@@ -1877,8 +2430,7 @@ print('p4.__dict__==%s, 以及 p4.__dict__内存地址==%s, ' %
 ``` 
  
  
-__repr__ __str__ __format__ 
-格式化代码  
+## __repr__ __str__ __format__格式化代码  
 __repr__返回一个实例的代码表示形式，通常用来重新构造这个函数，跟我们使
 用交互式解释器显示的是同一个值；!r----格式化代码时表示使用__repr__代替
 __str__输出； 
@@ -2056,13 +2608,12 @@ obj.show()
  
  
  
-__call__ 
-__call__()----特殊的类实例方法，使得类实例对象可以像调用普通函数那样，以"对象名
-()"的形式调用； 
-Python 中，凡是可以将()直接应用到自身并执行，都称为可调用对象。 
+## __call__
+__call__()----特殊的类实例方法，使得类实例对象可以像调用普通函数那样，以"对象名()"的形式调用； 
+Python 中，凡是可以将()直接应用到自身并执行，都称为可调用对象。
 可调用对象包括自定义的函数、Python 内置函数以及本节所讲的类实例对象。 
- 
- 
+
+
 可以调用的对象: 一个特殊的魔术方法可以让类的实例的行为表现的像函数一样 
 class Entity: 
 '''调用实体来改变实体的位置。''' 
@@ -2082,7 +2633,7 @@ e(4, 5) //实例可以象函数那样执行，并传入 x y 值，修改对象�
  
  
  
-__all__ 
+## __all__ 
 模块中定义__all__变量，当这个模块被导入到别处； 
 from module import *----这样的导入将会导入所有不以下划线开头的属性和方法； 
 from . import A----导入同级目录下的 A 模块 
@@ -2210,7 +2761,8 @@ print(slate.print_changes())  # 输出历史记录与上面一致
 
 ```
 
-运算符相关的魔术方法 
+
+## 运算符相关的魔术方法 
 运算符相关的魔术方法实在太多了，也很好理解，不打算多讲。在其他语言里，
 也有重载运算符的操作，所以我们对这些魔术方法已经很了解了。 
 比较运算符 
@@ -2265,7 +2817,7 @@ print('bar != foo:', Word('bar') != Word('foo'))  # True
 
 ```
 
-一元运算符和函数 
+## 一元运算符和函数 
 __pos__(self) 
 实现了'+'号一元运算符(比如+some_object) 
 __neg__(self) 
@@ -2406,8 +2958,7 @@ thing = Thing()
 list_ = ['a', 'b', 'c'] 
 print list_[thing]  # 'b' 
 print list_[thing:thing]  # [] 
-上面例子中, list_[thing]的表现跟 list_[1]一致，正是因为 Thing 实现了__index__方
-法。 
+上面例子中, list_[thing]的表现跟 list_[1]一致，正是因为 Thing 实现了__index__方法。 
 可能有的人会想，list_[thing]为什么不是相当于 list_[int(thing)]呢? 通过实现 Thing
 的__int__方法能否达到这个目的呢? 
 显然不能。如果真的是这样的话，那么 list_[1.1:2.2]这样的写法也应该是通过的。 
@@ -2510,7 +3061,8 @@ __nonzero__改名为__bool__.
 为了对字典值执行计算操作，通常需要使用 zip() 函数先将键和值反转过来。zip() 
 函数方案通过将字典”反转”为 (值，键) 元组序列来解决了问题。当比较两个元
 组的时候，值会先进行比较，然后才是键。这样的话你就能通过一条 简单的语
-句就能很轻松的实现在字典上的求最值和排序操作了。 
+句就能很轻松的实现在字典上的求最值和排序操作了。
+```shell
 prices = { 'ACME': 45.23, 'AAPL': 612.78, 'IBM': 205.55, 'HPQ': 37.20, 'FB': 10.75 } 
 >>> [i for i in zip(prices.values(), prices.keys())] 
 [(45.23, 'ACME'), (612.78, 'AAPL'), (205.55, 'IBM'), (37.2, 'HPQ'), (10.75, 'FB')] 
@@ -2570,6 +3122,9 @@ zip()参数可以接受任何类型的序列，同时也可以有两个以上的
 [{'fname': 'Big', 'lname': 'Jones', 'uid': 1004}, {'fname': 'Brian', 'lname': 'Jones', 'uid': 1003}, 
 {'fname': 'David', 'lname': 'Beazley', 'uid': 1002}, {'fname': 'John', 'lname': 'Cl 
 eese', 'uid': 1001}] 
+
+```
+
 itemgetter 也可以支持多个 keys，如 sorted(rows, itemgetter('fname','uid')) 
 rows 被传递给接受一个关键字参数的 sorted() 内置函数。这个 参数是 callable 
 类型，并且从 rows 中接受一个单一元素，然后返回被用来排序的值。 itemgetter() 
@@ -2585,30 +3140,18 @@ rows 中的记录用来查找值的索引参数。可 以是一个字典键名�
  
  
  
-文件 
-python 文件操作步骤：1. 打开；2. 读写；3. 关闭。 
-第一次打开文件时，文件指针会指向文件的开始位置，当执行了 read 方法后，文
-件指针会移动到读取内容的末尾。read 一次性全部读取到内存。 
-file.readlines()----逐行读取，返回每行内容的列表； 
+# 文件 
+python 文件操作步骤：1. 打开；2. 读写；3. 关闭。
+第一次打开文件时，文件指针会指向文件的开始位置，当执行了 read 方法后，文件指针会移动到读取内容的末尾。read 一次性全部读取到内存。
+文件以什么方式编码的，就应该以什么方式解码；
+
+file.readlines()----逐行读取，返回每行内容的列表；
 file.tell()----查找当前文件指针的位置并返回; 
+
 file.seek(offset [, whence])----设置文件指针的位置并返回，whence 表明参考位置
-0 表示文件开头，1 表示当前位置， 2 表示文件末尾，offset 表示按照参考位置
-移动的字节; 
-迭代文件对象，逐行读取；for line in file: 
- 
-文本文件与二进制文件。文本文件可以实用文本编辑器查看，二进制文件提供给
-其他软件使用的文件，不能使用文本编辑器查看； 
- 
-python 单例模式； 
- 
-方法__new__()----为对象分配空间且返回对象引用。 
-文件打开方式说明： 
- 
-文件/目录的常用管理操作： 
- 
-文件操作 
-文件以什么方式编码的，就应该以什么方式解码； 
- 
+0 表示文件开头，1 表示当前位置， 2 表示文件末尾，offset 表示按照参考位置移动的字节;
+
+
 os.rename(current_file_name, new_file_name) 
  
 os.remove(file_name) 
@@ -2628,15 +3171,13 @@ print(sys.getdefaultencoding()) # utf-8                 # 文件的读写操作�
 是关于换行符的识别问题，在 Unix 和 Windows 中是不一样的(分别是\n 和\r\n)。默认
 情况下，Python 会以统一模式处理换行符。这种模式下，在读取文本的时候，Python 可
 以识别所有的普通换行符并将其转换为单个\n 字符。类似的，在输出时会将换行符\n 转
-换为系统默认的换行符。如果你不希望这种默认的处理方式，可以给 open()函数传入参
-数 newline=''， 
+换为系统默认的换行符。如果你不希望这种默认的处理方式，可以给 open()函数传入参数 newline=''， 
 with open('somefile.txt', 'rt', newline='') as f 
- 
-如果编码错误还是存在的话，你可以给 open() 函数传递一个可选的 errors 参数来处
-理这些错误。 
+
+如果编码错误还是存在的话，你可以给 open() 函数传递一个可选的 errors 参数来处理这些错误。 
 open('sample.txt', 'rt', encoding='ascii', errors='replace') 
 open('sample.txt', 'rt', encoding='ascii', errors='ignore') 
- 
+
 打印输出到文件中    有一点要注意的就是文件必须是以文本模式打开 
 with open('d:/work/test.txt', 'wt') as f: 
     print('Hello World!', file=f) 
@@ -2649,10 +3190,10 @@ with open('somefile.bin', 'wb') as f
 with open('somefile.bin', 'rb') as f: 
  
      
-一个文件中写入数据，但前提必须是这个文件在文件系统上不存在。也就是不允许覆
-盖已存在的文件内容。 
+一个文件中写入数据，但前提必须是这个文件在文件系统上不存在。也就是不允许覆盖已存在的文件内容。 
 open() 函数中使用 x 模式来代替 w 模式的方法来解决这个问题, 
-完美替代方案是： 
+完美替代方案是：
+```shell
 >>> import os 
 >>> if not os.path.exists('somefile'): 
 ...     with open('somefile', 'wt') as f: 
@@ -2661,8 +3202,8 @@ open() 函数中使用 x 模式来代替 w 模式的方法来解决这个问题,
 ...     print('File already exists!') 
 ... 
 File already exists! 
- 
- 
+``` 
+
 使用 io.StringIO() 和 io.BytesIO() 类来创建类文件对象操作字符串数据 
 ```python
 def test_io(): 
@@ -2779,15 +3320,13 @@ itertools.islice(file, n)----指的是获取文件的前 n 行，返回可迭代
 seek()方法用于移动文件读取指针到指定位置--fileObject.seek(offset[, whence]) 
     offset--开始的偏移量，也就是代表需要移动偏移的字节数 
     whence：可选，默认值为 0。给 offset 参数一个定义，表示要从哪个位置开始偏移； 
-            0 代表从文件开头开始算起，1 代表从当前位置开始算起，2 代表从文件末
-尾算起。 
+            0 代表从文件开头开始算起，1 代表从当前位置开始算起，2 代表从文件末尾算起。 
     由于程序中使用 seek()时，使用了非 0 的偏移量，因此文件的打开方式中必须包含
 b，否则就会报 io.UnsupportedOperation 错误 
 tell()方法返回文件的当前位置，即文件指针当前位置。 
 f.readlines()----直接返回一个列表，每行+\n 是一个元素； 
 f.read()----表示将文件所有内容读取出来，返回一个 str; 
-f.write(string)----将 string 写入文件，打开文件写入，如果文件之前有内容，会清除掉，
-新写入； 
+f.write(string)----将 string 写入文件，打开文件写入，如果文件之前有内容，会清除掉，新写入； 
 shutil.copyfile(one_file, another_file)----将一个文件的内容拷贝到另一个文件； 
 shutil.copy(src, dst)----# Copy src to dst. (cp src dst) 
 shutil.copy2(src, dst)----# Copy files, but preserve metadata (cp -p src dst) 
@@ -2808,357 +3347,15 @@ with open('test.csv', 'w') as new_file:
         for x in lis: 
             for key, value in x.items(): 
                 filewriter.writerow([key, value]) 
- 
-Python 中的反射了解么? 
-反射就是通过字符串的形式，导入模块；通过字符串的形式，去模块寻找指定函
-数，并执行。利用字符串的形式去对象（模块）中操作（查找/获取/删除/添加）
-成员，一种基于字符串的事件驱动！ 
-自省就是面向对象的语言所写的程序在运行时,所能知道对象的类型.简单一句就
-是运行时能够获得对象的类型.比如 type()，dir()，getattr()，hasattr()，isinstance()。 
-getattr,hasattr,setattr,delattr 对模块的修改都在内存中进行，并不会影响文件中真
-实内容。并且他们的入参可以是模块名； 
-getattr(）---入参可是是模块名 
-1. getattr()函数是 Python 自省的核心函数，具体使用大体如下： 
-class A:  
-def __init__(self):  
-self.name = 'zhangjing' 
-#self.age='24' 
-def method(self):  
-print"method print" 
-   
-Instance = A()  
-print getattr(Instance , 'name, 'not find') #如果 Instance 对象中有属性 name 则打印 self.name
-的值，否则打印'not find' 
-print getattr(Instance , 'age', 'not find') #如果 Instance 对象中有属性 age 则打印 self.age 的
-值，否则打印'not find' 
-print getattr(a, 'method', 'default') #如果有方法 method，否则打印其地址，否则打印 default  
-print getattr(a, 'method', 'default')() #如果有方法 method，运行函数并打印 None 否则打印
-default  
- 
-2. hasattr(object, name) 
-说明：判断对象 object 是否包含名为 name 的特性（hasattr 是通过调用 getattr(ojbect, name)
-是否抛出异常来实现的） 
- 
-3. setattr(object, name, value) 
-这是相对应的 getattr()。参数是一个对象,一个字符串和一个任意值。字符串可能会列出
-一个现有的属性或一个新的属性。这个函数将值赋给属性的。该对象允许它提供。例
-如,setattr(x,“foobar”,123)相当于 x.foobar = 123。 
- 
-4. delattr(object, name) 
-与 setattr()相关的一组函数。参数是由一个对象(记住 python 中一切皆是对象)和一个字
-符串组成的。string 参数必须是对象属性名之一。该函数删除该 obj 的一个由 string 指定
-的属性。delattr(x, 'foobar')=del x.foobar 
- 
- 
- 
- 
-面向对象--类 
-类以及类中的方法在内存中只有一份，而根据类创建的每一个对象都在内存中需
-要存一份。 
-只要创建一个对象,其内存空间就会保存一份。  
- 
- 
-普通字段属于对象 
- 
-静态字段属于类 
- 
-静态字段在内存中只保存一份 
- 
-普通字段在每个对象中都要保存一份 
-class foo: 
- 
-    country = '中国'  # 静态字段,保存在类中，仅此一份 
-    def __init__(self,name): 
- 
-        self.name = name  # 普通字段,封装到对象中 
- 
-    def show(self): 
-        print(self.name) 
- 
- 
-obj = foo("xiaoxiao") 
-print(obj.name)  # 通过对象直接访问普通字段 
-print(foo.country)  # 通过类名直接访问静态字段 
-print(obj.country)  # 对象间接访问静态字段 
-print(foo.name)  #报错, 
-类中方法,除了类调用类中普通方法不一样,其余的全部都可以通过类或者对象来
-调用。 
-由属性的定义和调用要注意一下几点： 
- 
-定义时，在普通方法的基础上添加 @property 装饰器； 
- 
-定义时，属性仅有一个 self 参数 
- 
-调用时，无需括号 方法：foo_obj.func() 属性：foo_obj.prop 
-属性存在意义是：访问属性时可以制造出和访问字段完全相同的假象 
-Python 的属性的功能是：属性内部进行一系列的逻辑计算，最终将计算结果返回。 
-property 的构造方法中有个四个参数 
- 
-第一个参数是方法名，调用 对象.属性 时自动触发执行方法 
- 
-第二个参数是方法名，调用 对象.属性 ＝ XXX 时自动触发执行方法 
- 
-第三个参数是方法名，调用 del 对象.属性 时自动触发执行方法 
- 
-第四个参数是字符串，调用 对象.属性.__doc__ ，此参数是该属性的描述信息 
-```python
-class Foo1(object): 
-    def get_bar(self): 
-        return 'dong is a genius' 
- 
-    def set_bar(self, name): 
-        return '%s is a genius, yes, you are right.' % name 
- 
-    def del_bar(self): 
-        return 'dong is a foolish man' 
- 
-    BAR = property(get_bar, set_bar, del_bar, 'description dong...') 
- 
- 
-# 执行结果 
-# foo = Foo1() 
-# print(foo.BAR)  # 自动调用第一个参数中定义的方法：get_bar 
-# foo.BAR = 'shane'  # 自动调用第二个参数中定义的方法：set_bar 方法，并将“shane”当作参数传入 
-# print(foo.BAR) 
-# del foo.BAR  # 自动调用第三个参数中定义的方法：del_bar 方法 
-# print(foo.BAR.__doc__)  # 自动获取第四个参数中设置的值：description dong...
-```
- 
-1.凡是类中的方法和函数，都是绑定给对象使用的； 
-2.绑定方法都有自动传值的功能。传递进去的值，就是对象本身。 
-3.如果类想调用绑定方法，就必须遵循函数的参数规则，有几个参数，就必须传
-递几个参数。 
-当对象在调用类的绑定方法时，也会默认把类当作参数传递进去 
-类中方法默认都是绑定给对象使用，当对象调用绑定方法时，会自动将对象作为
-第一个参数传递进去；而类来调用，则必须遵循函数参数一一对应的规则，有几
-个参数，就必须传递几个参数。如果一个方法是用了@classmethod 装饰器，那么
-這个方法绑定到类身上，不管是对象来调用还是类调用，都会将类作为第一个参
-数传递进去。 
-只要你使用关键字 class，Python 解释器在执行的时候就会创建一个对象。下面的代码段： 
->>> class ObjectCreator(object): 
-...       pass 
-...  
-  将在内存中创建一个对象，名字就是 ObjectCreator。这个对象（类）自身拥
-有创建对象（类实例）的能力，而这就是为什么它是一个类的原因。但是，它的
-本质仍然是一个对象，于是乎你可以对它做如下的操作： 
-  1) 你可以将它赋值给一个变量 
-  2) 你可以拷贝它 
-  3) 你可以为它增加属性 
-  4) 你可以将它作为函数参数进行传递 
 
-
-## <a name='-1'></a>封装 
- 属性和方法封装到一个抽象的类中，外界使用类创建对象，然后让对象调用方法，对象方法的细节都被封装到类的内部；一个对象的属性可以是另外一个类创建的对象； 
- 在对象方法的内部，是可以直接访问对象的属性；
- 同一个类创建的多个对象之间，它们的属性是互不干扰的；
- 身份运算符：用于比较两个对象的内存地址是否一致----是否是同一对象的引用；Python 中针对 None 的比较时建议使用 None 判断；is 用于判断两个变量引用对象是否是同一个，==判断引用变量的值是否相等。
- 内部属性或方法(_internal)：任何以单下划线 _ 开头的名字都应该是内部实现。 同样适用于模块名和模块级别函数。 
- 私有属性或方法(__private)：不希望外部访问的属性或方法，前面加上两个下划线，外界和子类都不能访问，使用双下划线开始会导致访问名称变成其他形式。 
-```python
-class A(object): 
-    def __init__(self): 
-        self._internal = 0 
-        self.public = 1 
-        self.__private_param = 100 
- 
-    def public_method(self): 
-        print(self.__private_method) 
-        print(self.__private_param) 
- 
-    def _internal(self): 
-        pass 
- 
-    def __private_method(self): 
-        pass 
-     
-class B(A): 
-    def __init__(self): 
-        super(B, self).__init__() 
-        self.__private_param = 100 
- 
-    def __private_method(self): 
-        pass 
-
-a = A() 
-a.public_method() 
-print(a.__dict__) 
-print(a._A__private_param) 
-print(dir(a))    # '_A__private_method', '_A__private_param','_internal', 'public', 'public_method'  
-
-b = B() 
-print(dir(b))    # '_internal', 'public', 'public_method','_A__private_method', '_A__private_param', '_B__private_method', '_B__private_param', 
- 
-
-# 内部属性或方法就是：_internal 和_internal_method 
-# 私 有 属 性 或 方 法 就 是 : _A_private_method ， _A_private_method ， 外 部 引 用就是a._A__private_param 
-# 可以看到类 B 继承自 A，并在 B 中定义属性__private_param 和方法__private_method，
-# 这个 B 中新定义的，并不是重写，而 B 中也继承了 A 中的私有属性和方法，也就是说python 这样命名私有属性这样重命名目的就是继承——这种属性通过继承是无法被覆盖的。 
- 
-# 使用下换线作为后缀可以避免与保留关键字冲突。 
-# 如果想访问属性可以通过属性的 getter（访问器）和 setter（修改器）方法进行对应的操作。如果要做到这点，就可以考虑使用@property 包装器来包装 getter 和setter 方法，使得对属性的访问既安全又方便. 
-```
-
-
-## <a name='-1'></a>继承 
- 继承用来实现代码的重用；子类拥有父类所有的属性和方法，可以直接使用父类的中封装好的方法，不需要再次开发；子类继承父类，子类的实例可以拥有父类的属性； 
- 继承传递性； 
- 重写父类方法： 
-o 覆盖父类中的方法： 
-实现方式就相当于在子类中定义一个和父类同名的方法并实现；运行时，只会调用子类中重写的方法，不会调用父类中封装的方法； 
-o 对父类方法进行扩展： 
-这种情况的意思是说，父类封装的方法实现是子类的一部分，具体实现方式就是在子类重写的父类方法体中，在需要的位置使用 super().父类方法来调用父类方法的执行，代码的其它位置编写子类特有的实现。 
-o 多继承时，避免父类之间存在同名的属性或方法。如果一个类有多个父类时，子类调用方法的顺序是先子类，之后安装类名(A,B,C)中，先搜索 A，之后 B，再者C，最后 object 类，找到最后一个类没有这个方法的话，程序报错。Python 中提供一个内置属性__mro__可以查看方法的搜索顺序，MRO 是 method resolution order，主要用于多继承时判断方法属性的调用顺序。 
-
-python 解释器中有一个 C3 算法，来计算通过 super()调用父类的一个顺序，C3 算法的结论的体现保存到 MRO 中去，一个类中调用 super()的时候，拿着当前类的名字，到 MRO 元组中匹配，匹配成功，就调用匹配到的下一个类，上图的
-Grandson()调用顺序是 Son1-->Son2-->Parent-->object o 新式类，旧式类： 
-新式类----以 object 为基类的类，旧式类----不以 object 为基类的类 
-super 用法 
-super().__setter(name, value     没有显式的指明某个类的父类，super()仍然可以有效的工作。 
- 
-super().parent_function()----调用父类方法； 
-super().__init__()----在__init__()方法中确保父类被正确初始化； 
-super.__setter__(key, value)----调用原生的方法； 
-抽象基类 
-python 通过引入模块 abc 提供官方的解决方案，这个模块为抽象基类提供了支
-持。 
-
-
-## <a name='-1'></a>多态 
- 不同的子类对象调用相同的父类方法，产生不同的执行结果； 
- 以继承和重写父类方法为前提； 
- 类： 
-o 创建对象的动作有两步：
-1. 在内存中为对象分配空间，调用__new__()方法完成；
-2. 调用初始化方法__init__为对象初始化； 
-o Python 中一切皆对象，class A:定义的类属于类对象； 
-o 程序运行时，类同样会被加载到内存，类是一个特殊的对象---类对象，类对象在内存够中只有一份； 
-o 类属性或类方法： 
- 类属性----给类对象定义的属性； 
- Python 中属性获取存在一个向上查找机制；对象调用属性时，如 person01.count，
-1. 首先在对象内部查找对象的属性；2. 没有找到就会向上寻找类属性；
-访问类属性的两种方式：1. 类名.类属性名；2. 对象.类属性。 
- 如果使用对象.类属性 = 值赋值语句时，只会给对象添加一个属性，不会影响类属性的值； 
- 类方法----修饰器@classmethod 标识； 
- 静态方法----修饰器@staticmethod 标识； 
-
-### <a name='-1'></a>元类 
-元类就是用来创建这些类（对象）的，元类就是类的类。 
-MyClass = type('MyClass', (), {}) 
-type 实际上是一个元类，type 就是 python 在背后用来创建所有类的元类。 
- 
-
-#### <a name='-1'></a>元类控制器实例的创建 
-Python 是一种动态语言，而动态语言和静态语言最大的不同，就是函数和类不是编译时定义的，而是运行时动态创建的。class 的定义是运行时动态创建的，而创建 class 的方法就是使用 type()函数 
-定义：type(类名, 父类的元组（针对继承的情况，可以为空），包含属性的字典（名称和值）) 
-type()函数既可以返回一个对象的类型，又可以创建出新的类型 
-metaclass 允许你创建类或者修改类。换句话说，你可以把类看成是 metaclass 创建出来的“实例”。 
-一个类定义时 metaclass=定义的元类，元类中定义__call__()方法，当这个类实例化时会调用元类的__call__方法，再调用自己的__init__方法； 
-
-单例模式：metaclass 的实现： 
-class Singleton(type): 
-    def __init__(self, *args, **kwargs): 
-        self._instance = None 
-        super().__init__(*args, **kwargs) 
- 
-    def __call__(self, *args, **kwargs): 
-        if not self._instance: 
-            self._instance = super().__call__(*args, **kwargs) 
-        return self._instance 
  
  
-class OnePerson(metaclass=Singleton): 
-    def __init__(self): 
-        print('create OnePerson instance') 
- 
-缓存实例： 
-class Cached(type): 
-    def __init__(self, *args, **kwargs): 
-        super().__init__(*args, **kwargs) 
-        self.__cached = weakref.WeakValueDictionary() 
- 
-    def __call__(self, *args): 
-        if args in self.__cached: 
-            return self.__cached[args] 
-        else: 
-            obj = super().__call__(*args) 
-            self.__cached[args] = obj 
-            return obj 
  
  
-class CachedInstance(metaclass=Cached): 
-    def __init__(self, name): 
-        print('create cached instance({!r})'.format(name)) 
-        self.name = name 
- 
-一个基本元类通常是继承 type 并重定义它的__new__()方法或者是__init__()方法； 
-比如定义__new__()方法： 
-class MyMeta(type): 
-    def __new__(self, clsname, bases, clsdict): 
- 
-clsname is name of class being defined, bases is tuple of base classes, clsdict is 
-class dictionary  
-    return super().__new__(cls, clsname, bases, clsdict) 
-另一种定义__init__()方法， 
-class MyMeta(type):
-    def __init__(self, clsname, bases, clsdict):
-        super().__init__(clsname, bases, clsdict) 
-为了使用这个元类，你通常要将它放到到一个顶级父类定义中，然后其他的类继承 
-这个顶级父类。例如： 
-class Root(metaclass=MyMeta):
-    pass 
-class A(Root):
-    pass 
-class B(Root):
-    pass 
- 
-元类的一个关键特点是它允许你在定义的时候检查类的内容。在重新定义 init()方法中， 
-你可以很轻松的检查类字典、父类等等。并且，一旦某个元类被指定给了某个类，那么
-就会被继承到所有子类中去。 
- 
-使用 type.new_class()初始化新的类对象。 
-你需要做的只是提供类的名字、父类元组、关键字参数，以及一个用成员变量填充类字
-典的回调函数。 
-一个类的定义如下： 
-class Spam(Base, debug=True, typecheck=False):
-    pass 
-那么可以将其翻译成如下的 new class() 调用形式： 
-Spam = types.new_class('Spam', (Base,),{'debug': True, 'typecheck': False},lambda ns: 
-ns.update(cls_dict)) 
-new class() 第四个参数最神秘，它是一个用来接受类命名空间的映射对象的函数。 
-通常这是一个普通的字典，但是它实际上是 prepare () 方法返回的任意对象。 
- 
-另一种构造类对象： 
-Stock = collections.nametuple('Stock', ['name', 'shares', 'price']) 
- 
- 
-定义接口和抽象基类 
-继承 metaclass=abc.ABCMeta，方法加@abstractmethod 
-抽象类的定义就是让别的类继承它并实现特定的抽象方法，抽象类不能被实例化； 
-python2 和 python3 定义元类的方式 
-在用 class 语句自定义类时，默认 metaclass 是 type，我们也可以指定 metaclass 来创
-建类。 由于 python3 和 python2 在指定类的 metaclass 语法不兼容，下面分别示例 
-python2 和 python3 两个版本。 
-python2 版本： 
-class Bar(object): 
-    __metaclass__ = MetaClass 
- 
-    def __init__(self, name): 
-        self.name = name 
- 
-    def print_name(): 
-        print(self.name) 
- 
-python3 版本： 
-class Bar(object, metaclass=MetaClass): 
-    def __init__(self, name): 
-        self.name = name 
- 
-    def print_name(): 
-        print(self.name) 
- 
-## <a name='-1'></a>正则表达式 
+# <a name='-1'></a>正则表达式 
 一是：检测某一段字符串是否符合规则，也就是我们常说的"校验"  
 二是：从一大段字符串中找到符合规则的字符串，可以理解为"检索" 
+
 正则表达式模块 
 正则表达式模块标记：re.A 或 re.ASCII  
 re.I 或 re.IGNORECASE 忽略大小写 
@@ -3166,6 +3363,7 @@ re.M 或 re.MULTILINE 使^在起始处并在每个换行符后匹配，使$在�
 每个换行符之前匹配  
 re.S 或 re.DOTALL 使.匹配每个字符，包括换行符 
 re.X 或 re.VERBOSE 使空白与注释包含在匹配中 
+
 正则表达式模块的函数：  
 re.compile(r,f) 返回编译后的正则表达式 r，如果指定，就将其标记设置为 f(即上
 边的 re.A 等，且可同时有多个标记，用|分隔)；通常用作预编译，接下来重复使
@@ -3184,40 +3382,37 @@ re.search(r,s,f) 如果正则表达式 r 在字符串 s 的任意位置匹配（
 re.split(r,s,m) 返回分割字符串 s(在正则表达式 r 每次出现处进行分割）所产生的
 字符串的列表，至多分割 m 次（如果没有给定 m,就尽可能多的分割），如果正
 则表达式中包含捕获，就被包含在分割的部分之间；  
+```shell
 >>> s="info:xiaoZhang 33 shandong" 
 >>> import re 
 >>> res = re.split(r':| ', s) 
 >>> res 
 ['info', 'xiaoZhang', '33', 'shandong'] 
+```
  
 re.sub(r,x,s,m) 对正则表达式 r 的每次匹配（如果给定 m，那么至多 m 次），返
-回字符串 s 的一个副本，并将其替换为 x--这可以是一个字符串，也可以是一个
-函数；  
-re.subn(r,x,s,m) 与 re.sub()函数相同，区别在于此函数返回一个二元组； 
- 
-贪婪模式和惰性模式 
+回字符串 s 的一个副本，并将其替换为 x--这可以是一个字符串，也可以是一个函数；
+re.subn(r,x,s,m) 与 re.sub()函数相同，区别在于此函数返回一个二元组；
+
+
+## 贪婪模式和惰性模式 
 在正则中，默认的匹配模式是“贪婪匹配”，也就是说，在符合匹配规则的前提下尽可能
-多的去匹配字符，但是有些时候，我们不需要匹配太多的内容，只要得到需要的“片段”
-内容就好了。 
+多的去匹配字符，但是有些时候，我们不需要匹配太多的内容，只要得到需要的“片段” 内容就好了。 
 而量词是匹配多次的，这时我们可以在量词的后面加上?就可以让匹配“适可而止”了，这
 样的匹配规则就是惰性匹配 
 这里举一个贪婪匹配与惰性匹配对比的例子： 
 有字符串"aasdasdasdxxxxxxasdasd"，现在想匹配到 x 结束 
-（1）用"惰性匹配"的话： 
- 
-语法：a.*?x 
- 
-说明：遇见一个先检测是不是 x，如果是的话就停止，不是的话就匹配 
- 
+
+（1）用"惰性匹配"的话：
+语法：a.*?x
+说明：遇见一个先检测是不是 x，如果是的话就停止，不是的话就匹配
 结果：aasdasdasdx 
-（2）默认的"贪婪匹配"： 
- 
-语法：a.*x 
- 
-说明：这里会匹配后面所有的 x 
- 
+
+（2）默认的"贪婪匹配"：
+语法：a.*x  
+说明：这里会匹配后面所有的 x
 结果：aasdasdasdxxxxxx 
- 
+
 贪婪模式： 
 定义：正则表达式去匹配时，会尽量多的匹配符合条件的内容 
 标识符：+，?，*，{n}，{n,}，{n,m} 
@@ -3255,7 +3450,7 @@ r 表示后面的字符串是一个普通字符串（比如\n 会译为\和 n，
 .group(1) 列出第一个括号匹配部分 
 .group(2) 列出第二个括号匹配部分 
  
-re.match 与 re.search 的区别 
+## re.match 与 re.search 的区别 
 re.match 只匹配字符串的开始，如果字符串开始不符合正则表达式，则匹配失败，函数
 返回 None；而 re.search 匹配整个字符串，直到找到一个匹配。 
 ```python
@@ -3278,7 +3473,7 @@ else:
 
 ``` 
  
-正则表达式中的特殊字符 
+## 正则表达式中的特殊字符 
 正则表达式中的特殊字符： 
 $ 
 匹配输入字符串的结尾位置。如果设置了 RegExp 对象的 Multiline 属性，则 
@@ -3354,28 +3549,26 @@ taobao" 中除了 e o u a 字母的所有字母。
 匹配一个垂直制表符。等价于 \x0b 和 \cK。 
  
  
-多线程、多进程、协程 
- 
-多任务： 
+# 多线程、多进程、协程
+ 多任务： 
 简单地说，就是操作系统可以同时执行多个任务。CPU 执行代码都是顺序执行
 的，也就是说同一时间片 CPU 只能执行一个任务。单核 CPU 也可以执行多任务
 ----这是由于操作系统是轮流让多个任务交替执行，任务 A 执行 0.01 秒，切换到
 任务 B 执行 0.01 秒，之后切换到任务 C 执行 0.01 秒，表面上看每个任务都是交
-替执行的，但是 CPU 执行速度较快，感觉就像所有任务是同时在执行一样； 
- 
-并发：就是上述单核 CPU 执行多个任务的场景，就是同一时间片只能执行一个
+替执行的，但是 CPU 执行速度较快，感觉就像所有任务是同时在执行一样；
+
+ 并发：就是上述单核 CPU 执行多个任务的场景，就是同一时间片只能执行一个
 任务，最主要判断方式就是 CPU 的数量小于任务的数量，一定是并发； 
- 
-并行：就是多个任务真的是在同时执行。 
+ 并行：就是多个任务真的是在同时执行。 
 用上课来举例就是，并发情况下是一个老师在同一时间段辅助不同的人功课。并
 行则是好几个老师分别同时辅助多个学生功课。简而言之就是一个人同时吃三个
 馒头还是三个人同时分别吃一个的情况，吃一个馒头算一个任务。 
+
 全局锁全局解释锁(GIL),python 线程被限制到同一时刻只允许一个线程执行这样
 的一个执行模型；实际上，解释器被一个全局解释器锁保护着，它确保任何时候
 都只有一个 Python 线程执行。GIL 最大的问题就是 Python 的多线程程序并不能
-利用多核 CPU 的优势（比如一个使用了多个线程的计算密集型程序只会在一个
-单 CPU 上面运行）。 
-<1> 多线程 
+利用多核 CPU 的优势（比如一个使用了多个线程的计算密集型程序只会在一个单 CPU 上面运行）。 
+<1> 多线程
  
 threading： 
 thread01 = threading.Thread(target=函数名)----创建线程； 
@@ -3766,8 +3959,8 @@ gevent.joinall([
     gevent.spawn(func3, 5), 
 ]) 
  
- 
- 
+
+
 #### <a name='asyncio'></a>asyncio 
 asyncio 是 Python 语言内置的异步编程库，它提供了一种协程（coroutine）基础架构，使得开发者能够编写高效的异步代码。
 asyncio 的核心是事件循环（event loop）、协程和任务（task）。 
@@ -3778,11 +3971,9 @@ asyncio 的核心是事件循环（event loop）、协程和任务（task）。
  
 什么是 Asyncio? 
 Asyncio 和其他 Python 程序一样，是单线程的，它只有一个主线程，但可以进行多个不
-同的任务。这里的任务，指的就是特殊的 future 对象，我们可以把它类比成多线程版本
-里的多个线程。 
-这些不同的任务，被一个叫做事件循环（Event Loop）的对象所控制。所谓事件循环，
-是指主线程每次将执行序列中的任务清空后，就去事件队列中检查是否有等待执行的任
-务，如果有则每次取出一个推到执行序列中执行，这个过程是循环往复的。 
+同的任务。这里的任务，指的就是特殊的 future 对象，我们可以把它类比成多线程版本里的多个线程。 
+这些不同的任务，被一个叫做事件循环（Event Loop）的对象所控制。
+所谓事件循环，是指主线程每次将执行序列中的任务清空后，就去事件队列中检查是否有等待执行的任务，如果有则每次取出一个推到执行序列中执行，这个过程是循环往复的。 
  
 为了简化讲解这个问题，可以假设任务只有两个状态：分别是预备状态和等待状态： 
 预备状态是指任务目前空闲，但随时待命准备运行； 
@@ -3964,6 +4155,7 @@ def consumer(queue):
     # 以下 put 两个 None 是为了让两个消费者停止消费，跳出循环 
     # q.put(None) 
     # q.put(None) 
+``` 
 output: 
 生产者 15292 生产商品 1 
 生产者 13788 生产商品 1 
@@ -3981,7 +4173,7 @@ output:
 消费者 13816 消费了商品 3 
 消费者 15120 消费了商品 4 
 消费者 13816 消费了商品 4
-``` 
+
  
 创建队列----queue.Queue(),此对象不可迭代，要迭代使用 queue.Queue().queue； 
 队列的元素个数----queue.Queue().qsize(); 
@@ -3992,14 +4184,13 @@ output:
  
  
  
-解释一下什么是锁，有哪几种锁？ 
+## 解释一下什么是锁，有哪几种锁？ 
 锁(Lock)是 python 提供的对线程控制的对象。有互斥锁，可重入锁，死锁。 
-
 
 ### <a name='-1'></a>死锁
 在两个或者多个并发进程中，每个进程持有某种资源而又等待其它进程释放它们现在保持着的资源，在未改变这种状态之前都不能向前推进，称这一组进程产生了死锁(deadlock)。通俗的讲就是两个或多个进程无限期的阻塞、相互等待的一种状态。 
 
-死锁产生的必要条件？
+### 死锁产生的必要条件？
 互斥：一个资源一次只能被一个进程使用； 
 占有并等待：一个进程至少占有一个资源，并在等待另一个被其它进程占用的资源； 
 非抢占：已经分配给一个进程的资源不能被强制性抢占，只能由进程完成任务之后自愿释放； 
@@ -4019,6 +4210,7 @@ output:
 缺点：很多时候无法预知一个进程所需的全部资源；同时，会降低资源利用率，
 降低系统的并发性； 
 破坏非抢占条件：允许进程强行抢占被其它进程占有的资源。会降低系统性能；破坏循环等待条件：对所有资源统一编号，所有进程对资源的请求必须按照序号递增的顺序提出，即只有占有了编号较小的资源才能申请编号较大的资源。这样避免了占有大号资源的进程去申请小号资源。 
+
 死锁避免 
 动态地检测资源分配状态，以确保系统处于安全状态，只有处于安全状态时才会
 进行资源的分配。所谓安全状态是指：即使所有进程突然请求需要的所有资源，
@@ -4031,8 +4223,6 @@ output:
 利用回滚：让某些进程回退到足以解除死锁的地步，进程回退时自愿释放资源。
 要求系统保持进程的历史信息，设置还原点； 
 利用杀死进程：强制杀死某些进程直到死锁解除为止，可以按照优先级进行。
-
-
 
 
 
@@ -4057,8 +4247,7 @@ output:
 
 
 
-什么是僵尸进程和孤儿进程？怎么避免僵尸进程？
-ok 
+## 什么是僵尸进程和孤儿进程？怎么避免僵尸进程？
 孤儿进程： 父进程退出，子进程还在运行的这些子进程都是孤儿进程，孤儿进
 程将被 init 进程（进程号为 1）所收养，并由 init 进程对他们完成状态收集工作。 
 僵尸进程：进程使用 fork 创建子进程，如果子进程退出，而父进程并没有调用
@@ -4098,11 +4287,6 @@ CPU 密集型： 大部分时间用来做计算，逻辑判断等 CPU 动作的�
  
  
  
-python asyncio 的原理？ 
-asyncio 这个库就是使用 python 的 yield 这个可以打断保存当前函数的上下文的
-机制， 封装好了 selector 摆脱掉了复杂的回调关系
-
-
 简述乐观锁和悲观锁 
 悲观锁, 就是很悲观，每次去拿数据的时候都认为别人会修改，所以每次在拿数
 据的时候都会上锁，这样别人想拿这个数据就会 block 直到它拿到锁。传统的关
@@ -4112,104 +4296,92 @@ asyncio 这个库就是使用 python 的 yield 这个可以打断保存当前函
 但是在更新的时候会判断一下在此期间别人有没有去更新这个数据，可以使用版
 本号等机制，乐观锁适用于多读的应用类型，这样可以提高吞吐量。 
 生产者消费者模型的应用场景 
+
 说明 
 生产者只在仓库未满时进行生产，仓库满时生产者进程被阻塞；消费者只在仓库
 非空时进行消费，仓库为空时消费者进程被阻塞； 
 应用场景：处理数据比较消耗时间，线程独占，生产数据不需要即时的反馈等。
 比如说写入日志，将多线程产生的日志放在队列中，然后写入。 
-python 模块 
-就好比工具包，模块中定义的全局变量、函数、类都是提供给外界直接使用的工
-具；一个独立的 python 文件就是一个模块，在导入文件时，文件中所有没有任
-何缩进的代码都会被执行一遍。 
+
+
+# python 模块 
+就好比工具包，模块中定义的全局变量、函数、类都是提供给外界直接使用的工具；
+一个独立的 python 文件就是一个模块，在导入文件时，文件中所有没有任何缩进的代码都会被执行一遍。
+
 random---产生随机数； 
-requests---网络请求； 
+
+requests---网络请求；
+
 functools---functools.reduce()函数会对参数序列中元素进行累积；functool 中的
-wraps 在类中定义装饰器，并将其作用在其它函数和方法上；如果需要减少某个函
-数的参数个数，可以使用 functools.partial()； 
-collections---collections.Counter 序列的元素出现频率；collections.deque 创建双向
-链表； 
+wraps 在类中定义装饰器，并将其作用在其它函数和方法上；如果需要减少某个函数的参数个数，可以使用 functools.partial()； 
+
+collections---collections.Counter 序列的元素出现频率；collections.deque 创建双向链表；
+
 pkg_resources---获取本地安装的所有模块； 
+
 argparse---解析命令行参数； 
+
 json---解析 json 格式内容； 
+
 contextlib---实现上下文管理器； 
  
 导入模块 import 
- 
-导入模块，每个导入都应该独占一行； 
- 
-模块别名应该符合大驼峰命名法，如 DogModule； 
- 
-import 模块名----一次性把模块中的所有工具全部导入； 
- 
-from...import...----导入部分工具； 
+ 导入模块，每个导入都应该独占一行； 
+ 模块别名应该符合大驼峰命名法，如 DogModule； 
+ import 模块名----一次性把模块中的所有工具全部导入； 
+ from...import...----导入部分工具； 
+
 import common 
 from common import num_list 
-# 比如 num_list 是 common 中的全局变量， 
-# 在块中使用变量 num_list，common.num_list.append(1)  ----这个修改会使 common 模
-块中的 num_list 增加元素 1； 
-#  from common import num_list 导入到本模块中，要是修改的话，不会同步到 common
-模块了； 
- 
-如果两个模块，存在同名的函数，后导入的模块的函数会覆盖掉先导入的函数； 
- 
-模块的搜索顺序： 
-Python 解释器在导入模块时，1. 先搜索当前目录制定模块名的文件，如果有就
-直接导入；2. 如果没有再搜索系统目录 sys.path； 
+比如 num_list 是 common 中的全局变量， 
+在块中使用变量 num_list，common.num_list.append(1)  ----这个修改会使 common 模块中的 num_list 增加元素 1； 
+from common import num_list 导入到本模块中，要是修改的话，不会同步到 common模块了； 
+
+ 如果两个模块，存在同名的函数，后导入的模块的函数会覆盖掉先导入的函数； 
+
+ 模块的搜索顺序： 
+Python 解释器在导入模块时，1. 先搜索当前目录制定模块名的文件，如果有就直接导入；2. 如果没有再搜索系统目录 sys.path； 
 Python 中每个模块都有一个内置属性__file__查看模块的完整路径。 
- 
-程序执行时添加新的模块路径： 
+
+ 程序执行时添加新的模块路径： 
 sys.path.append('/home/plugins') 
 sys.path.insert(0, '/home/plugins') 
- 
-重新导入模块 
+
+ 重新导入模块 
 重新加载已经加载的模块 
-使用 imp 模块，imp.reload(module)----reload()擦除了模块底层字典的内容，并通过重新
-执行模块的源代码来刷新它。 
-模块对象本身的身份保持不变。因此，该操作在程序中所有已经被导入了的地方更新了
-模块。也就是说再使用这个 reload 之前这个模块已经被导入过了。 
- 
- 
- 
- 
-name 属性： 
+使用 imp 模块，imp.reload(module)----reload()擦除了模块底层字典的内容，并通过重新执行模块的源代码来刷新它。 
+模块对象本身的身份保持不变。因此，该操作在程序中所有已经被导入了的地方更新了模块。也就是说再使用这个 reload 之前这个模块已经被导入过了。 
+
+ name 属性： 
 内置属性，记录着一个字符串； 
-如果是被其它文件导入的，__name__就是模块名；如果是当前执行的程序，
-__name__就是"main"。 
- 
-包： 
-包含多个模块的特殊目录，目录下有一个特殊的文件 init.py，包名命名方式：小
-写字母+“_“； 
+如果是被其它文件导入的，__name__就是模块名；如果是当前执行的程序，__name__就是"main"。 
+
+ 包： 
+包含多个模块的特殊目录，目录下有一个特殊的文件 init.py，包名命名方式：小写字母+“_“； 
 import 包名可以一次性导入包中的所有模块； 
 init.py 中是用来指定对外界暴露的模块列表。格式：from . import 模块名 
- 
-发布模块： 
-步骤：1. 创建 setup.py，用来添加一些描述信息,放置在和模块路径一样的位置： 
+
+ 发布模块步骤：
+1. 创建 setup.py，用来添加一些描述信息,放置在和模块路径一样的位置： 
 2. 构建模块：python setup.py build 
 3. 生成发布压缩版本：python setup.py sdist，产生一个压缩文件； 
-4. 安 装 模 块 ： 解 压 ， 执 行 python setup.py install 进 行 安 装 ， 安 装 路 径 在
-/usr/local/lib/python/dist-packages/  
-__init__.py 用法 
+4. 安装模块：解压，执行python setup.py install 进行安装，安装路径在/usr/local/lib/python/dist-packages/  
+
+__init__.py 用法
 文件__init__.py 的目的是要包含不同运行级别的包的可选的初始化代码。 
-举个例子 
-如果你执行了语句 import graphics，文件 graphics/init.py 将被导入, 建立 graphics 命名
-空间的内容。 
-像 import graphics.format.jpg 这样导入， 
-文 件
-graphics/init.py
-和 文 件
-graphics/graphics/formats/init.py
-将 在 文 件
-graphics/formats/jpg.py 导入之前导入。 
-init.py 能够用来自动加载子模块: 
-# graphics/formats/__init__.py 
+
+举个例子
+如果你执行了语句 import graphics，文件 graphics/init.py 将被导入, 建立 graphics 命名空间的内容。 
+像 import graphics.format.jpg 这样导入，文件graphics/__init__.py 和文件graphics/graphics/formats/__init__.py 将在文件 graphics/formats/jpg.py 导入之前导入。
+
+__init__.py 能够用来自动加载子模块: 
+graphics/formats/__init__.py 
 from . import jpg 
 from . import png 
-像 这 样 一 个 文 件 , 用 户 可 以 仅 仅 通 过 import grahpics.formats 来 代 替 import 
-graphics.formats.jpg 以及 import graphics.formats.png。 
-<1> random 
-# random 模块使用 
+像这样一个文件,用户可以仅仅通过import grahpics.formats来代替import graphics.formats.jpg 以及 import graphics.formats.png。
+
+## <1> random 
 import random 
-# 生成一个范围内的随机数 
 print(random.randrange(1, 10))   # 左开右闭,不包括 10 
 print(random.randrange(1, 20, 3))   # 1-20 之间，步长为 3 的数字 
 print(random.randint(1, 10))   # 1-10 之间的整数，包括 10 
@@ -4220,34 +4392,38 @@ print(random.sample([2, 34, '34', 3], 4))   # 返回给定数量的数据集合�
  
  
  
-###### **15. python 中生成随机整数、随机小数、0--1 之间小数方法** 
+python 中生成随机整数、随机小数、0--1 之间小数方法 
 随机整数：random.randint(a,b),生成区间内的整数 
 随机小数：习惯用 numpy 库，利用 np.random.randn(5)生成 5 个随机小数 
-0-1 随机小数：random.random(),括号中不传参 
+0-1 随机小数：random.random(),括号中不传参
  
  
-# 打乱数据集合 
+打乱数据集合 
 l = [3, 4, 5, 6, 7] 
 random.shuffle(l) 
 print(l)  
  
  
-<2> requests 
+## <2> requests 
 在 requests 模块中，requests.content 和 requests.text 什么区别 
 .content 中间存的是字节码 .text 存的是.content 编码后的字符串 
 操作方式就是，如果想取得文本就用.text，如果想获取图片，就用.content 
-<3> glob 
+
+
+## <3> glob 
 glob.glob(pathname) 
 返回所有匹配的文件路径列表。它只有一个参数 pathname，定义了文件路径匹配规则，
 这里可以是绝对路径，也可以是相对路径。 
  
-# 获取当前程序所在路径下的以.py 扩展结尾的文件列表 
+### 获取当前程序所在路径下的以.py 扩展结尾的文件列表 
 files = glob.glob('*.py') 
  
  
-# 获得一个目录下的文件； 
+### 获得一个目录下的文件； 
 files = glob.glob(dir + filenames) 
-<4> functools 
+
+
+## <4> functools 
 functools.reduce() 
 reduce() 函数会对参数序列中元素进行累积。 
 函数将一个数据集合（链表，元组等）中的所有数据进行下列操作： 
@@ -4334,7 +4510,7 @@ def spam(a, b, c, d):
 数。 
 
 
-### collections 
+## collections 
 collections 定义了很多抽象类，如果想自定义容器类的时候可以继承其中的类；
 使用 collections 中的抽象基类，可以确保自定义的容器实现了所有必要的方法，
 并且还能简化类型检查； 
@@ -4405,7 +4581,7 @@ with open(file_path, 'r') as info:
  
  
  
-创建双向链表----collections.deque('abcdef'); 
+### 创建双向链表----collections.deque('abcdef'); 
 双向链表操作： 
 deque_obj.pop()--移除最右边的元素，deque_obj.popleft()--移除最做左边的元素； 
 deque_obj.reverse()--反转链表；deque_obj.appendleft(element)--左边添加元素； 
@@ -4416,9 +4592,9 @@ deque_obj.rotate(2)--双向链表正向转动 2 次；deque_obj.rotate(-2)--反�
 获得一个text出现最多的10个word的列表----collections.Counter(text).most_common(10); 
 两个 Counter 可以取相加，可以取交集; 
 collections.OrderDict(original_dict)---记住插入的顺序； 
+
  
- 
-###### 利用 collections 库的 Counter 方法统计字符串每个单词出现的次数 
+### 利用 collections 库的 Counter 方法统计字符串每个单词出现的次数 
  
 Counter 类中的 most_common()可以给出序列中出现次数最多的元素 
 ```shell
@@ -4437,7 +4613,7 @@ Counter 实例一个鲜为人知的特性是它们可以很容易的跟数学运
 
 
 
-### inspect # 获取给定对象的实际模块对象 
+## inspect # 获取给定对象的实际模块对象 
 import inspect 
 import math 
 from python.w3resource import sort_tests_69 
@@ -4461,7 +4637,9 @@ sig.bind(*args, **kwargs),
 参数名称和参数值可以通过 bound_args.arguments.items()获得； 
 通过将签名和传递的参数绑定起来，可以强制函数调用遵循特定的规则，比如必填、默
 认、重复等等 
-### pkg_resources 获取本地安装的所有模块 
+
+
+## pkg_resources 获取本地安装的所有模块 
 import pkg_resources 
  
  
@@ -4471,7 +4649,7 @@ installed_packages_list = sorted(
 for p in installed_packages_list: 
     print(p) 
  
-<8> array 
+## <8> array 
 导入 array---from array improt *; 
 定义一个 Integer 类型的 array----arr = array('i', original_list)； 
 数组最后添加元素----arr.append(10); 
@@ -4494,7 +4672,9 @@ reverse() -- reverse the order of the items in the array
 tofile() -- write all items to a file object 
 tolist() -- return the array converted to an ordinary list 
 tobytes() -- return the array converted to a string 
-<9> itertools 
+
+
+## <9> itertools 
 itertools.product(*iterables, repeart=1) 
 获取所有迭代器的组合，默认重复一次 
 ```shell
@@ -4539,8 +4719,9 @@ def get_fibonacci_numbers(a=0, b=1):
 result = list(itertools.islice(get_fibonacci_numbers(), n)) 
  
 
-# itertools.starmap(func, iterables) 
+### itertools.starmap(func, iterables) 
 第一个参数是函数对象，后一个参数是可迭代对象，意思将迭代对象中的参数传给函数。 
+```python
 def test_itertools_starmap(): 
     map = itertools.starmap(str.isdigit, '34dfgg43dfd') 
     print('type(map)==%s', type(map)) 
@@ -4550,21 +4731,15 @@ def test_itertools_starmap():
 test_itertools_starmap() 
 # type(map)==%s <class 'itertools.starmap'> 
 # [True, True, False, False, False, False, True, True, False, False, False] 
+
+```
+
  
 <10> argparse 
+```python
 parser = argparse.ArgumentParser() 
-parser.add_argument('-b', 
-nargs='+', 
-help='backup 
-log 
-path', 
-default=['/var/log/mongodb_backup.log']) 
-parser.add_argument('-r', 
-nargs='+', 
-help='restore 
-log 
-path', 
-default=['/var/log/mongodb_restore.log']) 
+parser.add_argument('-b', nargs='+', help='backup log path', default=['/var/log/mongodb_backup.log'])
+parser.add_argument('-r', nargs='+', help='restore log path', default=['/var/log/mongodb_restore.log']) 
 # parser.print_help() 
 args = parser.parse_args() 
 mongo_data_integrity_check(args.b[0], args.r[0]) 
@@ -4619,43 +4794,46 @@ parse.add_argument('--speed', dest='speed', action='store',
 返回一个结果实例。 
 每个参数值会被设置成该实例中 add_argument()方法的 dest 参数指定的属性值 
 args = parse.parse_args() 
-<11> os 
-# 获取 os 的位数，32bit 还是 64bit 
+
+```
+
+## <11> os 
+### 获取 os 的位数，32bit 还是 64bit 
 import struct 
 def get_os_mode_32bit_or_64bit(): 
     return struct.calcsize("P") * 8 
      
  
-# 获取系统的名称，系统所在平台，系统的发行版     
+### 获取系统的名称，系统所在平台，系统的发行版     
 def get_os_name(): 
     import platform 
     return os.name, platform.system(), platform.release()    
  
-# 获得 python 的 site-packages 所在目录 
+### 获得 python 的 site-packages 所在目录 
 def get_python_site_packages(): 
     import site 
     return site.getsitepackages() 
  
  
-# 调用一个外部命令 
+### 调用一个外部命令 
 def command_to_call(): 
     import subprocess 
     return subprocess.call(['python', '--version']) 
  
  
-# 获得当前执行程序的文件路径，__file__绝对路径 
+### 获得当前执行程序的文件路径，__file__绝对路径 
 def get_file_path_the_current_execute(): 
     print(__file__) 
     return os.path.realpath(__file__) 
  
  
-# 获取当前正在使用的 cpu 个数 
+### 获取当前正在使用的 cpu 个数 
 def get_cup_numbers_using(): 
     import multiprocessing 
     return multiprocessing.cpu_count() 
  
  
-# 获得一个目录下的所有文件 
+### 获得一个目录下的所有文件 
 def get_all_files_list_from_direction(): 
     files_list = [f for f in os.listdir('F:\projects\python') 
                   if os.path.isfile(os.path.join('F:\projects\python', f))] 
@@ -4663,35 +4841,33 @@ def get_all_files_list_from_direction():
                        if not os.path.isfile(os.path.join('F:\projects\python', f))] 
     return files_list, directions_list 
  
-# 系统变量 
+### 系统变量 
 os.environ 
 os.environ['PATH']  # 获取指定的环境变量 
  
-# 获取当前的用户名   
+### 获取当前的用户名   
 import getpass 
 print(getpass.getuser())  # Administrator 
  
-# 获取绝对文件路径 
+### 获取绝对文件路径 
 os.path.abspath(path_fname) 
  
  
-# 获取版权信息 
+### 获取版权信息 
 import sys 
-print(sys.copyright) 
-# Copyright (c) 2001-2019 Python Software Foundation. 
+print(sys.copyright)            # Copyright (c) 2001-2019 Python Software Foundation. 
 All Rights Reserved. 
  
-# 查看系统是小端平台还是大端平台 
+### 查看系统是小端平台还是大端平台 
 sys.byteorder   # 两个值 little 和 big 
  
  
-# 清屏或者清除终端 
+### 清屏或者清除终端 
 os.system('cls') 
  
  
-# 从给定路径中提取文件名 
-os.path.basename('/users/system1/student1/homework-1.py') 
-# homework-1.py 
+### 从给定路径中提取文件名 
+os.path.basename('/users/system1/student1/homework-1.py')      # homework-1.py 
  
 import os 
 print("\nEffective group id: ",os.getegid()) 
@@ -4699,14 +4875,10 @@ print("Effective user id: ",os.geteuid())
 print("Real group id: ",os.getgid()) 
 print("List of supplemental group ids: ",os.getgroups()) 
 print() 
-#  
-# Effective group id:  1007                                           
-# Effective user id:  1006                                            
-# Real group id:  1007                                                
-# List of supplemental group ids:  [1007]   
  
  
-# 将一个路径按照扩展名分离成元组 
+### 将一个路径按照扩展名分离成元组 
+```python
 def divide_path_on_extension_separator(): 
     import os.path 
     for path in ['test.txt', 'filename', '/user/system/test.txt', '/', '']: 
@@ -4719,9 +4891,12 @@ divide_path_on_extension_separator()
 # "/user/system/test.txt" : ('/user/system/test', '.txt') 
 # "/" : ('/', '') 
 # "" : ('', '') 
+
+``` 
  
- 
-# 检索文件属性 
+
+### 检索文件属性 
+```python
 def retrieve_file_properties(): 
     import os.path 
     import time 
@@ -4738,9 +4913,10 @@ retrieve_file_properties()
 # Modify time Fri Sep 11 22:59:53 2020 
 # create time Fri Sep 11 22:54:19 2020 
 # size of file 376 
+
+``` 
  
- 
-# display some information about the OS 
+### display some information about the OS 
 import platform as pl 
  
  
@@ -4767,7 +4943,7 @@ def test_list_os_profile():
  
              
  
-# 测试文件是否存在： 
+### 测试文件是否存在： 
 try: 
     file = open('a.txt', 'r') 
     text = file.read() 
@@ -4817,10 +4993,8 @@ result = time.asctime(t) #  Sun Jan 22 02:34:06 2020
 time_string = '04/11/15 11:55:23' 
 result 
 = 
-time.strptime(time_string, 
-"%m/%d/%y 
-%H:%M:%S") 
-# 
+time.strptime(time_string, "%m/%d/%y %H:%M:%S")
+
 time.struct_time(tm_year=2015, 
 tm_mon=4, 
 tm_mday=11, 
@@ -4832,8 +5006,8 @@ tm_sec=23, tm_wday=5, tm_yday=101, tm_isdst=-1)
 184 
 >>> size.lines 
 16 
- 
- 
+
+```python
  
 # os.remove()删除文件 
 # os.rename()重命名文件 
@@ -4855,7 +5029,10 @@ tm_sec=23, tm_wday=5, tm_yday=101, tm_isdst=-1)
 # os.path.isabs()是否为绝对路径 
 # os.path.isdir()是否为目录 
 # os.path.isfile()是否为文件 
-<12> json 
+
+``` 
+ 
+## <12> json 
 json.dumps()   # 将 python 对象编码成 json 字符串； 
 json.loads()   # 将已编码的 json 字符串解码成 python 对象； 
 json.dump()    # 编码处理文件 
@@ -4871,7 +5048,7 @@ with open('tickets.json', 'w', encoding='utf-8') as f:
     file_new = open('tickets.json', 'r', encoding='utf-8') 
     print(file_new.read()) 
     file_new.close() 
-     
+```shell
      
 >>> d = {'name': 'dx', 'age': '20'} 
 >>> d01 = json.dumps(d) 
@@ -4880,14 +5057,18 @@ with open('tickets.json', 'w', encoding='utf-8') as f:
 >>> d02 = json.loads(d01) 
 >>> print(d02, type(d02)) 
 {'name': 'dx', 'age': '20'} <class 'dict'>     
-<13> bisect 
+
+```
+     
+## <13> bisect 
 bisect 模块 bisect.insort(lis, item)-----在排序列表中插入元素，保证元素插入后还保持顺
 序；bisect.bisect_left(list, item)----返回元素 item 插入 list 中的索引； 
  
  
- 
-<14> heapq 
+
+## <14> heapq 
 heapq.nlargest(num, dict1)----表示获取最大 num 的 dict1 的键； 
+```shell
 >>> nlargest(3, {'item1': 45.50, 'item2':35, 'item3': 41.30, 'item4':55, 'item5': 24}.items(), 
 key=lambda x: x[1]) 
 [('item4', 55), ('item1', 45.5), ('item3', 41.3)] 
@@ -4896,10 +5077,11 @@ heapq.heappush(iterable_obj, value)----向可迭代对象中 push 值 value;
 heapq.heappop(iterable_obj)----从 iterable_obj 中 pop 值，从小到大 pop; 
 heapq.heapify(original_list)---将一个 list 转换成 heap; 
 heapq.heappushpop(iterable_obj, item)---pop 最小的元素，push 一个 item; 
+
+``` 
  
  
- 
-<15> enum 
+## <15> enum 
 枚举类： 
 class Country(enum.Enum): 
     Afghanistan = 93 
@@ -4910,19 +5092,19 @@ class Country(enum.Enum):
     Antarctica = 672 
 print('Member name:', Country.Albania.name) 
 print("Member value:", Country.Albania.value) 
-# Member name: Albania 
-# Member value: 355 
+Member name: Albania 
+Member value: 355 
  
 迭代一个枚举类，并独立展示成员以及其值： 
-# for data in Country: 
-#     print(data.name, data.value) 
+for data in Country: 
+    print(data.name, data.value) 
  
 获取一个枚举类的值列表： 
 枚举类继承自 enum.IntEnum,返回 list(map(int, Country)); 
  
  
  
-<16> getpass 
+## <16> getpass 
 弹出密码输入提示，并且不会再任务终端回显密码。 
 user = getpass.getuser() # 不会弹出用户名的输入提示。它会根据该用户的 shell 环境或者
 会依据本地系统的密码库（支持 pwd 模块的平台）来使用当前用户的登录名 
@@ -4933,28 +5115,28 @@ password = getpass.getpass()
 出和错误输出，使用 stderr 参数 
 output_bytes = subprocess.check_output(['cmd', 'arg1', 'arg2'], 
                                        stderr=subprocess.STDOUT) 
-# 如果你需要用一个超时机制来执行命令，使用 timeout 参数： 
+如果你需要用一个超时机制来执行命令，使用 timeout 参数： 
 try: 
     output_bytes = subprocess.check_output(['cmd', 'arg1', 'arg2'], timeout=5) 
 except subprocess.TimeoutExpired as e: 
     pass 
-# 如果你想让命令被一个 shell 执行，传递一个字符串参数，并设置参数 shell=True 
+如果你想让命令被一个 shell 执行，传递一个字符串参数，并设置参数 shell=True 
 output_bytes = subprocess.check_output('grep python |wc > out', shell=True) 
  
  
  
-<> subprocess 
-# 系统命令输出 
+## <> subprocess 
+系统命令输出 
 import subprocess 
  
-# 执行 dir 命令，打印到终端 
+执行 dir 命令，打印到终端 
 returned_text = subprocess.check_output('dir', shell=True, 
                                         universal_newlines=True) 
 print(returned_text) 
  
  
  
-<17> sys 
+## <17> sys 
 你无法导入你的 python 代码因为它所在的目录不在 sys.path 里； 
 两种常见的方式将新目录添加到 sys.path 中： 
 1. 可以使用 PYTHONPATH 环境变量来添加； 
@@ -4964,26 +5146,21 @@ env PYTHONPATH=/some/dir:/other/dir python3
 ['', '/some/dir', '/other/dir', ...] 
 这样的环境变量可在程序启动时设置或通过 shell 脚本 
 2. 第二种方法是创建一个.pth 文件，将目录列举出来，像这样： 
-# myapplication.pth 
+myapplication.pth 
 /some/dir 
 /other/dir 
 这 个 .pth
-文 件 需 要 放 在 某 个
-Python
-的
-site-packages
-目 录 ， 通 常 位 于
+文 件 需 要 放 在 某 个 Python 的 site-packages 目 录 ， 通 常 位 于
 /usr/local/lib/python3.3/site-packages 
 或者 ~/.local/lib/python3.3/sitepackages, 
-当解释器启动时，.pth 文件里列举出来的存在于文件系统的目录将被添加到 sys.path。安
-装一个.pth 
+当解释器启动时，.pth 文件里列举出来的存在于文件系统的目录将被添加到 sys.path。安装一个.pth 
 文件可能需要管理员权限，如果它被添加到系统级的 Python 解释器。 
 3. 手动调节 sys.path 的值； 
 sys.path.insert(0, /some/dir) 
  
  
  
-# 向标准错误打印一条消息并返回某个非零状态码来终止程序运行 
+向标准错误打印一条消息并返回某个非零状态码来终止程序运行 
 raise SystemExit('It failed!')----将消息打印在 sys.stderr 中,然后程序以状态码 1 退出； 
  
  
@@ -5003,62 +5180,39 @@ def test_get_object_size_in_bytes():
     print('st1 is %s, ' % st3, "it\'s size %s bytes" % sys.getsizeof(st3)) 
  
  
-# test_get_object_size_in_bytes() 
-# output: 
-# st1 is one,  it's size 52 bytes 
-# st1 is two,  it's size 52 bytes 
-# st1 is three,  it's size 54 bytes 
+test_get_object_size_in_bytes() 
+output: 
+st1 is one,  it's size 52 bytes 
+st1 is two,  it's size 52 bytes 
+st1 is three,  it's size 54 bytes 
  
  
-# sys.getrecursionlimit()   递归深度 
-# sys.argv      命令行参数 List，第一个元素是程序本身路径 
-# sys.modules.keys() 返回所有已经导入的模块列表 
-# sys.exc_info()   获取当前正在处理的异常类,exc_type、exc_value、exc_traceback 当前
+sys.getrecursionlimit()   递归深度 
+sys.argv      命令行参数 List，第一个元素是程序本身路径 
+sys.modules.keys() 返回所有已经导入的模块列表 
+sys.exc_info()   获取当前正在处理的异常类,exc_type、exc_value、exc_traceback 当前
 处理的异常详细信息 
-# sys.exit(n)    退出程序，正常退出时 exit(0) 
-# sys.hexversion   获取 Python 解释程序的版本值，16 进制格式如：0x020403F0 
-# sys.version    获取 Python 解释程序的版本信息 
-# sys.maxint     最大的 Int 值 
-# sys.maxunicode   最大的 Unicode 值 
-# sys.modules    返回系统导入的模块字段，key 是模块名，value 是模块 
-# sys.path      返回模块的搜索路径，初始化时使用 PYTHONPATH 环境变量的值 
-# sys.platform    返回操作系统平台名称 
-# sys.stdout     标准输出 
-# sys.stdin     标准输入 
-# sys.stderr     错误输出 
-# sys.exc_clear()  用来清除当前线程所出现的当前的或最近的错误信息 
-# sys.exec_prefix  返回平台独立的 python 文件安装的位置 
-# sys.byteorder   本地字节规则的指示器，big-endian 平台的值是'big',little-endian 平台的
-值是'little' 
-# sys.copyright   记录 python 版权相关的东西 
-# sys.api_version  解释器的 C 的 API 版本 
-# sys.version_info  python 版本 
+sys.exit(n)    退出程序，正常退出时 exit(0) 
+sys.hexversion   获取 Python 解释程序的版本值，16 进制格式如：0x020403F0 
+sys.version    获取 Python 解释程序的版本信息 
+sys.maxint     最大的 Int 值 
+sys.maxunicode   最大的 Unicode 值 
+sys.modules    返回系统导入的模块字段，key 是模块名，value 是模块 
+sys.path      返回模块的搜索路径，初始化时使用 PYTHONPATH 环境变量的值 
+sys.platform    返回操作系统平台名称 
+sys.stdout     标准输出 
+sys.stdin     标准输入 
+sys.stderr     错误输出 
+sys.exc_clear()  用来清除当前线程所出现的当前的或最近的错误信息 
+sys.exec_prefix  返回平台独立的 python 文件安装的位置 
+sys.byteorder   本地字节规则的指示器，big-endian 平台的值是'big',little-endian 平台的 值是'little' 
+sys.copyright   记录 python 版权相关的东西 
+sys.api_version  解释器的 C 的 API 版本 
+sys.version_info  python 版本 
+
  
  
- 
-<18> contextlib 
-实现上下文管理器 
-contextlib 模块中@contextmanager 装饰器 
-@contextmanager 
-def timethis(label): 
-    start_time = time.time() 
-    try: 
-        yield 
-    finally: 
-        end_time = time.time() 
-        print("{}: {}".format(label, (end_time - start_time))) 
- 
- 
-with timethis('counting'): 
-    n = 100000 
-    while n > 0: 
-yield 之前的代码会在上下文管理器中作为__enter__()方法执行，所有再 yield 之后的代
-码会作为__exit__()方法执行， 
-如果出现了异常，代码会在 yield 那里抛出； 
- 
- 
- 
-<19> importlib 
+## <19> importlib 
 对字符串调用导入命令 
 import importlib 
 mod = importlib.import_module('urllib.request') 
@@ -5068,20 +5222,20 @@ import module 只是简单地执行和 import 相同的步骤，但是返回生�
  
  
  
-<20> pickle 
+## <20> pickle 
 持久化存储对象，模块为 pickle 或 cpickle 
 pickle.dump() ----用来把对象存储在打开的文件中，成为存储； 
 pickle.load() ----用来取对象，成为取存储； 
  
  
  
-<21> urllib 
+##<21> urllib 
 params = { 
     'name1': 'value1', 
     'name2': 'value2' 
 } 
 querystring = parse.urlencode(params) 
-# querystring 变成了这种形式 name1=value1&name2=value2 
+querystring 变成了这种形式 name1=value1&name2=value2 
 发送一个简单的 HTTP GET 请求到远程服务器上----urllib.request.urlopen(url + '?' + 
 querystring) 
 将 参 数 编 码 后 作 为 可 选 参 数 提 供 给 urlopen() 函 数 ----urllib.request.urlopen(url, 
@@ -5104,7 +5258,7 @@ python 代码笔记
  
  
 ----*号变量可以用来接收多个元素；  
-# 函数解包以及元组解包 
+函数解包以及元组解包 
 def unpack(x, y): 
     print('x==%s, y==%s' % (x, y)) 
  
@@ -5114,16 +5268,16 @@ unpack(*lis1)
 dic = {'x': 'dong', 'y': 20} 
 unpack(**dic) 
  
-# output: 
-# x==1, y==2 
-# x==dong, y==20 
+output: 
+x==1, y==2 
+x==dong, y==20 
  
 a, b, *c = range(6) 
 print('a==%s, b==%s, c==%s' % (a, b, c)) 
-# a==0, b==1, c==[2, 3, 4, 5] 
+a==0, b==1, c==[2, 3, 4, 5] 
 x, *y, z = range(5) 
 print('x==%s, y==%s, z==%s' % (x, y, z)) 
-# x==0, y==[1, 2, 3], z==4 
+x==0, y==[1, 2, 3], z==4 
  
  
  
@@ -5135,67 +5289,10 @@ print('x==%s, y==%s, z==%s' % (x, y, z))
 ... 
 >>> change() 
 >>> a 
-5 
+5
  
- 
- 
- 
-with 方法打开处理文件做了什么? 
-打开文件在进行读写的时候可能会出现一些异常状况，如果按照常规的 f.open 
-写法，我们需要 try,except,finally，做异常判断，并且文件最终不管遇到什么情况，
-都要执行 finally f.close()关闭文件，with 方法帮我们实现了 finally 中 f.close 
-with 语句适用于对资源进行访问的场合，确保不管使用过程中是否发生异常都会
-执行必要的“清理”操作，释放资源，比如文件使用后自动关闭、线程中锁的自动
-获取和释放等。 
-with 语句即“上下文管理器”，在程序中用来表示代码执行过程中所处的前后环境
-上下文管理器：含有__enter__和__exit__方法的对象就是上下文管理器。 
-__enter__：在执行语句之前，首先执行该方法，通常返回一个实例对象，如果 with
-语句有 as 目标，则将对象赋值给 as 目标。 
-__exit__：执行语句结束后，自动调用__exit__方法，用户释放资源，若此方法返
-回布尔值 True，程序会忽略异常。 使用环境：文件读写、线程锁的自动释放等。 
- 
- 
- 
-6. 可变和不可变数据类型，简述原理 
-# 不可变数据类型：数值型、字符串型 string 和元组 tuple 
-# 不允许变量的值发生变化，如果改变了变量的值，相当于是新建了一个对象，而对于
-相同的值的对象，在内存中则只有一个对象（一个地址） 
-# 可变数据类型：列表 list 和字典 dict； 
-# 允许变量的值发生变化，即如果对变量进行 append、+=等这种操作后，只是改变了变
-量的值，而不会新建一个对象，变量引用的对象的地址也不会变化，不过对于相同的值
-的不同对象，在内存中则会存在不同的对象，即每个对象都有自己的地址，相当于内存
-中对于同值的对象保存了多份，这里不存在引用计数，是实实在在的对象 
- 
-可变 list，dict，set ，不可变 int string tuple 
-当一个引用传递给函数的时候,函数自动复制一份引用,这个函数里的引用和外边的引用
-没有半毛关系了； 
-当函数内的引用指向的是可变对象,对它的操作就和定位了指针地址一样,在内存里进行
-修改. 
- 
-1,可变类型有 list,dict.不可变类型有 string，number,tuple. 
-2,当进行修改操作时，可变类型传递的是内存中的地址，也就是说，直接修改内存中的
-值，并没有开辟新的内存。 
-3,不可变类型被改变时，并没有改变原内存地址中的值，而是开辟一块新的内存，将原
-地址中的值复制过去，对这块新开辟的内存中的值进行操作。 
- 
- 
-# 整数对象和字符串对象是不可变对象，python 会高效地缓存它们，python 缓存的整数
-范围为(-1, 100); 
-# 浮点数对象是可变对象； 
- 
- 
- 
-7. a="hello"和 b="你好"编码成 bytes 类型 
->>> a = b'Hello' 
->>> b = '你好'.encode() 
->>> print(a, b) 
-b'Hello' b'\xe4\xbd\xa0\xe5\xa5\xbd' 
->>> print(type(a), type(b)) 
-<class 'bytes'> <class 'bytes'> 
- 
- 
- 
-9. 简述同源策略 
+
+# 简述同源策略 
 同源策略需要同时满足以下三点要求： 
 1）协议相同 
 2）域名相同 
@@ -5205,10 +5302,11 @@ http://www.test.com 与 http://www.admin.com 不同源——域名不同
 http://www.test.com 与 http://www.test.com:8081 不同源——端口不同 
 只要不满足其中任意一个要求，就不符合同源策略，就会出现“跨域” 
  
+
+# tips 
  
  
- 
-关于 list tuple copy 和 deepcopy 的区别是什么？ 
+## 关于 list tuple copy 和 deepcopy 的区别是什么？ 
 tuple： 
 a = (1, 2, 3, [4, 5, 6, 7], 8) 
 a[3] = 3  //typeerror 
@@ -5241,17 +5339,17 @@ a, b, c,d,e
 copy 仅拷贝对象本身，而不拷贝对象中引用的其它对象。 deepcopy 除拷贝对象
 本身，而且拷贝对象中引用的其它对象。（子对象） 
  
- 
- 
-11. sort 和 sorted 对列表排序区别 
+
+## sort 和 sorted 对列表排序区别 
 sort 是在原列表的基础上修改，无返回值，sort()不能对 dict 字典进行排序； 
 sorted 有返回值，是新的 list，对 dict 排序默认会按照 dict 的 key 值进行排序，最
 后返回的结果是一个对 key 值排序好的 list。 
 sorted 对 tuple， dict 依然有效，而 sort 不行。 
  
  
- 
-12. 列表推导式、字典推导式、生成器 
+
+## 列表推导式、字典推导式、生成器 
+```shell
 >>> l = [i for i in range(4)] 
 >>> print(l, type(l)) 
 [0, 1, 2, 3] <class 'list'> 
@@ -5262,15 +5360,15 @@ sorted 对 tuple， dict 依然有效，而 sort 不行。
 >>> d = {i:random.randint(0,4) for i in ['a', 'b', 'c', 'd']} 
 >>> print(d, type(d)) 
 {'a': 2, 'b': 2, 'c': 4, 'd': 1} <class 'dict'> 
+
+``` 
  
  
- 
-13. int("1.4"),int(1.4)输出结果？ 
+## int("1.4"),int(1.4)输出结果？ 
 int("1.4")报错-->float("1.4")输出 1.4，int(1.4)输出 1 
  
- 
- 
-17. Python 对象的命名规范，例如方法或者类等 
+
+## Python 对象的命名规范，例如方法或者类等 
 变量命名：字母数字下划线，不能以数字开头 
 _ 受保护的 
 __ 私有的 
@@ -5285,20 +5383,17 @@ __init__ 内置变量
 class A 中定义的属性__cont ，这样的变量获取时需要用 A._A__cont 
  
  
- 
-18. 编码为 GBK 的字符串 S，转成 UTF-8 编码的字符串 
+## 编码为 GBK 的字符串 S，转成 UTF-8 编码的字符串 
 demo_str = "demo".encode("gbk")  
 demo=demo_str.decode('gbk').encode('utf-8'） 
  
  
- 
-19. 哪些不能作为字典的健 
+## 哪些不能作为字典的健 
 字典中的键是不可变类型，可变类型 list 和 dict 不能作为字典键 一个对象能不
 能作为字典的 key，就取决于其有没有__hash__方法; 
  
  
- 
-21. 如何判断一个对象是函数还是方法 
+## 如何判断一个对象是函数还是方法 
 在类外声明 def 为函数 
 类中声明 def：使用类调用为函数，使用实例化对象调用为方法 
 可以使用 isinstance()判断 
@@ -5323,37 +5418,34 @@ True
 True 
  
  
- 
-22. python 实现接口 
+## python 实现接口 
 接口只是定义了一些方法，而没有去实现，多用于程序设计时，只是设计需要有
 什么样的功能，但是并没有实现任何功能，这些功能需要被另一个类（B）继承
 后，由类 B 去实现其中的某个功能或全部功能。 
 遵循：开放封闭原则，依赖导致原则，接口隔离原则，继承多态。 
 编程思想：为子类做规范； 归一化设计：几个类 实现了相同的方法 抽象类：
-最好单继承，且可以简单的实现功能，接口类：可以多继承，且最好不实现具体
-功能 
+最好单继承，且可以简单的实现功能，接口类：可以多继承，且最好不实现具体功能 
 在 python 中接口由抽象类和抽象方法去实现，接口是不能被实例化的，只能被
 别的类继承去实现相应的功能。 
 个人觉得接口在 python 中并没有那么重要，因为如果要继承接口，需要把其中
 的每个方法全部实现，否则会报编译错误，还不如直接定义一个 class，其中的方
 法实现全部为 pass，让子类重写这些函数。 
+
 方法一：用抽象类和抽象函数实现方法（适用于单继承） 方法二：用普通类定
 义接口（推荐） 
  
  
- 
-23. Python 中变量的作用域？（变量查找顺序) 
+## Python 中变量的作用域？（变量查找顺序) 
 函数作用域的 LEGB 顺序 
 1.什么是 LEGB? 
 L： local 函数内部作用域 
 E: enclosing 函数内部与内嵌函数之间 
 G: global 全局作用域 
 B：build-in 内置作用 
-python 在函数里面的查找分为 4 种，称之为 LEGB，也正是按照这是顺序来查找
-的。 
+python 在函数里面的查找分为 4 种，称之为 LEGB，也正是按照这是顺序来查找的。 
  
  
-25. python 判断对象相等 
+## python 判断对象相等 
 python 中的 == python 中的对象包含三要素:id, type, value id 用来标识唯一一个
 对象，type 标识对象的类型，value 用来设置对象的值。  
 is 判断是否是一个对象，使用 id 来判断的，比较的是两个对象的 id 值是否相等，
@@ -5361,31 +5453,31 @@ is 判断是否是一个对象，使用 id 来判断的，比较的是两个对�
 == 是判断 a 对象的值是否是 b 对象的值，默认调用它的__eq__方法。 
  
  
- 
-26. not A 与 A is None 
+## not A 与 A is None 
 not A 就是 True,但是这并不代表该对象没有定义，也不代表该对象没有其它的属
 性，它只是代表 A 中元素为空，仅此而已； 
 如果要看对象是否又定义，就要使用 is None 来判断； 
  
  
- 
-28. 通过字符串调用某个对象对应的方法 
+## 通过字符串调用某个对象对应的方法 
 1. 直接 getattr(obj, 'func')(*args)；    
 2. operator.methodcaller('func', *args)(obj)； 
-29. 如何提高 python 的运行效率 
+
+
+## 如何提高 python 的运行效率 
 使用生成器； 
 关键代码使用外部功能包（Cython，pylnlne，pypy，pyrex）； 
 针对循环的优化–尽量避免在循环中访问变量的属性。 
  
  
  
-2. 如果你想让某个匿名函数在定义时就捕获到值，可以将那个参数值定义成默
-认参 数即可 
+## 如果你想让某个匿名函数在定义时就捕获到值，可以将那个参数值定义成默认参数即可 
 a = lambda y, x=x: x + y 
 b = lambda y, x=x: x + y 
 funcs = [lambda x: x+n for n in range(5) 
 funcs = [lambda x, n=n: x+n for n in range(5)] 
-4. sys.modules[__name__] 
+
+## sys.modules[__name__] 
 def function(): 
     print('test sys.modules') 
  
@@ -5394,26 +5486,27 @@ print(sys.modules[__name__])   # 此 python 文件中的 module 'main'
 print(function.__name__)    # 函数名 
 function_obj = getattr(sys.modules[__name__], function.__name__)# 获得此函数名对象 
 function_obj() 
-9. 各种加密方式 
+
+
+## 各种加密方式 
 Base64 编码 
 Base64 是一种用 64 个字符来表示任意二进制数据的方法。 
 Base64 编码可以称为密码学的基石。可以将任意的二进制数据进行 Base64 编码。
 所有的数据都能被编码为并只用 65 个字符就能表示的文本文件。（ 65 字符：
 A~Z a~z 0~9 + / = ）编码后的数据~=编码前数据的 4/3，会大 1/3 左右。 
 原理 
- 
+
 1. 将所有字符转化为 ASCII 码。 
 2. 将 ASCII 码转化为 8 位二进制 。 
-3. 将二进制 3 个归成一组(不足 3 个在后边补 0)共 24 位，再拆分成 4 组，每组 6
-位。 
+3. 将二进制 3 个归成一组(不足 3 个在后边补 0)共 24 位，再拆分成 4 组，每组 6 位。 
 4. 统一在 6 位二进制前补两个 0 凑足 8 位。 
 5. 将补 0 后的二进制转为十进制。 
 6. 从 Base64 编码表获取十进制对应的 Base64 编码。 
+
+
 说明 
-1. 转换的时候，将三个 byte 的数据，先后放入一个 24bit 的缓冲区中，先来的 byte
-占高位。 
-2. 数据不足 3byte 的话，于缓冲区中剩下的 bit 用 0 补足。然后，每次取出 6 个 bit，
-按照其值选择查表选择对应的字符作为编码后的输出。 
+1. 转换的时候，将三个 byte 的数据，先后放入一个 24bit 的缓冲区中，先来的 byte 占高位。 
+2. 数据不足 3byte 的话，于缓冲区中剩下的 bit 用 0 补足。然后，每次取出 6 个 bit，按照其值选择查表选择对应的字符作为编码后的输出。
 3. 不断进行，直到全部输入数据转换完成。 
 4. 如果最后剩下两个输入数据，在编码结果后加 1 个“=”。 
 5. 如果最后剩下一个输入数据，编码结果后加 2 个“=”。 
@@ -5430,8 +5523,9 @@ def test_base64():
     print('decode_str==%s' % decode_str) 
      
 output: 
-# encode_str==b'ZG9uZ3hpYW5nIGlzIGEgZ2VuaXVzISEh' 
-# decode_str==b'dongxiang is a genius!!!' 
+encode_str==b'ZG9uZ3hpYW5nIGlzIGEgZ2VuaXVzISEh' 
+decode_str==b'dongxiang is a genius!!!' 
+
 MD5（信息-摘要算法） 
 message-digest algorithm 5（信息-摘要算法）。经常说的“MD5 加密”，就是信息
 摘要算法。 
@@ -5440,13 +5534,10 @@ md5，其实就是一种算法。可以将一个字符串，或文件，或压�
 特点 
 1. 压缩性：任意长度的数据，算出的 MD5 值长度都是固定的。 
 2. 容易计算：从原数据计算出 MD5 值很容易。 
-3. 抗修改性：对原数据进行任何改动，哪怕只修改 1 个字节，所得到的 MD5 值都
-有很大区别。 
-4. 强抗碰撞：已知原数据和其 MD5 值，想找到一个具有相同 MD5 值的数据（即
-伪造数据）是非常困难的。 
+3. 抗修改性：对原数据进行任何改动，哪怕只修改 1 个字节，所得到的 MD5 值都 有很大区别。 
+4. 强抗碰撞：已知原数据和其 MD5 值，想找到一个具有相同 MD5 值的数据（即伪造数据）是非常困难的。 
 5. 不可逆性：每个人都有不同的指纹，看到这个人，可以得出他的指纹等信息，并
-且唯一对应，但你只看一个指纹，是不可能看到或读到这个人的长相或身份等信
-息。 
+且唯一对应，但你只看一个指纹，是不可能看到或读到这个人的长相或身份等信息。 
 举个栗子：世界上只有一个我，但是但是妞却是非常非常多的，以一个有限的我
 对几乎是无限的妞，所以可能能搞定非常多（100+）的妞，这个 理论上的确是
 通的，可是实际情况下.... 
@@ -5466,8 +5557,9 @@ def test_md5(string):
  
 test_md5('dong xiang is a genius!!!') 
 output: 
-# string 加密前==dong xiang is a genius!!! 
-# string 加密后==c025c1458ea539328a8b0b38de686049 
+string 加密前==dong xiang is a genius!!! 
+string 加密后==c025c1458ea539328a8b0b38de686049 
+
 AES 
 高级加密标准（英语：Advanced Encryption Standard，缩写：AES），在密码
 学中又称 Rijndael 加密法，是美国联邦政府采用的一种区块加密标准。这个标准
@@ -5499,7 +5591,7 @@ from binascii import b2a_hex
  
  
  
-# 传入要加密的明文 
+传入要加密的明文 
 def test_AES(string): 
     # 密钥 key 长度必须为 16（AES-128）、24（AES-192）、或 32（AES-256）Bytes 
 长度. 
@@ -5538,7 +5630,7 @@ def hash_code(s, salt='mysite'):# 加点盐
     return h.hexdigest() 
  
  
-# hash a word 
+hash a word 
 soundx = [0, 1, 2, 3, 0, 1, 2, 0, 0, 2, 2, 4, 5, 5, 0, 1, 
           2, 6, 2, 3, 0, 1, 0, 2, 0, 2] 
  
@@ -5553,18 +5645,17 @@ def hash_word():
     print('the coded word is ', coded) 
   
  
-11. logging 模块使用记录日志 
-# DEBUG   # 级别最低，详细的信息，通常只出现在诊断问题上； 
-# INFO    # 确认一切按预期进行； 
-# WARNING # 一个迹象表明，一些意想不到事情发生了，或表明一些问题在不久将来，
-这个软件能按预期进行；  
-# ERROR # 更严重的问题，软件没能执行一些功能； 
-# CRITICAL # 一个严重的错误，这表明程序本身可能无法继续运行； 
+## logging 模块使用记录日志 
+DEBUG   # 级别最低，详细的信息，通常只出现在诊断问题上； 
+INFO    # 确认一切按预期进行； 
+WARNING # 一个迹象表明，一些意想不到事情发生了，或表明一些问题在不久将来，这个软件能按预期进行；  
+ERROR # 更严重的问题，软件没能执行一些功能； 
+CRITICAL # 一个严重的错误，这表明程序本身可能无法继续运行； 
  
-# 默认的是 WARNING，当在 WARNING 或者之上时才被追踪； 
+默认的是 WARNING，当在 WARNING 或者之上时才被追踪； 
  
  
-# 日志打印在文件中； 
+日志打印在文件中； 
 logging.BasicConfig(level=logging.WARNING,  
                     filename="./log.txt", 
                     filemode='w', format='%(asctime)s' - %(filename)s[line:%(lineno)d] 
@@ -5574,7 +5665,7 @@ logging.BasicConfig(level=logging.WARNING,
 import logging 
  
  
-# logging 模块使用 
+logging 模块使用 
 def get_logger_object(): 
     # 生成 logger 对象 
     logger = logging.getLogger('dx.log') 
@@ -5608,8 +5699,10 @@ def write_log(msg):
 if __name__ == '__main__': 
     while True: 
         msg = input('输入日志信息').strip() 
-        write_log(msg) 
-12. iter 方法取文件方式 
+        write_log(msg)
+
+
+## iter 方法取文件方式 
 def iter_file(file, size=1024): 
     with open(file, 'r') as f: 
         for data in iter(lambda: f.read(size), b''): 
@@ -5618,8 +5711,9 @@ def iter_file(file, size=1024):
  
 def test_iter(): 
     for row in iter_file('test.txt'): 
-        print(row) 
-13. type 
+        print(row)
+
+## type 
 isinstance 不止可以判断对象与实例化这个对象类的关系，还能接受“继承关系” 
 只有直接实例化这个对象的类才是 type(对象)的类，即使有继承关系，type 也不会“承认”
 这个类的父类的； 
@@ -5672,61 +5766,63 @@ class People2(object):
        # type(self)，在对象方法中使用类的方法 
        return type(self).get_default_age(self) 
  
-   # 起一个与类方法同名的对象方法 
+   起一个与类方法同名的对象方法 
    def get_default_age(self): 
        return 20 
  
 p1 = People1('shane') 
 print(p1.get_age())  # 18 
-# 对象也可以直接调用“类方法”，但是为了“规范”，我们不这么直接让对象直接调用“类
-方法” 
+对象也可以直接调用“类方法”，但是为了“规范”，我们不这么直接让对象直接调用“类方法” 
 print(p1.get_default_age())  # 18 
  
-# 如果对象方法与类方法同名的话，对象会优先调用自己的方法 
+如果对象方法与类方法同名的话，对象会优先调用自己的方法 
 p2 = People2('shane') 
 print(p2.get_age())  # 20 
 print(p2.get_default_age()) # 20 
  
  
-# type 使变量输出为空 
+type 使变量输出为空 
 x = 90 
 y = [2, 3, 5] 
 z = {12, '23', b'78'} 
 print(type(x)(), x) 
 print(type(y)(), y) 
 print(type(z)(), z) 
-# 0 90 
-# [] [2, 3, 5] 
-# set() {b'78', 12, '23'} 
+0 90 
+[] [2, 3, 5] 
+set() {b'78', 12, '23'} 
  
- 
- 
+
 type(('a'))--表示的是 str 类型，不是 tuple 类型； 
-27. 时间格式化 
+
+
+## 时间格式化 
 import datetime 
-# 时间戳转时间 
+时间戳转时间 
 d = datetime.datetime.fromtimestamp(23343555) 
 print(d) # 1970-09-28 12:19:15 
-# 时间字符串格式化 
+
+时间字符串格式化 
 d = d.strftime("%Y-%m-%d %H-%M-%S") 
 print(d) # 1970-09-28 12-19-15 
  
-# 计算两个日期之间差的天数 
+计算两个日期之间差的天数 
 from datetime import date 
 f_date = date(2014, 7, 2) 
 l_date = date(2014, 7, 11) 
 delta = l_date - f_date 
  
  
-# 获取当前日期 
+获取当前日期 
 from datetime import datetime 
 datetime.now() 
-31. 闭包使用外围作用域的变量 
-# 自定义比较器，根据列中的元素的索引为 2 的元素大小进行排序 
-# students_tuples = [('join','a',15),('kane','b',20),('pole','c',30)] 
-# students_tuples.sort(key=lambda student:student[2]) 
-# print(students_tuples) 
-# output ---> [('join', 'a', 15), ('kane', 'b', 20), ('pole', 'c', 30)] 
+
+## 闭包使用外围作用域的变量 
+自定义比较器，根据列中的元素的索引为 2 的元素大小进行排序 
+students_tuples = [('join','a',15),('kane','b',20),('pole','c',30)] 
+students_tuples.sort(key=lambda student:student[2]) 
+print(students_tuples) 
+output ---> [('join', 'a', 15), ('kane', 'b', 20), ('pole', 'c', 30)] 
  
  
 def sort_priority(values, group): 
@@ -5735,20 +5831,20 @@ def sort_priority(values, group):
             return (0, x) 
         return (1, x) 
     values.sort(key=comparator) 
-# 说明：闭包是一种定义在某个作用域中的函数，这种函数引用了那个作用域的变量。 
+说明：闭包是一种定义在某个作用域中的函数，这种函数引用了那个作用域的变量。 
  
 numbers = [8, 3, 1, 2, 5, 4, 7, 6] 
 group = {2, 3, 7, 5} 
-# sort_priority(numbers, group) 
-# print(numbers) 
-# output ---> [2, 3, 5, 7, 1, 4, 6, 8] 
+sort_priority(numbers, group) 
+print(numbers) 
+output ---> [2, 3, 5, 7, 1, 4, 6, 8] 
+
  
-# lis =  [(1, 8), (0, 3), (1, 1), (0, 2), (0, 5), (1, 4), (0, 7), (1, 6)] 
-# lis.sort() 
-# print(lis) 
-# output ---> [(0, 2), (0, 3), (0, 5), (0, 7), (1, 1), (1, 4), (1, 6), (1, 8)] 
-# 说明：元组可以进行比较，先比较元组中下标为 0 的元素，如果相等再比较下标为 1
-的对应元素。 
+lis =  [(1, 8), (0, 3), (1, 1), (0, 2), (0, 5), (1, 4), (0, 7), (1, 6)] 
+lis.sort() 
+print(lis) 
+output ---> [(0, 2), (0, 3), (0, 5), (0, 7), (1, 1), (1, 4), (1, 6), (1, 8)] 
+说明：元组可以进行比较，先比较元组中下标为 0 的元素，如果相等再比较下标为 1 的对应元素。 
  
 def sort_priority1(values, group): 
     found = False 
@@ -5762,16 +5858,15 @@ def sort_priority1(values, group):
     return found 
  
  
-# found = sort_priority1(numbers, group) 
-# print('found==%s' % found) 
-# print(numbers) 
-# 说明：在表达式中引用变量时，python 解释器按照如下顺序遍历各作用域，以解析该
-引用 
-# a. 当前函数的作用域； 
-# b. 任何外围作用域(例如，包含当前函数的其它函数); 
-# c. 包含当前代码的那个模块的作用域(也叫全局作用域，global scope); 
-# d. 内置作用域(包含 len 与 str 等函数的那个作用域); 
-# 给变量赋值时，规则又有所不同，如果当前作用域已经定义了这个变量，那么该变量
+found = sort_priority1(numbers, group) 
+print('found==%s' % found) 
+print(numbers) 
+说明：在表达式中引用变量时，python 解释器按照如下顺序遍历各作用域，以解析该引用 
+a. 当前函数的作用域； 
+b. 任何外围作用域(例如，包含当前函数的其它函数); 
+c. 包含当前代码的那个模块的作用域(也叫全局作用域，global scope); 
+d. 内置作用域(包含 len 与 str 等函数的那个作用域); 
+给变量赋值时，规则又有所不同，如果当前作用域已经定义了这个变量，那么该变量
 就会具备新值；若是当前作用域没有这个变量，python 把这次赋值视为对该变量的定义。
 而新变量的这个变量，其作用域就是包含赋值操作的这个函数。 
  
@@ -5793,21 +5888,22 @@ def sort_priority2(values, group):
 found = sort_priority2(numbers, group) 
 print('found==%s' % found) 
 print(numbers) 
-# output 
-# 140720592160624 
-# 140720592160592 
-# 140720592160592 
-# 140720592160592 
-# 140720592160592 
-# found==True 
-# [2, 3, 5, 7, 1, 4, 6, 8] 
-# 说明：nonlocal 作用就是给相关变量赋值时，应该再上层作用域中查找该变量，当时
+
+output 
+140720592160624 
+140720592160592 
+140720592160592 
+140720592160592 
+140720592160592 
+found==True 
+[2, 3, 5, 7, 1, 4, 6, 8] 
+说明：nonlocal 作用就是给相关变量赋值时，应该再上层作用域中查找该变量，当时
 它不能延伸到模块级别。nolocal 允许用来修改闭包中的变量； 
- 
+
+```python
  
 nonl = ['gfd', 'g', 546] 
- 
- 
+
 # def test_nonlocal(): 
 #     nonlocal nonl 
 #     nonl = 4354 
@@ -5816,6 +5912,8 @@ nonl = ['gfd', 'g', 546]
 #     nonlocal nonl 
 #     ^ 
 # SyntaxError: no binding for nonlocal 'nonl' found 
+
+``` 
  
 def sort_priority3(values, group): 
     found = [False] 
@@ -5834,22 +5932,22 @@ def sort_priority3(values, group):
 found = sort_priority3(numbers, group) 
 print('found==%s' % found) 
 print(numbers) 
-# output:  
+output:  
 found==True 
 [2, 3, 5, 7, 1, 4, 6, 8] 
-# 说明：可以使用可变值来实现 nonlocal 语句相仿的机制。 
+说明：可以使用可变值来实现 nonlocal 语句相仿的机制。 
+
  
-34. 函数的默认参数 
+## 函数的默认参数 
 def foo(x=[]): 
     x.append(1) 
     print(x) 
  
  
-# foo() # [1] 
-# foo() # [1, 1] 
-# 更安全的做法 
- 
- 
+foo() # [1] 
+foo() # [1, 1] 
+更安全的做法 
+
 def foo_safe(x=None): 
     if x is None: 
         x = [] 
@@ -5859,24 +5957,30 @@ def foo_safe(x=None):
  
 foo_safe() # [1] 
 foo_safe() # [1] 
- 
-36. isinstance 可以接收一个元组 
+
+
+## isinstance 可以接收一个元组 
 print(isinstance(1, (int, float))) # 判断 1 是不是 int 类型或者 float 类型 
-# True 
+True 
+
 print(isinstance(1.3, (float, int))) 
-# True 
+True 
+
 print(isinstance('2.5', (str, int))) 
-# True 
-38. 打印一年中的某一个月的日历 
-calendar.month(year, month) 
-42. python 重定向 
-# 标准输入、标准输出和错误输出。 
+True 
+
+## 打印一年中的某一个月的日历 
+calendar.month(year, month)
+
+
+## python 重定向 
+标准输入、标准输出和错误输出。 
 sys.stdin、sys.stdout 和 sys.stderr 
  
 def stderr_test(*args, **kwargs): 
     print(*args, file=sys.stderr, **kwargs) 
  
-# stderr_test('abc', 'def', 'xyz', sep='-*-')   # abc-*-def-*-xyz 
+stderr_test('abc', 'def', 'xyz', sep='-*-')   # abc-*-def-*-xyz 
  
  
 def stdin_test(): 
@@ -5885,13 +5989,12 @@ def stdin_test():
     print(name) 
  
  
-# 执行代码 
-# stdin_test() 
+stdin_test() 
  
-# output: 
-# please input your name: 
-# dongx 
-# dongx 
+output: 
+please input your name: 
+dongx 
+dongx 
  
  
 def stdout_test(): 
@@ -5912,16 +6015,16 @@ def func():
  
  
 func() 
-#   File "F:/projects/python/w3resource/traceback_use_96.py", line 12, in <module> 
-#     func() 
-#   File "F:/projects/python/w3resource/traceback_use_96.py", line 9, in func 
-#     abc() 
-#   File "F:/projects/python/w3resource/traceback_use_96.py", line 5, in abc 
-#     traceback.print_stack() 
+  File "F:/projects/python/w3resource/traceback_use_96.py", line 12, in <module> 
+    func() 
+  File "F:/projects/python/w3resource/traceback_use_96.py", line 9, in func 
+    abc() 
+  File "F:/projects/python/w3resource/traceback_use_96.py", line 5, in abc 
+    traceback.print_stack() 
  
  
  
-写一个类，并让它尽可能多的支持操作符? 
+## 写一个类，并让它尽可能多的支持操作符? 
 class Array: 
  
 __list = [] 
@@ -5953,7 +6056,8 @@ __list = []
  
  
  
-###### 46.请描述抽象类和接口类的区别和联系 1.抽象类： 规定了一系列的方
+## 请描述抽象类和接口类的区别和联系 
+1.抽象类： 规定了一系列的方
 法，并规定了必须由继承类实现的方法。由于有抽象方法的存在，所以抽 象类
 不能实例化。可以将抽象类理解为毛坯房，门窗，墙面的样式由你自己来定，所
 以抽象类与作为基 类的普通类的区别在于约束性更强 
@@ -5961,7 +6065,8 @@ __list = []
 2.接口类：与抽象类很相似，表现在接口中定义的方法，必须由引用类实现，但
 他与抽象类的根本区别 在于用途：与不同个体间沟通的规则，你要进宿舍需要
 有钥匙，这个钥匙就是你与宿舍的接口，你的舍 友也有这个接口，所以他也能
-进入宿舍，你用手机通话，那么手机就是你与他人交流的接口  
+进入宿舍，你用手机通话，那么手机就是你与他人交流的接口
+
 3.区别和关联： 1.接口是抽象类的变体，接口中所有的方法都是抽象的，而抽象
 类中可以有非抽象方法，抽象类是声明方法的存在而不去实现它的类 2.接口可
 以继承，抽象类不行 3.接口定义方法，没有实现的代码，而抽象类可以实现部分
@@ -5969,14 +6074,7 @@ __list = []
  
  
  
-pycharm 使用 
-支持并行执行程序 
-Editor Configurations 
- 
- 
-pycharm 设置护眼绿 
- 
-爬虫 
+# 爬虫 
 常见的反爬虫和应对方法 
 1）.通过 Headers 反爬虫 
 从用户请求的 Headers 反爬虫是最常见的反爬虫策略。很多网站都会对 Headers
@@ -5991,8 +6089,7 @@ Headers 就能很好的绕过。
 大多数网站都是前一种情况，对于这种情况，使用 IP 代理就可以解决。可以专
 门写一个爬虫，爬取网上公开的代理 ip，检测后全部保存起来。这样的代理 ip 爬
 虫经常会用到，最好自己准备一个。有了大量代理 ip 后可以每请求几次更换一
-个 ip，这在 requests 或者 urllib2 中很容易做到，这样就能很容易的绕过第一种反
-爬虫。 
+个 ip，这在 requests 或者 urllib2 中很容易做到，这样就能很容易的绕过第一种反爬虫。 
 对于第二种情况，可以在每次请求后随机间隔几秒再进行下一次请求。有些有逻
 辑漏洞的网站，可以通过请求几次，退出登录，重新登录，继续请求来绕过同一
 账号短时间内不能多次进行相同请求的限制。 
@@ -6035,15 +6132,18 @@ IO 操作会进行 IO 等待，造成不必要的时间浪费，而开启多线�
 2. 从网页中解析 HTML 来定位感兴趣的位置。 
 Python 为上面两个任务提供了两个超棒的工具。用 requests 去加载网页，用 
 BeautifulSoup 去做解析。 
-# 伪装成浏览器访问，直接访问的话 csdn 会拒绝 
+伪装成浏览器访问，直接访问的话 csdn 会拒绝 
 user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)' 
 headers = {'User-Agent': user_agent} 
-# 构造请求 
+
+构造请求 
 req = urllib.request.Request(blog_url, headers=headers) 
-# 访问页面 
+
+访问页面 
 response = urllib.request.urlopen(req) 
 page = response.read().decode('utf-8') 
-# 利用正则表达式来获取博客的内容 
+
+利用正则表达式来获取博客的内容 
 blog_content = re.findall('<div id=\"topics\">(.*?)<script src=', page, re.S) 
 title = re.findall('<span>(.*?)</span>', blog_content[0]) 
 with open('%s.txt' % title[0].lstrip().rstrip(), 'w+', encoding='utf-8') as f: 
@@ -6052,9 +6152,8 @@ with open('%s.txt' % title[0].lstrip().rstrip(), 'w+', encoding='utf-8') as f:
     blog_content = dr.sub('', blog_content[0]) 
      
      
- 
- 
-# http.client 访问 url，获取 content 
+
+http.client 访问 url，获取 content 
 from http.client import HTTPConnection 
  
  
@@ -6065,7 +6164,7 @@ content = result.read()
 print(content) 
  
  
-# bs4.BeautifulSoup 
+bs4.BeautifulSoup 
 soup_page = BeautifulSoup(xml_page, 'xml') 
 news_list = soup_page.findAll('item') 
  
@@ -6376,24 +6475,18 @@ Scrapy 优缺点：
 算法 
  
  
-网络编程 
-<1>. socket 
+# 网络编程 
+## socket 
  
-# python 获取本机主机名和 ip 地址` 
+python 获取本机主机名和 ip 地址` 
 import socket 
 hostname = socket.gethostname()   # PC201910292213 
 print(socket.gethostbyname(hostname)) # 192.168.31.58 
 print(socket.gethostbyname_ex(socket. ()))  # 获得当前主机的所有 ip 列表 
-# ('PC201910292213', [], ['172.30.64.1', '192.168.176.17', '192.168.73.1', '192.168.49.1', 
-'192.168.31.58']) 
- 
-# 使用 python 标准库写出本地 ip 地址 
-[l for l in (lis, [[(s.connect(('8.8.8.8', 53)),s.getsockname()[0], s.close()) for s in 
-[socket.socket(socket.AF_INET,socket.SOCK_DGRAM)]][0][1]]) if l][0][0] 
- 
- 
- 
-# 使用 socketserver 库创建一个 TCP 服务器 
+('PC201910292213', [], ['172.30.64.1', '192.168.176.17', '192.168.73.1', '192.168.49.1', '192.168.31.58']) 
+
+
+使用 socketserver 库创建一个 TCP 服务器 
 class EchoHandler(BaseRequestHandler): 
     def handle(self) -> None: 
         print('Got connection from', self.client_address) 
@@ -6414,18 +6507,18 @@ s = socket.socket(AF_INET, SOCK_STREAM)
 s.connect(('localhost', 20000)) 
 s.send(b'hello')---必须是字节类型的; 
 s.recv(8192) 
-# s.sendto(b'hello', ('localhost', 20000)) 
-# s.recvfrom(128) 
+
+s.sendto(b'hello', ('localhost', 20000)) 
+s.recvfrom(128) 
 注意：一般情况下这种服务器是单线程的，一次只能为一个客户端提供服务； 
-如果想处理多个客户端，可以初始化一个 ForkingTCPServer 或者 ThreadingTCPServer 对
-象； 
+如果想处理多个客户端，可以初始化一个 ForkingTCPServer 或者 ThreadingTCPServer 对象； 
  
 from socket import socket, AF_INET, SOCK_DGRAM 
 s = socket(AF_INET, SOCK_DGRAM) 
 s.sendto(b'', ('localhost', 20000)) 
  
  
-# ipaddress 使用 
+## ipaddress 使用 
 CIDR 网络地址转换成所代表的所有 IP----net = ipaddress.ip_network("10.42.115.0/24"); 
 允许像数组一样索引取值----net[0],net.num_address---地址数; 
 创建一个 ip----address = ipaddress.ip_address('10.42.115.99'); 
@@ -6436,12 +6529,11 @@ inet.network = '10.42.115.23/24';
 inet.ip = '10.42.115.23'; 
  
  
-# ssl 模块为底层 socket 连接添加 SSL 的支持 
+ssl 模块为底层 socket 连接添加 SSL 的支持 
  
  
-# 事件驱动 I/O 
-事件驱动 I/O 本质上来讲就是将基本 I/O 操作（比如读和写）转化为你程序需要处理
-的事件。 
+事件驱动 I/O 
+事件驱动 I/O 本质上来讲就是将基本 I/O 操作（比如读和写）转化为你程序需要处理的事件。 
 例如，当数据在某个 socket 上被接受后，它会转换成一个 receive 事件， 
 然后被你定义的回调方法或函数来处理。 
 select.select()调用，它会不断轮询文件描述符从而激活它。 
@@ -6449,17 +6541,15 @@ select.select()调用，它会不断轮询文件描述符从而激活它。
 然后它将结果列表提供给 select()。然后 select()返回准备接受或发送的对象组成的列表。 
  
  
-# 创建一个简单 tcp 服务器需要的流程 
+## 创建一个简单 tcp 服务器需要的流程 
 1.socket 创建一个套接字 
 2.bind 绑定 ip 和 port 
 3.listen 使套接字变为可以被动链接 
 4.accept 等待客户端的链接 
 5.recv/send 接收发送数据 
  
- 
- 
-####  
 server 端： 
+```python
 import socket 
 import threading 
 from concurrent.futures import ThreadPoolExecutor 
@@ -6491,11 +6581,11 @@ def server(ip, post):
 if __name__ == '__main__': 
     # 最多可开 client 端为 2 个 
     pool = ThreadPoolExecutor(2) 
-    server('127.0.0.1', 8000) 
- 
- 
- 
+    server('127.0.0.1', 8000)
+``` 
+
 client 端： 
+```python
 import socket 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 client.connect(('127.0.0.1', 8000)) 
@@ -6506,11 +6596,11 @@ while True:
         continue 
     client.send(msg.encode('utf-8')) 
     data = client.recv(1024) 
-    print('Server Data:', data.decode('utf-8')) 
- 
+    print('Server Data:', data.decode('utf-8'))
+``` 
      
      
-# 判断 ip 地址是否有效 
+## 判断 ip 地址是否有效 
 import socket 
 def test_valid_ip_address(addr): 
  
@@ -6526,12 +6616,12 @@ addr2 = '125.23.22.215'
 test_valid_ip_address(addr1) # invalid ip address 
 test_valid_ip_address(addr2) # valid ip address 
  
-**我们在线程池设置了最多可以有 2 个客户端与服务器端通信，所以当第三个客户端试
-图去与服务器端建立链接时是没有用的，只有当其中的一个客户端停掉才能通信** 
+我们在线程池设置了最多可以有 2 个客户端与服务器端通信，所以当第三个客户端试
+图去与服务器端建立链接时是没有用的，只有当其中的一个客户端停掉才能通信 
  
  
  
-## <a name='-1'></a>异常 
+# <a name='-1'></a>异常 
 AttributeError 试图访问一个对象没有的树形，比如 foo.x，但是 foo 没有属性 x 
 IOError 输入/输出异常；基本上是无法打开文件 
 ImportError 无法引入模块或包；基本上是路径问题或名称错误 
@@ -6548,7 +6638,7 @@ SyntaxError:Python 代码逻辑语法出错，不能执行
 
 
  
-## <a name='-1'></a>设计模式 
+# <a name='-1'></a>设计模式 
 ### <a name='-1'></a>单例模式的应用场景有那些？ 
 单例模式应用的场景一般发现在以下条件下：资源共享的情况下，避免由于资源操作时导致的性能或损耗等，如日志文件，应用配置。 控制资源的情况下，方便资源之间的互相通信。如线程池等， 
 1.网站的计数器 

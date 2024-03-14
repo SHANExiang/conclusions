@@ -1366,6 +1366,59 @@ mycat
 redis： 内存型非关系数据库，数据保存在内存中，速度快 
 mysql：关系型数据库，数据保存在磁盘中，检索的话，会有一定的 Io 操作，访问速度相对慢 
  
+
+# mysql数据字典
+MySQL的数据字典是一组用于存储数据库元数据的系统表和视图。
+它提供了关于数据库对象的信息，如表、列、索引、约束、用户权限等。
+数据字典在MySQL中也被称为"系统目录"或"信息模式（Information Schema）"。
+
+MySQL的数据字典主要包含以下几个部分：
+
+1. 信息模式（Information Schema）：
+   - 信息模式是一个虚拟数据库，它包含了描述MySQL服务器中所有数据库的元数据信息。
+   - 通过查询信息模式中的表，可以获取关于数据库、表、列、索引、约束、用户权限等的详细信息。
+   - 常用的信息模式表包括：
+     - TABLES：提供关于数据库中所有表的信息，如表名、存储引擎、创建时间等。
+     - COLUMNS：提供关于表中所有列的信息，如列名、数据类型、是否可为空等。
+     - STATISTICS：提供关于表的索引信息，如索引名、索引列、索引类型等。
+     - KEY_COLUMN_USAGE：提供关于表的约束信息，如主键、外键等。
+     - USER_PRIVILEGES：提供关于用户权限的信息，如用户名、权限类型等。
+
+2. MySQL系统表：
+   - MySQL还维护了一组系统表，用于存储服务器的配置信息、用户账户、权限等。
+   - 这些系统表位于MySQL的系统数据库中，如mysql、performance_schema和sys数据库。
+   - 常用的系统表包括：
+     - mysql.user：存储用户账户信息和全局权限。
+     - mysql.db：存储数据库级别的权限信息。
+     - mysql.tables_priv：存储表级别的权限信息。
+     - mysql.columns_priv：存储列级别的权限信息。
+     - mysql.proc：存储存储过程和函数的信息。
+
+3. 性能模式（Performance Schema）：
+   - 性能模式是MySQL 5.5引入的一个特性，用于监控MySQL服务器的性能和资源使用情况。
+   - 它提供了一组表和视图，用于收集和查询MySQL服务器的性能数据，如语句执行时间、锁等待时间、内存使用情况等。
+   - 通过查询性能模式中的表，可以获取有关MySQL服务器性能的详细信息，帮助进行性能调优和问题诊断。
+
+使用MySQL的数据字典，可以通过SQL查询来获取关于数据库对象的元数据信息。例如：
+
+```sql
+-- 查询数据库中所有表的信息
+SELECT * FROM information_schema.TABLES;
+
+-- 查询某个表的列信息
+SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = 'your_table_name';
+
+-- 查询某个表的索引信息
+SELECT * FROM information_schema.STATISTICS WHERE TABLE_NAME = 'your_table_name';
+
+-- 查询用户权限信息
+SELECT * FROM mysql.user;
+```
+
+通过查询数据字典，可以获取关于数据库对象的详细信息，如表结构、列属性、索引定义、用户权限等。这对于数据库管理、应用开发和性能优化非常有帮助。
+
+需要注意的是，访问数据字典需要相应的权限，通常需要具有管理员权限或相关的访问权限才能查询这些系统表和视图。
+
  
 # mysql基础 
 ## <a name='mysql-1'></a>mysql 语句 
@@ -1548,6 +1601,15 @@ limit 起始位置, 获取条数
 distinct 去除重复记录 
 默认为 all, 全部记录 
 
+#### RANK
+简单的RANK示例
+SELECT name, score, RANK() OVER (ORDER BY score DESC) 'rank' FROM students;
+这会按照score列从高到低排序,并为每个学生计算排名。相同分数的学生排名相同。
+
+PARTITION BY的使用
+SELECT name, subject, score, RANK() OVER (PARTITION BY subject ORDER BY score DESC) 'rank' FROM student_scores;
+这里按subject分组,每个科目内部按score排名。不同科目的排名是独立的。
+
 
 #### <a name='i.UNION'></a>i. UNION 
 将多个 select 查询的结果组合成一个结果集合。 
@@ -1703,6 +1765,48 @@ a. 统计每个学生的总分；
 SELECT XS.XSDM, XS.XSMC, SUM(CJ.CJ) AS 总分 FROM XS JOIN CJ ON XS.XSDM = CJ.XSDM GROUP BY XS.XSDM, XS.XSMC;
 b. 列出没有不及格（>=60）的学生姓名及平均分； 
 SELECT XS.XSMC, AVG(CJ.CJ) AS 平均分 FROM XS JOIN CJ ON XS.XSDM = CJ.XSDM JOIN XK ON CJ.XKDM = XK.XKDM WHERE CJ.CJ >= 60 GROUP BY XS.XSMC;
+
+20. 查询各科成绩最高分、最低分和平均分：以如下形式显示：课程 ID，课程 name，最高分，最低分，平均分，及格率，中等率，优良率，优秀率；及格：>=60，中等为：70-80，优良为：80-90，优秀为：>=90
+-- 课 程 表
+ CREATE TABLE `Course`(
+ `c_id` VARCHAR(20),
+ `c_name` VARCHAR(20) NOT NULL DEFAULT '',
+ `t_id` VARCHAR(20) NOT NULL,
+ PRIMARY KEY(`c_id`)
+ );
+
+ -- 成 绩 表
+ CREATE TABLE `Score`(
+ `s_id` VARCHAR(20),
+ `c_id` VARCHAR(20),
+ `s_score` INT(3),
+ PRIMARY KEY(`s_id`,`c_id`)
+ );
+```shell
+select
+ s.c_id
+ ,c.c_name
+ ,max(s.s_score)
+ ,min(s.s_score)
+ ,round(avg(s.s_score), 2)
+ ,round(100 * (sum(case when s.s_score >= 60 then 1 else 0 end) / sum(case
+when s.s_score then 1 else 0 end)), 2) as 及 格 率
+ ,round(100 * (sum(case when s.s_score >= 70 and s.s_score <= 80 then 1 else
+0 end) / sum(case when s.s_score then 1 else 0 end)), 2) as 中 等 率
+ ,round(100 * (sum(case when s.s_score >= 80 and s.s_score <= 90 then 1 else
+0 end) / sum(case when s.s_score then 1 else 0 end)), 2) as 优 良 率
+ ,round(100 * (sum(case when s.s_score >= 90 then 1 else 0 end) / sum(case
+when s.s_score then 1 else 0 end)), 2) as 优 秀 率
+ from Score s
+ left join Course c
+ on s.c_id = c.c_id
+ group by s.c_id, c.c_name;
+```
+
+21. 将每科的成绩单独进行排名
+```shell
+select c.c_id, c.c_name, s.s_score, RANK() OVER (Partition BY s.c_id ORDER BY s.s_score DESC) 'rank'  from Score as s JOIN Course as c on s.c_id = c.c_id;
+```
 
 
 
