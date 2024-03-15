@@ -6,7 +6,7 @@
 <!-- /vscode-markdown-toc -->
 
 
-## <a name='Go'></a>与其他编程语言相比，使用Go语言有以下几个主要的好处：
+## 与其他编程语言相比，使用Go语言有以下几个主要的好处：
 
 1. 简洁性和可读性：
    - Go语言的语法简洁明了，易于学习和理解。
@@ -50,7 +50,7 @@
    - Go的生态系统日益完善。
 
 
-## <a name='Go-1'></a>Go编译运行
+## Go编译运行
 go 源代码首先要通过 go build 编译为可执行文件，在 linux 平台上为 ELF 格式的可执行文件，编译阶段会经过编译器、汇编器、链接器三个过程最终生成可执行文件。
 1、编译器：.go 源码通过 go 编译器生成为 .s 的 plan9 汇编代码；
 2、汇编器：通过 go 汇编器将编译器生成的 .s 汇编语言转换为机器代码，并写出最终的目标程序.o 文件；
@@ -73,7 +73,7 @@ go env -w GOOS=linux
 
 
 
-## <a name='Gomodule'></a>Go module
+## Go module
 1. 查看开启情况，go env GO111MODULE；
 2. 开启---go env -w GO111MODULE="on"；
 3. 设置Go proxy---go env -w GOPROXY=http://goproxy.cn；
@@ -90,7 +90,7 @@ go env -w GOOS=linux
 
 
 
-## <a name='Gopanic'></a>Go panic
+## Go panic
 1. 数组/索引索引越界；index out of range
 2. 空指针调用；invalid memory address or nil pointer dereference
 3. 过早关闭http响应体；指的是resp可能为nil；
@@ -103,7 +103,7 @@ go env -w GOOS=linux
 10. sync计数为负值，指的是WaitGroup add方法传负值；negative WaitGroup counter；
 
 
-## <a name='newmake'></a>new 和 make 的区别？
+## new 和 make 的区别？
 make 
 make(T, args) 返回的是初始化之后的 T 类型的值，这个新值并不是 T 类型的零值，也不是指针*T，是经过初始化之后的 T 的引用。
 make 也是内建函数； 
@@ -126,7 +126,7 @@ make 和 new 的区别
 3. new 函数分配内存，make 函数初始化。 
 
 
-## <a name='Goroutine'></a>什么是协程（Goroutine）与线程区别 
+## 什么是协程（Goroutine）与线程区别 
 协程是用户态轻量级线程，它是线程调度的基本单位。通常在函数前加上 go 关键字就能实现并发。 
 1. 调度方式不同： 
 Go 语言的协程是由 Go 语言的运行时（runtime）进行调度的，而线程是由操作系统进行调度的。
@@ -144,7 +144,7 @@ Go 语言的协程调度器采用的是 M:N 调度模型，即将 M 个协程映
 线程则更适合处理 CPU 密集型任务。在 CPU 密集型任务下，Go 协程的优势要小很多，甚至可能更差。 
 
 
-## <a name='Go-1'></a>Go 面向对象 
+## Go 面向对象 
 Go 实现面向对象的两个关键是 struct 和 interface。 
 封装：对于同一个包，对象对包内的文件可见；对不同的包，需要将对象以大写开头才是可见的。 
 继承：继承是编译时特征，在 struct 内加入所需要继承的类即可： 
@@ -162,7 +162,7 @@ Go 支持多重继承，就是在类型中嵌入所有必要的父类型。
 
 golang语言中没有继承概念，只有组合，也没有虚方法，更没有重载。因此，不会覆写被组合的结构体的方法。
 
-#### <a name=''></a>如何理解组合
+#### 如何理解组合
 在Go语言中，组合（Composition）是一种实现代码重用和结构化的方式。它允许将一个结构体嵌入到另一个结构体中，从而实现类似于继承的行为，但又不同于传统的继承关系。
 
 组合的基本思想是将一个结构体作为另一个结构体的字段，通过嵌入的方式将一个结构体的功能和属性组合到另一个结构体中。
@@ -223,9 +223,25 @@ func main() {
 总之，组合是Go语言中实现代码重用和结构化的重要机制。通过将结构体嵌入到其他结构体中，可以实现功能的组合和扩展，提高代码的灵活性和可维护性。
 
 
-## <a name='interface'></a>接口interface 
+### struct{}{}为什么不占用内存
+Go 语言中的 struct{}{} 是一个空结构体，它确实不占用内存空间。这是因为：
 
-#### <a name='interfaceok'></a>2 个 interface 可以比较吗？ok 
+1. 空结构体不包含任何字段，因此不需要为字段分配内存。
+2. Go 语言在设计时做了一个优化，认为所有的空结构体都是相同的，因此可以共享同一块内存。
+3. 编译器在编译时会将所有的空结构体都指向同一个地址，这个地址通常是一个全局的空结构体变量。
+4. 在运行时，所有的空结构体变量都指向这个共享的内存地址，因此不会占用额外的内存空间。
+
+这个特性在某些场景下非常有用，比如：
+1. 用作通道（channel）的元素类型，表示不关心实际传递的值，只关心通知或信号。
+2. 用作 map 的键类型，表示只关心键的存在性，而不关心键对应的值。
+3. 用作集合（set）的实现，因为空结构体可以高效地表示元素的存在性，而不占用额外的内存空间。
+总之，struct{}{} 作为一个特殊的类型，在 Go 语言中有其独特的用途，并且由于编译器的优化，它不会占用任何内存空间。
+
+
+
+## 接口interface 
+
+#### 2 个 interface 可以比较吗？ok 
 Go 语言中，interface 的内部实现包含了 2 个字段，类型 T 和 值 V，interface 可以使用 == 或 != 比较。
 2 个 interface 相等有以下 2 种情况： 
 1. 两个 interface 均等于 nil（此时 V 和 T 都处于 unset 状态）； 
@@ -246,7 +262,7 @@ func main() {
 stu1 和 stu2 对应的类型是 *Stu，值是 Stu 结构体的地址，两个地址不同，因此结果为 false。 
 stu3 和 stu4 对应的类型是 Stu，值是 Stu 结构体，且各字段相等，因此结果为 true。 
 
-#### <a name='gointerface'></a>go 的 interface 怎么实现的？ 
+#### go 的 interface 怎么实现的？ 
 go interface 源码在 runtime\iface.go 中。 
 go 的接口由两种类型实现 iface 和 eface。iface 是包含方法的接口，而 eface 不包含方法。 
 iface 
@@ -274,7 +290,7 @@ type eface struct {
     data  unsafe.Pointer 
 }
 
-#### <a name='nilok'></a>2 个 nil 可能不相等吗？ ok 
+#### 2 个 nil 可能不相等吗？ ok 
 可能不等。interface 在运行时绑定值，只有值为 nil 接口值才为 nil，但是与指针
 的 nil 不相等。举个例子： 
 var p *int = nil 
@@ -285,7 +301,7 @@ fmt.Println("Equal")
 两者并不相同。总结：两个 nil 只有在类型相同时才相等。 
 
 
-#### <a name='-1'></a>实现接口时用指针接收者，指针或值调用接口有什么讲究吗
+#### 实现接口时用指针接收者，指针或值调用接口有什么讲究吗
 
 在Go语言中，当使用指针接收者实现接口时，调用接口方法时可以使用指针或值，但是有一些细节需要注意。
 
@@ -351,9 +367,9 @@ func main() {
 
 总之，使用指针接收者实现接口提供了更大的灵活性，可以在接口方法中修改接收者的状态。而在调用接
 
-## <a name='map'></a>map
+## map
 
-#### <a name='map-1'></a>map 的底层实现 
+#### map 的底层实现 
 源码位于 src\runtime\map.go 中。 
 go 的 map 和 C++map 不一样，底层实现是哈希表，包括两个部分：hmap 和 bucket。 
 里面最重要的是 buckets（桶），buckets 是一个指针，最终它指向的是一个结构体： 
@@ -370,7 +386,7 @@ map 查找就是将 key 哈希后得到 64 位（64 位机）用最后 B 个比�
 关于 map 的查找和扩容可以参考 map 的用法到 map 底层实现分析。 
 
 
-#### <a name='gomap'></a>go 里面的 map 是并发安全的吗？如何并发安全 
+#### go 里面的 map 是并发安全的吗？如何并发安全 
 Go 中的 map 是非并发安全的，多个 goroutine 对同一个 map 进行并发读写操作时可能会导致数据竞争和并发问题。
 为了保证 map 的并发安全性，可以使用以下两种方式：
 1. 使用 sync 包中的 Map 类型 
@@ -435,7 +451,7 @@ func write(key, value string) {
 全和性能的平衡。同时，也可以使用 sync.Map 类型来简化代码，避免使用锁时出现的一些
 问题，例如死锁等。 
  
-#### <a name='hash'></a>解决 hash 碰撞的方法 
+#### 解决 hash 碰撞的方法 
 1、开放寻址法； 
 这种方法的核心思想是依次探测和比较数组中的元素以判断目标键值对是否存
 在于哈希表中。实现哈希表的底层数据接口是数组。 
@@ -453,7 +469,7 @@ b、没有找到键相同的键值对 — 在链表的末尾追加新的键值�
 
 
 
-#### <a name='makemap'></a>通过 make 函数定义 map 
+#### 通过 make 函数定义 map 
 make(map[string]int) 
 mapCreated := make(map[string]float32)相当于：mapCreated := map[string]float32{}. 
 
@@ -473,7 +489,7 @@ len(map) ---可以获得 map 的长度
 map 和 slice 一样是引用类型，不能通过==进行比较，==只能判断 map 是否是 nil；
 
 
-#### <a name='map-1'></a>map 的排序 
+#### map 的排序 
 // for-range 遍历 map 
 for key, value := range map1 { 
 } 
@@ -484,13 +500,13 @@ map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷�
 再对切片排序，然后可以使用切片的 for-range 方法打印出所有的 key 和 value。
 
 
-#### <a name='mapkey'></a>map 中删除一个 key，它的内存会释放么？
+#### map 中删除一个 key，它的内存会释放么？
 如果删除的元素是值类型，如int，float，bool，string以及数组和struct，map的内存不会自动释放
 如果删除的元素是引用类型，如指针，slice，map，chan等，map的内存会自动释放，
 但释放的内存是子元素应用类型的内存占用将map设置为nil后，内存被回收。
 
 
-#### <a name='map-1'></a>遍历map为啥不是有序的？
+#### 遍历map为啥不是有序的？
 1. map底层实现是哈希表，在进行插入数据时，会对key进行hash运算，这也就导致了数据不是按顺序存储的，和遍历的顺序也就会不一致；
 2. map 在扩容后，会发生 key 的搬迁，原来落在同一个 bucket 中的 key，搬迁后，有些 key 可能就到其他 bucket 了；
 而遍历的过程，就是按顺序遍历 bucket，同时按顺序遍历 bucket 中的 key。 
@@ -498,7 +514,7 @@ map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷�
 3. 在遍历 map 时，并不是固定地从 0 号 bucket 开始遍历，每次都是从一个随机值序号的 bucket 开始遍历，
 并且是从这个 bucket 的一个随机序号的 cell 开始遍历。
 
-#### <a name='map-1'></a>map三种并发安全的方式
+#### map三种并发安全的方式
 1. 读写锁；
 2. 分片加锁；将这个 map 分成 n 块，每个块之间的读写操作都互不干扰；
 type SafeMap2 struct {
@@ -508,15 +524,15 @@ type SafeMap2 struct {
 3. sync.Map
 
 
-## <a name='-1'></a>切片 
+## 切片 
 
-#### <a name='-1'></a>数组 
+#### 数组 
 定义：arr := [...]int{1, 2, 3}或 arr := [3]int{1, 2, 3}     
 如果数组中元素的个数小于或者等于 4 个，那么所有的变量会直接在栈上初始化。
 如果数组元素大于 4 个，变量就会在静态存储区初始化然后拷贝到栈上； 
 数组是固定产长度的，不能动态扩容，在编译期就确定大小。 
 
-#### <a name='-1'></a>操作切片方法
+#### 操作切片方法
 numbers = append(numbers, 2,3,4)        ---往 numbers 中添加多个元素 
 append(slice1, slice...)，返回新的切片     ---将一个切片 append 到另一个切片中  
 copy(numbers1,numbers)                  ---拷贝 numbers 的内容到 numbers1 
@@ -528,7 +544,7 @@ copy(numbers1,numbers)                  ---拷贝 numbers 的内容到 numbers1
 3、make([]T, length, capacity)    必须要有 length 参数，len() ---长度 ，cap() ---容量 
 
 
-#### <a name='-1'></a>切片初始化加索引
+#### 切片初始化加索引
 func main() {
     var a = []int{2: 3, 4, 0: 0}
     fmt.Println(a)
@@ -536,7 +552,7 @@ func main() {
 // 索引 0 值为 0，索引 2 值为 3，没有指定索引的元素会在前一个索引基础之上加一 
 
 
-#### <a name='-1'></a>切片拷贝三种方式
+#### 切片拷贝三种方式
 1、使用=操作符拷贝切片，这种就是浅拷贝 
 2、使用[:]下标的方式复制切片，这种也是浅拷贝 
 3、使用 Go 语言的内置函数 copy()进行切片拷贝，这种就是深拷贝 
@@ -546,13 +562,13 @@ r := append(s, 1, 2, 3) ## r = [0 0 0 0 0 1 2 3]
 fmt.Println(r, len(r), cap(r)) ## len(r)=8, cap(r)=10 
 
 
-#### <a name='-1'></a>两个切片追加在一起
+#### 两个切片追加在一起
 s1 := []int{1, 2, 3} 
 s2 := []int{4, 5}
 fmt.Println(append(s1, s2...))  ## [1 2 3 4 5]
 
 
-#### <a name='-1'></a>切片切取
+#### 切片切取
 a := [5]int{1, 2, 3, 4, 5} 
 t := a[3:4:4] ## 意思切取索引 3-->4(不包含 4)，第三个参数用来限制新切片的容量，切片容量为第三个参数
 第一个参数，如果第二个参数省略的话，默认为切片的长度；
@@ -569,11 +585,11 @@ fmt.Println(s1, "\n", s2)
 3. 利用数组创建切片，切片操作的是同一个数组；
 
 
-#### <a name='2slice'></a>如何判断 2 个字符串切片（slice) 是相等的？ 
+#### 如何判断 2 个字符串切片（slice) 是相等的？ 
 reflect.DeepEqual() ， 但反射非常影响性能。 
  
 
-#### <a name='Gocopy'></a>在使用Go语言的内置函数`copy`与切片配合时，需要注意什么？
+#### 在使用Go语言的内置函数`copy`与切片配合时，需要注意什么？
 
 1. 切片的长度和容量：
    - `copy`函数的第一个参数是目标切片，第二个参数是源切片。
@@ -629,7 +645,7 @@ func main() {
 
 
 
-#### <a name='slice'></a>切片slice扩容策略
+#### 切片slice扩容策略
 在 Go 语言中，切片的扩容是通过 append 函数实现的。
 当我们向一个切片中添加元素时，如果当前切片的容量不足以存储新的元素，Go 会自动为该切片分配一块新的内存空间，
 然后将原来的数据复制到新分配的内存空间中，并将新的元素添加进去。这个过程被称为切片的扩容。 
@@ -658,20 +674,20 @@ func main() {
 
 
 
-## <a name='-1'></a>链式调用
+## 链式调用
 链式调用是一种简化代码的编程方式，能够使代码更简洁、易读。链式调用的原理也非常简单，某个对象调用某个方法后，
 将该对象的引用/指针返回，即可以继续调用该对象的其他方法。通常来说，当某个对象需要一次调用多个方法来设置其属性时，
 就非常适合改造为链式调用了。
 
 
-## <a name='Hook'></a>Hook机制
+## Hook机制
 Hook，翻译为钩子，其主要思想是提前在可能增加功能的地方埋好(预设)一个钩子，当我们需要重新修改或者增加这个地方的逻辑的时候，
 把扩展的类或者方法挂载到这个点即可。钩子的应用非常广泛，例如 Github 支持的 travis 持续集成服务，当有 git push 事件发生时，
 会触发 travis 拉取新的代码进行构建。IDE 中钩子也非常常见，比如，当按下 Ctrl + s 后，自动格式化代码。
 再比如前端常用的 hot reload 机制，前端代码发生变更时，自动编译打包，通知浏览器自动刷新页面，实现所写即所得。
 
 
-## <a name='orm'></a>orm
+## orm
 对象关系映射（Object Relational Mapping，简称ORM）是通过使用描述对象和数据库之间映射的元数据，将面向对象语言程序中的对象自动持久化到关系数据库中。
 数据库表迁移
 新增字段  ALTER TABLE tableName ADD COLUMN col_name, col_type;
@@ -694,9 +710,9 @@ ALTER TABLE new_table RENAME TO old_table;                        ## 重命名 n
     ALTER TABLE table_name ADD COLUMN col_name, col_type;
     CREATE TABLE new_table AS SELECT col1, col2, ... from old_table DROP TABLE old_table ALTER TABLE new_table RENAME TO old_table;
 
-## <a name='gorm'></a>gorm
+## gorm
 
-#### <a name='gormlogger'></a>gorm 加上 logger 
+#### gorm 加上 logger 
 go get –u gorm.io/gorm/logger 
 newLogger := logger.New( 
    log.New(os.Stdout, "\r\n", log.LstdFlags), 
@@ -710,7 +726,7 @@ DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dsn")), &gorm.Config{Logger:
 访问接口，终端会有 sql 语句打印；
 
  
-#### <a name='gorm-1'></a>gorm 里面如何批量插入某个字段 
+#### gorm 里面如何批量插入某个字段 
 在 GORM 中，可以使用 CreateInBatches 方法来批量插入数据。
 如果要批量插入某个字段，可以先构造一个包含该字段的结构体切片，然后使用CreateInBatches 方法进行批量插入。 
 
@@ -743,7 +759,7 @@ CreateInBatches 方法进行批量插入。在调用 CreateInBatches 方法时�
 了要插入的记录数和要选择的字段（即只插入 City 字段）。最后，我们可以通
 过 result.RowsAffected 获取插入的记录数。 
  
-#### <a name='gorm-1'></a>gorm 里面更新有几种方式？ 
+#### gorm 里面更新有几种方式？ 
 1. 使用 Update 方法更新单条记录 
 Update 方法可以用于更新单条记录，它接收一个结构体或 map 参数，表示要更 新的字段和值。例如： 
 db.Model(&User{}).Where("id = ?", 1).Update("name", "Alice") 
@@ -773,14 +789,14 @@ db.Save(&user)
 db.Debug().Updates() 等方法查看生成的 SQL 语句。 
 
 
-## <a name='Gin'></a>Gin
+## Gin
 框架提供的特性， 
 1. 路由(Routing)：将请求映射到函数，支持动态路由。例如'/hello/:name； 
 2. 模板(Templates)：使用内置模板引擎提供模板渲染机制； 
 3. 工具集(Utilites)：提供对 cookies，headers 等处理机制； 
 4. 插件(Plugin)：Bottle 本身功能有限，但提供了插件机制。可以选择安装到全局，也可以只针对某几个路由生效。
 
-#### <a name='-1'></a>前缀树
+#### 前缀树
 动态路由可以匹配某一类型路由而非一条固定的路由；例如/hello/:name，可以匹配/hello/geektutu、hello/jack等。
 实现动态路由最常用的数据结构，被称为前缀树；
 
@@ -903,7 +919,7 @@ r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 http://localhost:8080/swagger/doc.json 看到 json 样式； 
 
 
-#### <a name='GIN'></a>GIN 怎么做参数校验 
+#### GIN 怎么做参数校验 
 go 采用 validator 作参数校验。 
 它具有以下独特功能： 
 1. 使用验证 tag 或自定义 validator 进行跨字段 Field 和跨结构体验证； 
@@ -913,7 +929,7 @@ go 采用 validator 作参数校验。
 5. 别名验证标签，允许将多个验证映射到单个标签，以便更轻松地定义结构体上的验证； 
 6. gin web 框架的默认验证器； 
 
-#### <a name='-1'></a>你项目有优雅的启停吗？ 
+#### 你项目有优雅的启停吗？ 
 所谓「优雅」启停就是在启动退出服务时要满足以下几个条件： 
 1. 不可以关闭现有连接（进程） 
 2. 新的进程启动并「接管」旧进程 
@@ -937,7 +953,7 @@ context.XML(http.StatusOK, obj)  ---返回 xml 数据
 
 
 
-#### <a name='-1'></a>令牌桶
+#### 令牌桶
 描述：有个固定大小的桶，系统会以恒定速率向桶中放入令牌，桶满则不放。请求到来时需要从桶中获取令牌才能执行，否则不能执行，要么阻塞，要么丢弃。
 
 生产和消费令牌其实就是维护token数，token数是共享资源，可能会有多线程操作，需要加锁。
@@ -954,7 +970,7 @@ lastEvent：上次发生限速器事件的时间（通过或者限制都是限�
 
 
 
-#### <a name='web'></a>开发web框架流程
+#### 开发web框架流程
 1. 将所有的HTTP请求转向了我们自己的处理逻辑。
 实现Engine（实现ServeHTTP方法---net/http.Handler接口，然后调用net/http.ListenAndServe进行服务监听），拦截了所有的HTTP请求，拥有了统一的控制入口。
 可以自由定义路由映射的规则，也可以统一添加一些处理逻辑，例如日志、异常处理等。
@@ -1015,7 +1031,7 @@ part2 执行完毕，结束。
 
 
 
-## <a name='goroutine'></a>goroutine
+## goroutine
 1. goroutine是由Go的运行时调度和管理的，在语言层面已经内置了调度和上下文切换的机制；
 2. 操作系统线程有固定的栈内存（通常为2MB），一个goroutine的栈在其生命周期开始时只有很小的栈（2KB），goroutine的栈不是固定的，可以按需增加和缩小；
 3. goroutine什么情况下会阻塞：
@@ -1024,7 +1040,7 @@ part2 执行完毕，结束。
 
 
 
-#### <a name='goroutine-1'></a>goroutine 什么情况会发生内存泄漏？如何避免。
+#### goroutine 什么情况会发生内存泄漏？如何避免。
 在 Go 中内存泄露分为暂时性内存泄露和永久性内存泄露。 
 暂时性内存泄露 
 1. 获取长字符串中的一段导致长字符串未释放 
@@ -1040,15 +1056,15 @@ part2 执行完毕，结束。
 3. 不正确使用 Finalizer（Go 版本的析构函数）导致泄漏 
 
 
-#### <a name='goroutinepanic'></a>如果若干个 goroutine，有一个 panic 会怎么做？
+#### 如果若干个 goroutine，有一个 panic 会怎么做？
 有一个 panic，那么剩余 goroutine 也会退出，程序退出。如果不想程序退出，那
 么必须通过调用 recover() 方法来捕获 panic 并恢复将要崩掉的程序。  
 
 
 
-## <a name='sync'></a>sync 
+## sync 
 
-#### <a name='atomic.'></a>说说 atomic 底层怎么实现的. 
+#### 说说 atomic 底层怎么实现的. 
 atomic 源码位于 sync\atomic。 
 通过阅读源码可知，atomic 采用 CAS（CompareAndSwap）的方式实现的。
 所谓 CAS 就是使用了 CPU 中的原子性操作。
@@ -1057,7 +1073,7 @@ atomic 源码位于 sync\atomic。
 本质上是不断占用 CPU 资源来避免加锁的开销。 
 
 
-#### <a name='mutex'></a>mutex 有几种模式？
+#### mutex 有几种模式？
 在Go语言的`sync`包中，`Mutex`（互斥锁）有两种模式：
 
 1. 正常模式（Normal Mode）：
@@ -1082,7 +1098,7 @@ atomic 源码位于 sync\atomic。
 总的来说，`sync.Mutex`提供了两种模式：正常模式和饥饿模式，以满足不同的并发场景和需求。开发者可以根据实际情况选择适合的模式来确保并发安全和性能的平衡。
 
 
-#### <a name='mutex-1'></a>mutex的自旋含义
+#### mutex的自旋含义
 互斥锁（Mutex）的自旋（Spinning）是一种优化策略，旨在减少Goroutine的切换开销，提高并发性能。
 
 当一个Goroutine尝试获取一个已经被其他Goroutine持有的互斥锁时，它有两种选择：
@@ -1123,7 +1139,7 @@ func criticalSection(mutex *sync.Mutex) {
 总结一下，互斥锁的自旋是一种优化策略，通过让Goroutine在短时间内不断尝试获取锁，避免了频繁的上下文切换，从而提高了并发性能。但是，自旋等待也会占用CPU资源，因此需要根据实际情况进行平衡和调优。
 
 
-#### <a name='sync.Mutex'></a>sync.Mutex允许自旋的条件
+#### sync.Mutex允许自旋的条件
 在Go语言中，`Mutex`确实允许自旋（Spinning），但是自旋的条件和自旋的次数是由Go语言运行时自动控制的，开发者无法直接干预。
 
 Go语言运行时会根据以下条件来决定是否对`Mutex`进行自旋：
@@ -1153,7 +1169,7 @@ Go语言运行时会动态地调整自旋的策略，以平衡性能和资源利
 
 
 
-#### <a name='sync.RWMutex'></a>sync.RWMutex
+#### sync.RWMutex
 它保护对内存的访问；你可以请求锁定进行读取，在这种情况下，你将被授予读取权限，除非锁定正在进行写入操作。
 这意味着，只要没有别的东西占用写操作，任意数量的读取者就可以进行读取操作。
 sync.RWMutex`类型有三个方法：
@@ -1164,7 +1180,7 @@ sync.RWMutex`类型有三个方法：
 RWMutex 在读锁占用的情况下，会阻止写，但不阻止读RWMutex。 
 在写锁占用情况下，会阻止任何其他Goroutine（无论读和写）进来，整个锁相当于由该 Goroutine独占。
 
-#### <a name='sync.RWMutex-1'></a>sync.RWMutex实现原理
+#### sync.RWMutex实现原理
 `sync.RWMutex`是Go语言标准库中提供的读写锁（Reader-Writer Mutex）的实现。它允许多个读操作并发执行，但写操作必须独占锁。
 下面是`sync.RWMutex`的实现原理：
 
@@ -1216,7 +1232,7 @@ Go在1.9中引入优化，目的保证互斥锁的公平性。在饥饿模式中
 
 
 
-#### <a name='sync.Cond'></a>sync.Cond
+#### sync.Cond
 Broadcast()   唤醒所有等待cond的goroutine
 Signal()      唤醒一个等待cond的goroutine
 Wait()会自动释放c.L锁，并挂起调用者的 goroutine。之后恢复执行，Wait()会在返回时对 c.L 加锁。 除非被 Signal 或者 Broadcast 唤醒，否则 Wait()不会返回
@@ -1253,7 +1269,7 @@ func main() {
 ```
 
 
-#### <a name='WaitGroup'></a>WaitGroup
+#### WaitGroup
 WaitGroup 主要维护了2 个计数器，一个是请求计数器 v，一个是等待计数器 w，二者组成一个64bit 的值，请求计数器占高32bit，等待计数器占低32bit。
 每次 Add 执行，请求计数器 v 加 1，Done 方法执行，等待计数器减 1，v 为 0 时通过信号量唤醒Wait()
 
@@ -1302,7 +1318,7 @@ WaitGroup 主要维护了2 个计数器，一个是请求计数器 v，一个是
 `sync.WaitGroup`的实现利用了原子操作和信号量机制，通过计数器来跟踪未完成的Goroutine数量，并通过信号量来阻塞和唤醒等待的Goroutine。它提供了一种简单而有效的方式来同步多个Goroutine的执行，确保所有Goroutine都完成后再继续执行后
 
 
-#### <a name='-1'></a>原子操作和锁的区别
+#### 原子操作和锁的区别
 原子操作和锁都是并发编程中用于实现同步和互斥的机制，但它们有一些区别。下面详细介绍原子操作和锁的区别：
 
 1. 粒度：
@@ -1339,7 +1355,7 @@ WaitGroup 主要维护了2 个计数器，一个是请求计数器 v，一个是
 
 
 
-#### <a name='sync.Pool'></a>sync.Pool
+#### sync.Pool
 `sync.Pool`是Go语言标准库中提供的一个对象池，用于管理和复用一组临时对象。它的主要作用是减少内存分配和垃圾回收的开销，提高程序的性能。
 
 `sync.Pool`的特点和用途如下：
@@ -1400,7 +1416,7 @@ func main() {
 
 
 
-## <a name='GMP'></a>GMP模型
+## GMP模型
 G--->goroutine，拥有自己的栈空间，定时器，初始化时栈空间大小为2k，可随着需求增长；
 M--->machine，操作系统线程，当一个 Goroutine 需要执行时，M 将会将其放入自己的执行队列中，并不断地从队列中取出 Goroutine 进行执行。
 P--->processor，处理器，Go 运行时系统通常为每个可用的 CPU 核心分配一个 P。P 负责从全局的 Goroutine 队列中获取 Goroutine，并将其分配给可用的 M 执行。
@@ -1417,7 +1433,7 @@ M：线程想运行任务就得获取 P，从 P 的本地队列获取 G，P 队�
 或从其他 P 的本地队列偷一半放到自己 P 的本地队列。M 运行 G，G 执行之后，M 会从 P 获取下一个 G，不断重复下去。
 
 
-#### <a name='-1'></a>调度流程
+#### 调度流程
 1. go func()创建协程；
 2. 放入到P的本地队列中；如果P的本地队列已满的话，放到全局队列中；
 3. M从绑定的P的本地队列获取G执行；若M的P本地队列为空则从全局队列中取，当全局队列中也没有的话，从其它的MP组合中偷取G执行；这种从其它P偷的方式成为work stealing；
@@ -1429,7 +1445,7 @@ M：线程想运行任务就得获取 P，从 P 的本地队列获取 G，P 队�
 
 
 
-#### <a name='GoGMP'></a>Go 中 GMP 有哪些状态？
+#### Go 中 GMP 有哪些状态？
 G 的状态： 
 _Gidle：刚刚被分配并且还没有被初始化，值为 0，为创建 goroutine 后的默认值 
 _Grunnable： 没有执行代码，没有栈的所有权，存储在运行队列中，可能在某个P 的本地队列或全局队列中。
@@ -1452,7 +1468,7 @@ M 的状态：
 自旋线程：处于运行状态但是没有可执行 goroutine 的线程，数量最多为GOMAXPROC，若是数量大于 GOMAXPROC 就会进入休眠。 
 非自旋线程：处于运行状态有可执行 goroutine 的线程。
 
-#### <a name='GMPP'></a>GMP 能不能去掉 P 层？会怎么样？ 
+#### GMP 能不能去掉 P 层？会怎么样？ 
 P 层的作用
 每个 P 有自己的本地队列，大幅度的减轻了对全局队列的直接依赖，所带来的效果就是锁竞争的减少。
 而 GM 模型的性能开销大头就是锁竞争。
@@ -1460,13 +1476,13 @@ P 层的作用
 则会从全局队列或其他 P 的本地队列中窃取可运行的 G 来运行，减少空转，提高了资源利用率。 
 
 
-#### <a name='Gworkstealing'></a>如果有一个 G 一直占用资源怎么办？什么是 work stealing 算法？ 
+#### 如果有一个 G 一直占用资源怎么办？什么是 work stealing 算法？ 
 如果有个 goroutine 一直占用资源，那么 GMP 模型会从正常模式转变为饥饿模
 式（类似于 mutex），允许其它 goroutine 使用 work stealing 抢占（禁用自旋锁）。 
 work stealing 算法指，一个线程如果处于空闲状态，则帮其它正在忙的线程分担压力，从全局队列取一个 G 任务来执行，可以极大提高执行效率。 
 
 
-#### <a name='GMP-1'></a>GMP调度过程中有哪些阻塞
+#### GMP调度过程中有哪些阻塞
 在Go语言的GMP（Goroutine-M-P）调度模型中，有几种情况可能会导致阻塞：
 
 1. 系统调用阻塞（Syscall Blocking）：
@@ -1498,7 +1514,7 @@ work stealing 算法指，一个线程如果处于空闲状态，则帮其它正
    - 在GC期间，所有的Goroutine都会被阻塞，直到GC完成。
    - Go语言的GC算法在不断优化，以减少GC暂停时间对Goroutine执行的影响。
 
-#### <a name='Gohandoff'></a>Go中hand off机制
+#### Go中hand off机制
 在Go语言的GMP（Goroutine-M-P）调度模型中，hand off（移交）是一种重要的机制，用于在不同的P（Processor）之间转移G（Goroutine）的执行权。
 hand off机制的目的是在某些特定情况下，将G从一个P的运行队列中移交给另一个P，以实现负载均衡和高效利用CPU资源。
 
@@ -1529,7 +1545,7 @@ hand off机制的实现涉及到一些细节，如运行队列的管理、P的�
 总的来说，hand off机制是Go语言GMP调度模型中的一个关键组成部分，它通过在不同的P之间移交G的执行权，实现了负载均衡、高效利用CPU资源以及公平性和响应性的保证。hand off机制的设计和实现体现了Go语言调度器的智能和灵活性，使得Go程序能够在多核环境下实现高并发和高性能。
 
 
-#### <a name='Sysmon'></a>Sysmon有什么用
+#### Sysmon有什么用
 Sysmon是Go语言运行时系统中的一个重要组件，它是一个独立的M（Machine），负责执行一些系统级别的监控和管理任务。Sysmon的主要作用包括：
 
 1. 定期进行垃圾回收（GC）：
@@ -1565,7 +1581,7 @@ Sysmon是Go语言运行时系统中的一个重要组件，它是一个独立的
 虽然Sysmon的存在对于Go开发者来说是透明的，但了解它的作用和机制有助于更好地理解Go语言的运行时行为和性能特点。在调试和优化Go程序时，也可能会涉及到对Sysmon行为的分析和调整。
 
 
-## <a name='channel'></a>channel
+## channel
 channel（通道）用于在 goroutine 之间传递数据和同步操作。
 channel 可以阻塞发送方直到接收者准备好接收数据，并且可以阻塞接收方直到有可用的数据发送。
 它是 Go 中实现并发的重要机制之一。 
@@ -1586,32 +1602,32 @@ channel 可以阻塞发送方直到接收者准备好接收数据，并且可以
 13. 使用锁的情景：1. 访问共享数据结构中的缓存信息；2. 保存应用程序上下文和状态信息数据。
 14. 使用通道的情景：1. 与异步操作的结果进行交互; 2. 分发任务; 3. 传递数据所有权
 
-#### <a name='channel-1'></a>channel底层结构
+#### channel底层结构
 用来保存goroutine之间传递数据的循环链表。=====> buf。
 用来记录此循环链表当前发送或接收数据的下标值。=====> sendx和recvx。
 用于保存向该chan发送和从该chan接收数据的goroutine的队列。=====> sendq 和 recvq
 保证channel写入和读取数据时线程安全的锁。 =====> lock
 
-#### <a name='channel-1'></a>向 channel 写数据的流程： 
+#### 向 channel 写数据的流程： 
 如果等待接收队列 recvq 不为空，说明缓冲区中没有数据或者没有缓冲区，此时直接从 recvq 取出 G,并把数据写入，最后把该 G 唤醒，结束发送过程；
 如果缓冲区中有空余位置，将数据写入缓冲区，结束发送过程；
 如果缓冲区中没有空余位置，将待发送数据写入 G，将当前 G 加入 sendq，进入睡眠，等待被读 goroutine 唤醒；
 
-#### <a name='channel-1'></a>向 channel 读数据的流程： 
+#### 向 channel 读数据的流程： 
 如果等待发送队列 sendq 不为空，且没有缓冲区，直接从 sendq 中取出 G，把 G 中数据读出，最后把 G 唤醒，结束读取过程； 
 如果等待发送队列 sendq 不为空，此时说明缓冲区已满，从缓冲区中首部读出数据，把 G 中数据写入缓冲区尾部，把 G 唤醒，结束读取过程；
 如果缓冲区中有数据，则从缓冲区取出数据，结束读取过程；将当前 goroutine 加入 recvq，进入睡眠，等待被写 goroutine 唤醒；
 
 使用场景： 消息传递、消息过滤，信号广播，事件订阅与广播，请求、响应转发，任务分发，结果汇总，并发控制，限流，同步与异步
 
-#### <a name='chan'></a>对已经关闭的的 chan 进行读写，会怎么样？为什么？
+#### 对已经关闭的的 chan 进行读写，会怎么样？为什么？
 1. 读已经关闭的 chan 能一直读到东西，但是读到的内容根据通道内关闭前是否有元素而不同。
     如果 chan 关闭前，buffer 内有元素还未读 , 会正确读到 chan 内的值，且返回的第二个 bool 值（是否读成功）为 true。
     如果 chan 关闭前，buffer 内有元素已经被读完，chan 内无值，接下来所有接收的值都会非阻塞直接成功，返回 channel 元素的零值，但是第二个 bool 值一直为 false。
 2. 写已经关闭的 chan 会 panic
 
 
-#### <a name='channel-1'></a>channel 死锁的场景
+#### channel 死锁的场景
 1. 当一个 channel 中没有数据，而直接读取时，会发生死锁： 
 q := make(chan int,2) 
 <-q 
@@ -1645,7 +1661,7 @@ func main() {
 注意：一个已经关闭的 channel，只能读数据，不能写数据。 
 
 
-#### <a name='channel-1'></a>channel 底层实现？是否线程安全。 
+#### channel 底层实现？是否线程安全。 
 channel 底层实现在 src/runtime/chan.go 中 
 channel 内部是一个循环链表。
 内部包含 buf, sendx, recvx, lock ,recvq, sendq 几个部分； 
@@ -1656,12 +1672,12 @@ recvq 和 sendq 分别是接收(<-channel)或者发送(channel <- xxx)的 gorout
 channel 是线程安全的。 
 
 
-#### <a name='channelchannel'></a>无缓冲的 channel 和有缓冲的 channel 的区别？ 
+#### 无缓冲的 channel 和有缓冲的 channel 的区别？ 
 无缓冲区 channel：发送的数据如果没有被接收方接收，那么发送方阻塞；如果一直接收不到发送方的数据，接收方阻塞； 
 有缓冲的 channel：发送方在缓冲区满的时候阻塞，接收方不阻塞；接收方在缓冲区为空的时候阻塞，发送方不阻塞。
 
 
-#### <a name='Gochannelmutex'></a>Go 语言中可以使用 channel 和 mutex 实现阻塞队列 
+#### Go 语言中可以使用 channel 和 mutex 实现阻塞队列 
 ```Go
 package main
 
@@ -1734,7 +1750,7 @@ func main() {
 当队列为空时，消费者调用 notEmpty.Wait()方法进行等待，当队列非空时，消费者调用 notFull.Signal()方法通知生产者。 
 该阻塞队列可以用于多线程环境下的任务分发、消息传递等场景。
 
-#### <a name='channel-1'></a>channel 为什么需要两个队列实现？
+#### channel 为什么需要两个队列实现？
 在 Go 中，每个 channel 都包含两个队列：发送队列和接收队列。
 这是因为channel 的发送和接收操作是异步进行的，发送方和接收方可能会以不同的顺序执行。 
 当发送方向一个未满的 channel 发送数据时，该数据会被添加到发送队列中。
@@ -1746,7 +1762,7 @@ func main() {
 因此，通过使用这两个队列，channel 可以有效地实现多个 goroutine 之间的同步和通信。
 
 
-#### <a name='go'></a>go 通道和锁的使用场景？ 
+#### go 通道和锁的使用场景？ 
 在 Go 语言中，协程（Goroutine）之间的通信通常使用通道（Channel）来实现，
 而不需要显式地加锁。这是因为通道本身就是一种并发安全的数据结构，它可以
 保证在多个协程之间进行数据传递时不会出现竞态条件（Race Condition）。 
@@ -1769,7 +1785,7 @@ func main() {
 
 
 
-## <a name='context'></a>context
+## context
 主要应用：1：上下文控制，2：多个 goroutine 之间的数据交互等，3：超时控制：到某个时间点超时，过多久超时。
 
 Context通常被称为上下文，在go中，理解为goroutine的运行状态、现场，存在上下层goroutine context的传递，上层goroutine会把context传递给下层goroutine。
@@ -1801,22 +1817,22 @@ case <- ctx.Done():
 4. 同样的context可以传递到多个goroutine中，Context在多个goroutine中是安全的
 5. 在子context传入goroutine中后，应该在子goroutine中对该子context的Done channel进行监控，一旦该channel被关闭，应立即终止对当前请求的处理，并释放资源。
 
-#### <a name='withCancel'></a>withCancel
+#### withCancel
 WithCancel 返回带有新 Done 通道的父级副本。当调用返回的 cancel 函数或关闭父上下文的 Done 通道时，返回的 ctx 的 Done 通道将关闭。
 取消此上下文会释放与其关联的资源，因此在此上下文中运行的操作完成后，代码应立即调用 cancel。
 
-#### <a name='withDeadline'></a>withDeadline
+#### withDeadline
 WithDeadline 返回父上下文的副本，并将截止日期调整为不晚于 d。如果父级的截止日期已经早于 d，则 WithDeadline(parent, d) 在语义上等同于 parent。
 当截止时间到期、调用返回的取消函数时或当父上下文的 Done 通道关闭时，返回的上下文的 Done 通道将关闭。
 取消此上下文会释放与其关联的资源，因此在此上下文中运行的操作完成后，代码应立即调用取消。
 其实就是设置过期时间；
 
-#### <a name='withTimeout'></a>withTimeout
+#### withTimeout
 WithTimeout 返回 WithDeadline(parent, time.Now().Add(timeout))。
 取消此上下文会释放与其关联的资源，因此在此上下文中运行的操作完成后，代码应立即调用取消。
 其实就是设置超时时间；
 
-#### <a name='withValue'></a>withValue
+#### withValue
 WithValue 返回父级的副本，其中与 key 关联的值为 val。
 其中键必须是可比较的，并且不应是字符串类型或任何其他内置类型，以避免使用上下文的包之间发生冲突。 WithValue 的用户应该定义自己的键类型。
 为了避免分配给 interface{}，上下文键通常具有具体的 struct{} 类型。或者，导出的上下文键变量的静态类型应该是指针或接口。
@@ -1894,8 +1910,8 @@ func deal(ctx context.Context)  {
 
 ```
 
-## <a name='GC'></a>GC
-#### <a name='-1'></a>三色标记原理
+## GC
+#### 三色标记原理
 三色标记原理基于对象的可达性进行垃圾回收。它将对象分为三种不同的颜色：白色、灰色和黑色。
 白色：表示对象尚未被扫描和标记。
 灰色：表示对象已经被扫描，但其引用的对象尚未被扫描。灰色对象是有可能引用黑色对象的。
@@ -1911,14 +1927,14 @@ c. 扫描该灰色对象引用的其他对象，如果引用的对象是白色�
 4. 当灰色对象队列为空时，所有的可达对象都已经被标记为黑色。此时，白色对象即为不可达的垃圾对象。
 5. 对于白色对象，可以进行相应的回收操作，如释放内存等。
 
-#### <a name='-1'></a>写屏障
+#### 写屏障
 STW   Stop The Word
 指的是垃圾回收器执行时会暂停所有运行的线程；
 引入写屏障的原因：
 有如下场景：对象A引用对象B和C，对象D引用对象E；在三色标记中扫描灰色集合中，扫描到了对象A，并标记到了A的应用B和C，这个时候开始扫描D的应用，
 另一个goroutine修改了D对E的引用，将E让A引用，这样就导致E对象就扫描不到，而被误认为白色对象而被清理；
 
-#### <a name='-1'></a>混合写屏障
+#### 混合写屏障
 强三色不变式：不存在黑色对象引用到白色对象的指针，即强制的不允许黑色对象引用白色对象；
 弱三色不变式：所有被黑色对象引用的白色对象都处于灰色保护状态。
 
@@ -1933,7 +1949,7 @@ STW   Stop The Word
 4、被添加的对象标记为灰色。
 
 
-#### <a name='golang'></a>知道golang的内存逃逸吗？什么情况下会发生内存逃逸？
+#### 知道golang的内存逃逸吗？什么情况下会发生内存逃逸？
 golang程序变量会携带有一组校验数据，用来证明它的整个生命周期是否在运行时完全可知。如果变量通过了这些校验，它就可以在栈上分配。否则就说它逃逸了，必须在堆上分配。
 
 能引起变量逃逸到堆上的典型情况：
@@ -1946,7 +1962,7 @@ golang程序变量会携带有一组校验数据，用来证明它的整个生�
     想像一个 io.Reader 类型的变量 r , 调用 r.Read(b) 会使得 r 的值和切片b 的背后存储都逃逸掉，所以会在堆上分配。
 
 
-#### <a name='httpok'></a>你是否主动关闭过 http 连接，为啥要这样做？ok 
+#### 你是否主动关闭过 http 连接，为啥要这样做？ok 
 有关闭，不关闭会程序可能会消耗完 socket 描述符。有如下 2 种关闭方式： 
 1. 直接设置请求变量的 Close 字段值为 true，每次请求结束后就会主动关闭连接。
 设置 Header 请求头部选项 Connection: close，然后服务器返回的响应头部也会有这个选项，此时 HTTP 标准库会主动断开连接 
@@ -1992,7 +2008,7 @@ func main() {
 } 
 ```
  
-#### <a name='GoGC'></a>Go GC 有几个阶段 
+#### Go GC 有几个阶段 
 目前的 go GC 采用三色标记法和混合写屏障技术。 
 Go GC 有四个阶段: 
 1. STW，开启混合写屏障，扫描栈对象； 
@@ -2008,7 +2024,7 @@ Go GC 有四个阶段:
 连续的可用内存块。请注意，整理阶段只有在使用“压缩式垃圾回收”时才会发生。
 
 
-#### <a name='golanggo'></a>golang 的内存管理的原理清楚吗？简述 go 内存管理机制。 
+#### golang 的内存管理的原理清楚吗？简述 go 内存管理机制。 
 golang 内存管理基本是参考 tcmalloc 来进行的。
 go 内存管理本质上是一个内存池，只不过内部做了很多优化：自动伸缩内存池大小，合理的切割内存块。 
 一些基本概念：
@@ -2043,7 +2059,7 @@ mcache
 应。Go 申请内存首先从 P 的 mcache 中分配，如果没有可用的 span 再从 mcentral中获取。 
 
 
-#### <a name='GoGCok'></a>简述 Go 语言 GC(垃圾回收)的工作原理 ok 
+#### 简述 Go 语言 GC(垃圾回收)的工作原理 ok 
 垃圾回收机制是 Go 一大特(nan)色(dian)。Go1.3 采用标记清除法， Go1.5 采用
 三色标记法，Go1.8 采用三色标记法+混合写屏障。 
 *标记清除法* 
@@ -2074,7 +2090,7 @@ mcache
 总而言之就是确保黑色对象不能引用白色对象，这个改进直接使得 GC 时间从2s 降低到 2us。
 
 
-#### <a name='-1'></a>如何知道一个对象是分配在栈上还是堆上？ 
+#### 如何知道一个对象是分配在栈上还是堆上？ 
 Go 和 C++不同，Go 局部变量会进行逃逸分析。如果变量离开作用域后没有被引
 用，则优先分配到栈上，否则分配到堆上。那么如何判断是否发生了逃逸呢？ 
 go build -gcflags '-m -m -l' xxx.go. 
@@ -2082,7 +2098,7 @@ go build -gcflags '-m -m -l' xxx.go.
 用户栈最大值，暴露给了外部指针。 
 
 
-## <a name='jwt'></a>jwt 
+## jwt 
 JWT就是一种基于Token的轻量级认证模式，服务端认证通过后，会生成一个JSON对象，经过签名后得到一个Token（令牌）再发回给用户，
 用户后续请求只需要带上这个Token，服务端解密之后就能获取该用户的相关信息了。
 
@@ -2092,14 +2108,14 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 3. signature(签名)，对前两部分的签名；
 
 
-#### <a name='json'></a>json序列化与反序列化
+#### json序列化与反序列化
 1. json tag忽略某个字段；`json:"-"`；
 2. json tag忽略空值字段；`json:"name,omitempty"`；
 3. json tag忽略嵌套结构体空值；`json:"Person,omitempty"`+嵌套的结构体要是指针；
 4.
 
 
-## <a name='defer'></a>defer
+## defer
 1. 多个defer语句，按先进后出的方式执行；
 2. defer声明时，对应的参数会实时解析；
 3. defer、return、返回值三者的执行逻辑-return最先执行，return负责将结果写入返回值中，defer执行收尾工作，最后函数携带当前返回值退出；
@@ -2107,12 +2123,12 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 5. panic后面的defer语句不被执行，panic语句前的defer语句会被执行；
 6. 调用os.Exit(0)时defer语句不会被执行；
 
-#### <a name='defer-1'></a>defer的底层数据结构
+#### defer的底层数据结构
 每个 defer 语句都对应一个_defer 实例，多个实例使用指针连接起来形成一个单连表，保存在 goroutine 数据结构中，
 每次插入_defer 实例，均插入到链表的头部，函数结束再一次从头部取出，从而形成后进先出的效果。
 
 
-#### <a name='defer-1'></a>defer
+#### defer
 defer 执行顺序和调用顺序相反，类似于栈后进先出(LIFO)。 
 defer 在 return 之后执行，但在函数退出之前，defer 可以修改返回值。
 
@@ -2174,18 +2190,18 @@ func main() {
 
 
 
-## <a name='errors'></a>errors包
+## errors包
 1. errors.New创建一个表示特定错误的对象，接受一个字符串类型的参数，返回一个error类型的对象；
 2. errors.Is用于判断给定的错误是否是目标错误类型或者基于目标错误类型包装过的错误，会递归检查错误链，直到找到目标错误类型或者到达错误链的末尾。如果找到目标错误类型，则返回true，否则返回false。
 
 
-## <a name='io'></a>io包
+## io包
 1. io.CopyN(io.Discard, conn, bytesToDiscard)           ## 指的是将网络连接中bytesToDiscard大小的字节丢弃掉；
 2. io.ReadAtLeast()                ## 能够从数据源读取至少指定数量的字节数据到缓冲区中
 
 
 
-## <a name='reflect'></a>反射reflect
+## 反射reflect
 反射是程序在运行时检查其变量和值并找到其类型的能力，实现使用字符串函数名，调用函数。 
 1. 对比变量相等；reflect.DeepEqual(sm1, sm2)
 2. 反射类型Type用于获取类型相关的信息（比如slice的长度，struct的成员，函数的参数个数）；反射类型Value用于获取和修改原始数据的值（修改slice和map中的元素，修改struct的成员变量）
@@ -2221,7 +2237,7 @@ func main() {
 20. reflect.Indirect(reflect.ValueOf(&user)).Type()           //获取指针指向的对象的反射值。
 
 
-#### <a name='goreflect'></a>go 的 reflect 底层实现 
+#### go 的 reflect 底层实现 
 go reflect 源码位于 src\reflect\下面，作为一个库独立存在。反射是基于接口实现的。 
 Go 反射有三大法则： 
 1. 反射从接口映射到反射对象；
@@ -2231,7 +2247,7 @@ Go 反射基于上述三点实现。我们先从最核心的两个源文件入�
 type 用于获取当前值的类型。value 用于获取当前的值。
 
 
-#### <a name='tag'></a>如何获取一个结构体的所有 tag？ 
+#### 如何获取一个结构体的所有 tag？ 
 利用反射： 
 import reflect 
 type Author struct {
@@ -2250,7 +2266,7 @@ func main() {
 上述例子中，reflect.TypeOf 方法获取对象的类型，之后 NumField()获取结构体成员的数量。 
 通过 Field(i)获取第 i 个成员的名字。 再通过其 Tag 方法获得标签。
 
-## <a name='rpc'></a>rpc
+## rpc
 Remote Procedure Call，远程过程调用
 grpc 使用了 Google 开源的 Protocol Buffers 作为数据格式，这种数据格式比 JSON 和 XML 更加高效，更加紧凑。 
 grpc 的主要特点是高效、可靠、跨平台、易于扩展。它使用 HTTP/2 协议进行通信，可以在客户端和服务器之间建立长连接，从而提高通信的效率。
@@ -2265,7 +2281,7 @@ grpc 的主要特点是高效、可靠、跨平台、易于扩展。它使用 HT
 最后，使用 Go 语言代码 实现 RPC 服务端和客户端。 
 
 
-#### <a name='RPC'></a>RPC 工作原理
+#### RPC 工作原理
 远程过程调用协议，是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。
 它假定某些传输协议的存在，如 TCP 或 UDP，以便为通信程序之间携带信息数据。
 通过它可以使函数调用模式网络化。在 OSI 网络通信模型中，RPC 跨越了传输层和应用层。
@@ -2284,7 +2300,7 @@ RPC 使得开发包括网络分布式多程序在内的应用程序更加容易�
 10. 客户接收句柄返回的数据。
 
 
-#### <a name='rpchttp'></a>rpc和http区别
+#### rpc和http区别
 rpc 是远程过程调用，就是本地去调用一个远程的函数，而 http 是通过url 和符合 restful 风格的数据包去发送和获取数据； 
 rpc 的一般使用的编解码协议更加高效，比如 grpc 使用 protobuf 编解码。
 而 http 的一般使用 json 进行编解码，数据相比 rpc 更加直观，但是数据包也更大，效率低下； 
@@ -2293,7 +2309,7 @@ rpc 一般用在服务内部的相互调用，而 http 则用于和用户交互�
 而且 web 框架，和 rpc 框 架中都有拦截器的概念。grpc 使用的是 http2.0 协议。  
 
 
-#### <a name='grpc'></a>grpc使用
+#### grpc使用
 1. 先使用protobuf定义服务;
 2. 提前windows下载protoc到本地 https://github.com/protocolbuffers/protobuf/releases
 下载protoc-gen-go到本地 https://github.com/protocolbuffers/protobuf-go/releases
@@ -2305,23 +2321,23 @@ go install .
 protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative myprotobuf.proto
 
 
-#### <a name='grpc-1'></a>grpc四种请求响应模式 
+#### grpc四种请求响应模式 
 简单模式(Simple RPC)：客户端发起请求并等待服务端响应。
 服务端流式（Server-side streaming RPC）：客户端发送请求到服务器，拿到一个流去读取返回的消息序列。 客户端读取返回的流，直到里面没有任何消息。
 客户端流式（Client-side streaming RPC）：与服务端数据流模式相反，这次是客户端源源不断的向服务端发送数据流，而在发送结束后，由服务端返回一个响应。
 双向流式（Bidirectional streaming RPC）：双方使用读写流去发送一个消息序列，两个流独立操作，双方可以同时发送和同时接收。
 
 
-#### <a name='tips'></a>tips
+#### tips
 1. 不设置请求参数或者返回体，proto文件中import "google/protobuf/empty.proto"(下载放到同级目录)，google.protobuf.Empty；
 
 
 
-## <a name='-1'></a>微服务 
+## 微服务 
 微服务是一种开发软件的架构和组织方法，其中软件由通过明确定义的 API进行通信的小型独立服务组成。
 微服务架构使应用程序更易于扩展和更快地开发，从而加速创新并缩短新功能的上市时间。 
 
-#### <a name='-1'></a>如何设计一个高并发系统
+#### 如何设计一个高并发系统
 保证整体可用的同时，能够处理很高的并发用户请求，能够承受很大的流量冲击；
 1. 横向扩展；采用分布式部署，部署多台服务器，将流量分开，分担流量；
 2. 微服务拆分；按功能单一性，拆分成多个服务模块；根据情况，先拆分一轮，后面如果系统更复杂了，可以继续分拆。一个服务的代码不要太多，1万行左右，两三万撑死了吧
@@ -2338,7 +2354,7 @@ protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=p
 13. 扩容+切流量；
 
 
-#### <a name='-1'></a>接口请求重试方式
+#### 接口请求重试方式
 1. 循环重试；直至接口重试成功或者达到最大重试次数
 2. 递归重试；请求失败则继续调用，直到请求成功或达到最大重试次数。
 3. 并发框架异步重试；请求接口转化成一个异步任务，将任务放入线程池中异步执行，并发地重试请求接口。可以在任务执行完成后，判断任务执行结果，如果失败则继续重试。
@@ -2352,7 +2368,7 @@ protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=p
 5. 在使用重试机制时，需要注意不要陷入死循环。如果请求一直失败，重试次数一直增加，可能会导致系统崩溃或者资源耗尽等问题。
 
 
-#### <a name='-1'></a>服务发现是怎么做的？
+#### 服务发现是怎么做的？
 主要有两种服务发现机制：客户端发现和服务端发现。 
 客户端发现模式：当我们使用客户端发现的时候，客户端负责决定可用服务实例的网络地址并且在集群中对请求负载均衡, 客户端访问服务登记表，
 也就是一个可用服务的数据库，然后客户端使用一种负载均衡算法选择一个可用的服务实例然后发起请求。
@@ -2370,7 +2386,7 @@ Middleware 是 Web 的重要组成部分，中间件（通常）是一小段代�
  如果要考虑高并发和高可用，必须把数据放入到数据库中，比如 MySQL，PostgreDB，MongoDB 等。 
 
 
-#### <a name='-1'></a>介绍下服务熔断
+#### 介绍下服务熔断
 服务熔断是应对微服务雪崩效应的一种链路保护机制，类似股市、保险丝。
 比如说，微服务之间的数据交互是通过远程调用来完成的。服务A调用服务，服务B调用服务c，某一时间链路上对服务C的调用响应时间过长或者服务C不可用，
 随着时间的增长，对服务C的调用也越来越多，然后服务C崩溃了，但是链路调用还在，对服务B的调用也在持续增多，然后服务B崩溃，随之A也崩溃，导致雪崩效应。
@@ -2382,7 +2398,7 @@ Middleware 是 Web 的重要组成部分，中间件（通常）是一小段代�
 所以，服务熔断的作用类似于我们家用的保险丝，当某服务出现不可用或响应超时的情况时，为了防止整个系统出现雪崩，暂时停止对该服务的调用
 
 
-#### <a name='Go-1'></a>Go 中发生熔断怎么做的 
+#### Go 中发生熔断怎么做的 
 在 Go 中，熔断通常是由于一段服务的连续失败引起的，为避免故障扩散，需要使用熔断机制保护底层资源。
 Go 语言提供了一些库和框架来实现熔断机制，例如：
 Hystrix：Hystrix 是 Netflix 开源的一款熔断器组件，可以在 Go 程序中使用。
@@ -2394,7 +2410,7 @@ Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支�
 总之，Go 提供了多种熔断器库和框架，开发者可以根据具体情况选择并使用这些库来实现熔断机制，保障程序稳定性和可靠性。 
 
 
-#### <a name='-1'></a>服务降级
+#### 服务降级
 服务降级一般是指在服务器压力剧增的时候，根据实际业务使用情况以及流量，对一些服务和页面有策略的不处理或者用一种简单的方式进行处理，
 从而释放服务器资源的资源以保证核心业务的正常高效运行。
 
@@ -2406,7 +2422,7 @@ Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支�
 这样，虽然提供的是一个有损的服务，但却保证了整个系统的稳定性和可用性。
 
 
-#### <a name='-1'></a>服务降级怎么搞
+#### 服务降级怎么搞
 当 Go 服务发生压力剧增时，为了保证核心业务的正常高效运行，需要采取服务降级措施。
 下面是一些具体做法：
 针对不同服务和页面进行策略性地降级：通过对实际业务使用情况和流量的分析，针对不同服务和页面进行策略性地降级，从而释放服务器资源，提高服务可用性。 
@@ -2417,7 +2433,7 @@ Hystrix 等熔断框架，当系统出现故障或超负荷时，自动切换到
 总之，针对不同的场景和业务需求，开发人员需要根据实际情况采取适当的服务降级措施，确保系统稳定运行。 
 
 
-#### <a name='-1'></a>负载均衡
+#### 负载均衡
 集群化部署的架构，也就是把一个软件应用同事部署在多个服务器上。 
 负载均衡机制的核心目的是让客户端的请求合理均匀的分发到多台目标服务器，由于请求被多个节点分发，使得服务端的性能得到有效提升。 
 1. 基于 DNS 实现负载均衡；
@@ -2443,9 +2459,9 @@ DNS 服务器也可以根据不同的地域分配就近机房的 IP，比如一�
 来决定将请求分发到哪个服务器；比如 cookie，消息体以及 Requestheader 等等； 
 
 
-## <a name='go-1'></a>go 里用过哪些设计模式? 
+## go 里用过哪些设计模式? 
 
-#### <a name='-1'></a>工厂方法模式 
+#### 工厂方法模式 
 问题描述：
 假设你正在开发一款物流管理应用。最初版本只能处理卡车运输，因此大部分代码都在位于名为卡车的类中。 
 一段时间后， 这款应用变得极受欢迎。你每天都能收到十几次来自海运公司的请求，希望应用能够支持海上物流功能。 
@@ -2513,7 +2529,7 @@ func getLogistics(means string) (i iLogistics, err error){
 ```
 客户端使用，直接调用 getLogistics 就好。 
 
-#### <a name='-1'></a>抽象工厂模式 
+#### 抽象工厂模式 
 抽象工厂模式是一种创建型设计模式，它能创建一系列相关的对象，而无需指定其具体类。 
 ❓问题描述：假设一下，如果你想要购买一组运动装备，比如一双鞋与一件衬衫这样由两种不同产品组合而成的套装。
 相信你会想去购买同一品牌的商品，这样商品之间能够互相搭配起来。
@@ -2608,7 +2624,7 @@ func main() {
 } 
 工厂方法模式和抽象工厂模式的区别在于：前者实例化具体的产品，后者实例化具体的工厂，每个工厂再实例化同样的产品系列。 
 
-#### <a name='-1'></a>单例模式 
+#### 单例模式 
 ###### 单例模式实现两种方式
 一个只允许创建一个实例的类称为单例类，这种模式称为单例模式。
 1. 懒汉式
@@ -2663,7 +2679,7 @@ func NewInstance2() *Foo {
 }
 ```
 
-#### <a name='-1'></a>生成器模式 
+#### 生成器模式 
 ❓问题描述：假设一下，我们需要在游戏里设计不同的虚拟房屋，每个房子有不同的门和窗户等属性。
 现在有两种类型的房屋 normal 和 igloo（木制）。 
 解决方案：我们需要考虑两个问题：1.如何确保全局唯一，2.如何保证并发控制。 
@@ -2768,7 +2784,7 @@ iglooHouse.windowType)
 iglooHouse.floor) 
 } 
 
-#### <a name='-1'></a>原型模式 
+#### 原型模式 
 原型模式使你能够复制已有对象，无需使代码依赖它们所属的类。 
 ❓问题描述：假设一下，你有一个原型，你想复制出一个一模一样的
 复制品，但不巧的是，类的某些成员（比如登录模块）是私有的。 
@@ -2847,7 +2863,7 @@ func main() {
 } 
  
  
-## <a name='go-1'></a>go 的调试/分析工具用过哪些 
+## go 的调试/分析工具用过哪些 
 go 的自带工具链相当丰富，
  go cover : 测试代码覆盖率； 
  godoc: 用于生成 go 文档； 
@@ -2855,7 +2871,7 @@ go 的自带工具链相当丰富，
  race：用于竞争检测； 
 
 
-## <a name='killgoroutine'></a>进程被 kill，如何保证所有 goroutine 顺利退出 
+## 进程被 kill，如何保证所有 goroutine 顺利退出 
 goroutine 监听 SIGKILL 信号，一旦接收到 SIGKILL，则立刻退出。可采用select 方法。 
 ```Go
 var wg = &sync.WaitGroup{} 
@@ -2873,7 +2889,7 @@ func main() {
 }
 ```
 
-## <a name='top10'></a>1 亿条数据动态增长，取 top10，怎么实现
+## 1 亿条数据动态增长，取 top10，怎么实现
 处理 1 亿条数据动态增长并取 TOP10 可以使用堆的方法。具体的做法如下： 
 定义一个大根堆，初始化它的大小为 10，用于存放前 10 大的数据。
 遍历数据，对于每个新来的数据，与堆顶元素进行比较，如果新数据大于堆顶元素，
@@ -2885,7 +2901,7 @@ func main() {
 
 
 
-## <a name='select'></a>select
+## select
 select 可以监听 channel 上的数据流动。
 select 默认是阻塞的，只有当监听的 channel中有发送或接收可以进行时才会运行，当多个 channel 都准备好的时候，select 是随机的选择一个执行的。 
 
@@ -2893,7 +2909,7 @@ select 默认是阻塞的，只有当监听的 channel中有发送或接收可�
 2. 超时处理；结合time.After函数进行超时处理；
 
 
-#### <a name='selectchan'></a>当 select 监控多个 chan 同时到达就绪态时，如何先执行某个任务？ 
+#### 当 select 监控多个 chan 同时到达就绪态时，如何先执行某个任务？ 
 可以在子 case 再加一个 for select 语句。 
 func priority_select(ch1, ch2 <-chan string) {
     for {
@@ -2915,7 +2931,7 @@ func priority_select(ch1, ch2 <-chan string) {
     } 
 } 
  
-#### <a name='select-1'></a>select 的实现原理
+#### select 的实现原理
 select 源码位于 src\runtime\select.go
 最重要的 scase 数据结构为： 
 type scase struct {  
@@ -2943,9 +2959,9 @@ index, false)
 
  
 
-## <a name='recover'></a>recover
+## recover
 
-#### <a name='recover-1'></a>recover 的执行时机 
+#### recover 的执行时机 
 recover 必须在 defer 函数中运行。recover 捕获的是祖父级调用时的异常，直接调用时无效。 
 func main() { 
     recover() 
@@ -2983,7 +2999,7 @@ func main() {
 //recover... 
 
 
-#### <a name='GoroutineLeak'></a>为什么有协程泄露(Goroutine Leak)？ 
+#### 为什么有协程泄露(Goroutine Leak)？ 
 协程泄漏是指协程创建之后没有得到释放。主要原因有： 
 1. 缺少接收器，导致发送阻塞 
 2. 缺少发送器，导致接收阻塞 
@@ -2991,7 +3007,7 @@ func main() {
 4．创建协程的没有回收。 
 
 
-#### <a name='Gogoroutine'></a>Go 可以限制运行时操作系统线程的数量吗？ 常见的 goroutine 操作函数有哪些？ 
+#### Go 可以限制运行时操作系统线程的数量吗？ 常见的 goroutine 操作函数有哪些？ 
 可以，使用 runtime.GOMAXPROCS(num int)可以设置线程数目。该值默认为 CPU
 逻辑核数，如果设的太大，会引起频繁的线程切换，降低性能。 
 runtime.Gosched()，用于让出 CPU 时间片，让出当前 goroutine 的执行权限，调
@@ -3002,7 +3018,7 @@ runtime.Goexit()，调用此函数会立即使当前的 goroutine 的运行终�
 请注意千万别在主函数调用runtime.Goexit，因为会引发 panic。 
 
 
-#### <a name='-1'></a>如何控制协程数目 
+#### 如何控制协程数目 
 The GOMAXPROCS variable limits the number of operating system threads 
 that can execute user-level Go code simultaneously. There is no limit to the 
 number of threads that can be blocked in system calls on behalf of Go code; 
@@ -3030,7 +3046,7 @@ wg.Wait()
 装成单独的结构体。常见第三方协程池库，比如 tunny 等。 
 
 
-#### <a name='defergoroutinegoroutine'></a>defer 可以捕获 goroutine 的子 goroutine 吗？ 
+#### defer 可以捕获 goroutine 的子 goroutine 吗？ 
 不可以。它们处于不同的调度器 P 中。对于子 goroutine，必须通过 recover() 机
 制来进行恢复，然后结合日志进行打印（或者通过 channel 传递 error），下面是一个例子： 
 // 心跳函数 
@@ -3049,13 +3065,13 @@ func Ping(ctx context.Context) error {
 } 
 
 
-#### <a name='go-1'></a>go 竞态条件了解吗？ 
+#### go 竞态条件了解吗？ 
 所谓竞态竞争，就是当两个或以上的 goroutine 访问相同资源时候，对资源进行读/写。 
 比如 var a int = 0，有两个协程分别对 a+=1，我们发现最后 a 不一定为 2.这就是竞态竞争。 
 通常我们可以用 go run -race xx.go 来进行检测。
 解决方法是，对临界区资源上锁，或者使用原子操作(atomics)，原子操作的开销小于上锁。 
  
-#### <a name='catfishdoggoroutine100'></a>有三个函数，分别打印"cat", "fish","dog"要求每一个函数都用一个 goroutine，按照顺序打印 100 次。 
+#### 有三个函数，分别打印"cat", "fish","dog"要求每一个函数都用一个 goroutine，按照顺序打印 100 次。 
 此题目考察 channel，用三个无缓冲 channel，如果一个 channel 收到信号则通知下一个。 
 ```Go
 package main 
@@ -3099,7 +3115,7 @@ func main() {
 }
 ```
 
-#### <a name='10'></a>两个协程交替打印 10 个字母和数字 
+#### 两个协程交替打印 10 个字母和数字 
 思路：采用 channel 来协调 goroutine 之间顺序。 
 主线程一般要 waitGroup 等待协程退出，这里简化了一下直接 sleep。 
 ```Go
@@ -3138,7 +3154,7 @@ func main() {
 ```
 
 
-#### <a name='2groutine213'></a>启动 2 个 groutine 2 秒后取消，第一个协程 1 秒 执行完，第二个协程 3 秒执行完。 
+#### 启动 2 个 groutine 2 秒后取消，第一个协程 1 秒 执行完，第二个协程 3 秒执行完。 
 思路：采用 ctx, _ := context.WithTimeout(context.Background(), time.Second*2)实现 2s 取消。
 协程执行完后通过 channel 通知，是否超时。 
 ```Go
@@ -3187,7 +3203,7 @@ func main() {
 }
 ```
  
-#### <a name='Go-1'></a>Go 什么时候发生阻塞？阻塞时，调度器会怎么做。 
+#### Go 什么时候发生阻塞？阻塞时，调度器会怎么做。 
 用于原子、互斥量或通道操作导致 goroutine 阻塞，调度器将把当前阻塞的goroutine 从本地运行队列 LRQ 换出，
 并重新调度其它 goroutine； 
 由于网络请求和 IO 导致的阻塞，Go 提供了网络轮询器（Netpoller）来处理，后台用 epoll 等技术实现 IO 多路复用。 
@@ -3203,9 +3219,9 @@ channel 阻塞：当 goroutine 读写 channel 发生阻塞时，会调用 gopark
 新状态为 Grunnable，该 P 会调度队列中的 G 运行。 
 
 
-## <a name='-1'></a>指针
+## 指针
 一个指针可以指向任意变量的地址，它所指向的地址在 32 位或 64 位机器上分别固定占 4 或 8 个字节。
-#### <a name='-1'></a>指针的作用 
+#### 指针的作用 
 指针的作用有： 
 1. 获取变量的值 
 ```Go
@@ -3230,11 +3246,11 @@ type A struct{}
 func (a *A) fun(){} 
 
 
-#### <a name='-1'></a>函数返回局部变量的指针是否安全？
+#### 函数返回局部变量的指针是否安全？
 这一点和 C++不同，在 Go 里面返回局部变量的指针是安全的。因为 Go 会进行
 逃逸分析，如果发现局部变量的作用域超过该函数则会把指针分配到堆区，避免内存泄漏。 
 
-#### <a name='TT'></a>非接口的任意类型 T() 都能够调用 *T 的方法吗？反过来呢？ 
+#### 非接口的任意类型 T() 都能够调用 *T 的方法吗？反过来呢？ 
 一个 T 类型的值可以调用*T 类型声明的方法，当且仅当 T 是可寻址的。 
 反之：*T 可以调用 T()的方法，因为指针可以解引用。 
 
@@ -3250,7 +3266,7 @@ func (a *A) fun(){}
 
 
 
-## <a name='flag'></a>flag
+## flag
 // 定义命令行参数
 name := flag.String("name", "World", "Name to greet")
 // 定义短参数
@@ -3260,16 +3276,16 @@ flag.Parse()
 
 
 
-## <a name='regexp'></a>regexp
+## regexp
 // 定义正则表达式
 r := regexp.MustCompile(`\d+`)
 // 在字符串中查找匹配项
 match := r.FindString("abc123def")
 
 
-## <a name='Go-1'></a>Go基础
+## Go基础
 
-#### <a name='Go-1'></a>Go变量
+#### Go变量
 Go 程序会在两个地方为变量分配内存，一个是全局的堆上，另一个是函数调用栈；
 Go 中声明一个函数内局部变量时，当编译器发现变量的作用域没有逃出函数范围时，就会在栈上分配内存，反之则分配在堆上，逃逸分析由编译器完成，作用于编译阶段。 
 
@@ -3291,7 +3307,7 @@ map，slice，chan 是引用拷贝；引用拷贝是浅拷贝,其余的，都是
     如果切片传递后进行了扩容，函数内的修改不会影响到函数外的切片。 
 
 
-#### <a name='-1'></a>数字类型
+#### 数字类型
 ```Go
 int8: represents 8 bit signed integers
 size: 8 bits
@@ -3336,12 +3352,12 @@ range : 0 to 4294967295 in 32 bit systems and 0 to 18446744073709551615 in 64 bi
 byte 其实被 alias 到 uint8 上了;
 
  
-#### <a name='strconv'></a>strconv 
+#### strconv 
 strconv.Itoa(num)数字转字符串；strconv.Atoi(str)字符串转数字
 
 
 
-#### <a name='ok'></a>如何高效地拼接字符串 ok 
+#### 如何高效地拼接字符串 ok 
 拼接字符串的方式有：+ , fmt.Sprintf , strings.Builder, bytes.Buffer, strings.Join 
 1、"+" 
 使用+操作符进行拼接时，会对字符串进行遍历，计算并开辟一个新的空间来存
@@ -3391,11 +3407,11 @@ func main(){
 
 
 
-#### <a name=':ok'></a>= 和 := 的区别？ok 
+#### = 和 := 的区别？ok 
 =是赋值变量，:=是定义变量。 
 
 
-#### <a name='rune'></a>什么是 rune 类型
+#### 什么是 rune 类型
 ASCII 码只需要 7 bit 就可以完整地表示，但只能表示英文字母在内的 128 个字符，
 为了表示世界上大部分的文字系统，发明了 Unicode，它是 ASCII 的超集，
 包含世界上书写系统中存在的所有字符，并为每个代码分配一个标准编号（称为 Unicode CodePoint），在 Go 语言中称之为 rune，是 int32 类型的别名。 
@@ -3426,7 +3442,7 @@ rune 是 Go 中的内置类型，它是 int32 的别名。rune 代表 Go 中的 
 代码点占用多少字节并不重要，可以用一个符文来表示。 
 
 
-#### <a name='Go-1'></a>Go 支持默认参数或可选参数吗？ 
+#### Go 支持默认参数或可选参数吗？ 
 不支持。但是可以利用结构体参数，或者...传入参数切片数组。 
 // 这个函数可以传入任意数量的整型参数 
 func sum(nums ...int) { 
@@ -3438,7 +3454,7 @@ func sum(nums ...int) {
 }
 
 
-#### <a name='Gotag'></a>Go 语言 tag 的用处？ 
+#### Go 语言 tag 的用处？ 
 tag 可以为结构体成员提供属性。常见的： 
 1. json 序列化或反序列化时字段的名称 
 2. db: sqlx 模块中对应的数据库字段名 
@@ -3446,13 +3462,13 @@ tag 可以为结构体成员提供属性。常见的：
 4. binding: 搭配 form 使用, 默认如果没查找到结构体中的某个字段则不报错值为空, binding 为 required 代表没找到返回错误给前端 
 
 
-#### <a name='vv'></a>结构体打印时，%v 和 %+v 的区别 
+#### 结构体打印时，%v 和 %+v 的区别 
 %v 输出结构体各成员的值； 
 %+v 输出结构体各成员的名称和值； 
 %##v 输出结构体名称和结构体各成员的名称和值 
 
  
-#### <a name='Goenums'></a>Go 语言中如何表示枚举值(enums)？ 
+#### Go 语言中如何表示枚举值(enums)？ 
 在常量中用 iota 可以表示枚举。iota 从 0 开始。 
 const (
     B = 1 << (10 * iota)
@@ -3465,7 +3481,7 @@ const (
 )
 
 
-#### <a name='structok'></a>空 struct{} 的用途 ok 
+#### 空 struct{} 的用途 ok 
 1、用 map 模拟一个 set，那么就要把值置为 struct{}，struct{}本身不占任何空间，
 可以避免任何多余的内存分配。 
 ```Go
@@ -3498,13 +3514,13 @@ func main() {
 3、仅有方法的结构体 
 type Lamp struct{} 
 
-#### <a name='gointint32'></a>go 里面的 int 和 int32 是同一个概念吗？ 
+#### go 里面的 int 和 int32 是同一个概念吗？ 
 不是一个概念！千万不能混淆。go 语言中的 int 的大小是和操作系统位数相关的，
 如果是 32 位操作系统，int 类型的大小就是 4 字节。如果是 64 位操作系统，int 类型的大小就是 8 个字节。除此之外 uint 也与操作系统有关。 
 int8 占 1 个字节，int16 占 2 个字节，int32 占 4 个字节，int64 占 8 个字节。 
 
 
-#### <a name='init'></a>init() 函数是什么时候执行的？ 
+#### init() 函数是什么时候执行的？ 
 简答： 在 main 函数之前执行。
 详细：init()函数是 go 初始化的一部分，由 runtime 初始化每个导入的包，初始化不是按照从上到下的导入顺序，
 而是按照解析的依赖关系，没有依赖的包最先初始化。
@@ -3524,7 +3540,7 @@ init 函数非常特殊：
 • 不同包的 init 函数按照包导入的依赖关系决定执行顺序。
 
 
-#### <a name='uint12'></a>uint 型变量值分别为 1，2，它们相减的结果是多少？ 
+#### uint 型变量值分别为 1，2，它们相减的结果是多少？ 
 var a uint = 1 
 var b uint = 2 
 fmt.Println(a - b) // 结果会溢出，打印 18446744073709551615，如果是 32 位系统，结果是 2^32-1，如果是 64 位系统，结果 2^64-1； 
@@ -3553,7 +3569,7 @@ var _ Codec = (*GobCodec)(nil)
 
 
 
-#### <a name='fallthrough'></a>fallthrough 
+#### fallthrough 
 如果在执行完每个分支的代码后，还希望继续执行后续分支的代码，可以使用 fallthrough 关键字来达到目的。 
 ```Go
 func main() {
@@ -3584,15 +3600,15 @@ func main() {
 // default case
 ```
 
-#### <a name='nil'></a>nil 
+#### nil 
 nil 只能赋值给指针、chan、func、interface、map 或 slice 类型的变量，也可以赋给 error； 
 
-#### <a name='iota'></a>iota
+#### iota
 1、 iota 只能在常量的表达式中使用； 
 2、 每次 const 出现时，都会让 iota 初始化为 0.【自增长】； 
 
 
-#### <a name='GoLabel'></a>Go 中 Label 使用 
+#### Go 中 Label 使用 
 Go 语言中有 goto 这个功能，在处理多级嵌套时非常有用。 
 Go 语言支持 label（标签）语法：分别是 break label 和 goto label 、continue label；
 
@@ -3646,7 +3662,7 @@ func main() {
 //i==2, j==0 
  
  
-## <a name='Go-1'></a>Go 有异常类型吗？ 
+## Go 有异常类型吗？ 
 有。Go 用 error 类型代替 try...catch 语句，这样可以节省资源。同时增加代码可读性： 
 _, err := funcDemo() 
 if err != nil { 
@@ -3669,7 +3685,7 @@ func New(text string) error {
 }
 
 
-## <a name='GoConvey'></a>Go Convey
+## Go Convey
 Go Convey是一个Go语言的测试框架，它提供了一种简洁、富有表现力的方式来编写和组织测试用例。Go Convey的目标是让测试代码更加清晰、易读和易于维护。
 
 Go Convey的主要特点和用途如下：
@@ -3734,7 +3750,7 @@ func TestSpec(t *testing.T) {
 
 
 
-## <a name='etcd'></a>etcd
+## etcd
 etcd 是一个高度一致的分布式键值存储，它提供了一种可靠的方式来存储需要由分布式系统或机器集群访问的数据。 
 它可以优雅地处理网络分区期间的领导者选举，即使在领导者节点中也可以容忍机器故障。 
 etcd 是用 Go 语言编写的，它具有出色的跨平台支持，小的二进制文件和强大的社区。
@@ -3747,23 +3763,23 @@ etcd 是一个高可用的键值存储系统，用于共享配置和服务发现
 4. 编写客户端代码，使用 etcd 提供的 API 访问 etcd。etcd 提供多种语言的客户端库，可以根据需要选择使用。具体使用方法可以参考 etcd 的官方文档。 
 
 
-#### <a name='etcd-1'></a>查看本地etcd服务
+#### 查看本地etcd服务
 sc query etcd
 
-#### <a name='dockeretcd'></a>docker部署etcd服务
+#### docker部署etcd服务
 1. docker pull bitnami/etcd:latest；拉取镜像
 2. docker network create app-tier --driver bridge；创建docker网络
 3. 启动etcd服务实例；docker run -d --name etcd-server --network app-tier --publish 2379:2379 --publish 2380:2380 --env ALLOW_NONE_AUTHENTICATION=yes --env ETCD_ADVERTISE_CLIENT_URLS=http://10.50.7.108:2379 bitnami/etcd:latest
 4. 查看版本；curl -L http://127.0.0.1:2379/version
 
 
-## <a name='-1'></a>缓存
+## 缓存
 缓存通常的操作流程：
 应用服务从缓存中读取数据，缓存不存在时，就去数据库中读取，数据库返回数据后再将数据写入到缓存中；缓存存在时直接返回。
 
 第一次请求时将一些耗时操作的结果暂存，以后遇到相同的请求，直接返回暂存的数据，缓存不存在时，调用回调函数获取源数据； 
 
-#### <a name='map-1'></a>缓存用map键值对有什么问题？
+#### 缓存用map键值对有什么问题？
 1）内存不够了怎么办？
 那就随机删掉几条数据好了。随机删掉好呢？还是按照时间顺序好呢？或者是有没有其他更好的淘汰策略呢？
 不同数据的访问频率是不一样的，优先删除访问频率低的数据是不是更好呢？数据的访问频率可能随着时间变化，那优先删除最近最少访问的数据可能是一个更好的选择。
@@ -3779,7 +3795,7 @@ sc query etcd
 大部分情况下，分布式系统是一个更优的选择。
 
 
-#### <a name='-1'></a>缓存淘汰算法 
+#### 缓存淘汰算法 
 1.1 FIFO(First In First Out) 
 先进先出，也就是淘汰缓存中最老(最早添加)的记录。FIFO 认为，最早添加的记录，其不再被使用的可能性比刚添加的可能性大。
 这种算法的实现也非常简单，创建一个队列，新增记录添加到队尾，每次内存不够时，淘汰队首。
@@ -3853,7 +3869,7 @@ func (l *LRU) Put(key string, value Value) {
 
 
 
-#### <a name='-1'></a>缓存框架特性
+#### 缓存框架特性
 1. 单机缓存和基于 HTTP 的分布式缓存
 核心数据结构Group，负责与用户的交互，并且控制缓存值存储和获取的流程。
 接收key，检查是否被缓存，是的话就返回缓存值；
@@ -3872,18 +3888,18 @@ func (l *LRU) Put(key string, value Value) {
 
 
 
-#### <a name='-1'></a>缓存实现高性能
+#### 缓存实现高性能
 场景：
 电商某个商品的信息一天内不会变化，但是这个商品一次查询要耗费2s，1天只能被浏览100万次；
 用户1查询数据1，第一次查询缓存没有，从数据库查询耗费800ms,将数据放入缓存，第二次查询只需查找缓存即可；后续数据修改时，更新数据库的同时更新缓存就ok；
 假如10分钟数据没有变化，1000个人访问同一数据，就第一个人耗时800ms，后续999人只需耗时10ms就能查找到数据。
 
-#### <a name='-1'></a>缓存实现高并发
+#### 缓存实现高并发
 电商里的商品，3/4放入缓存，1/4放入数据库；高峰期每秒4000个请求，其中3000走缓存，1000走数据库；
 缓存是走内存，内存天然可以支撑4万/s个请求；数据库一般建议并发请求不要超过2000/s。
 
 
-#### <a name='-1'></a>缓存雪崩
+#### 缓存雪崩
 缓存在同一时刻全部失效，造成瞬时DB请求量大、压力骤增，引起雪崩。缓存雪崩通常因为缓存服务器宕机、缓存的 key 设置了相同的过期时间等引起。
 
 发生缓存雪崩有两个原因：
@@ -3906,7 +3922,7 @@ func (l *LRU) Put(key string, value Value) {
 
 
 
-#### <a name='-1'></a>缓存击穿
+#### 缓存击穿
 一个存在的key，在缓存过期的一刻，同时有大量的请求，这些请求都会击穿到 DB ，造成瞬时DB请求量大、压力骤增。
 解决：
 有两种方案可以解决：
@@ -3917,7 +3933,7 @@ func (l *LRU) Put(key string, value Value) {
  3、同时，虽然 VALUE 已经过期，还是直接返回。通过这样的方式，保证服务的可用性，虽然损失了一定的时效性。
 
 
-#### <a name='-1'></a>缓存穿透
+#### 缓存穿透
 查询一个不存在的数据，因为不存在则不会写到缓存中，所以每次都会去请求 DB，如果瞬间流量过大，穿透到 DB，导致宕机。
 解决方案：
 方案一，缓存空对象。
@@ -3925,7 +3941,7 @@ func (l *LRU) Put(key string, value Value) {
 方案二，BloomFilter布隆过滤器。
 在缓存服务的基础上，构建BloomFilter数据结构，在BloomFilter中存储对应的KEY是否存在，如果存在，说明该KEY对应的值不为空。
 
-#### <a name='-1'></a>布隆过滤器原理是什么？
+#### 布隆过滤器原理是什么？
 布隆过滤器由「初始值都为 0 的位图数组」和「 N 个哈希函数」两部分组成。
 当我们在写入数据库数据时，在布隆过滤器里做个标记，这样下次查询数据是否在数据库时，只需要查询布隆过滤器，
 如果查询到数据没有被标记，说明不在数据库中。
@@ -3948,7 +3964,7 @@ func (l *LRU) Put(key string, value Value) {
 
 
 
-#### <a name='hash-1'></a>一致性hash
+#### 一致性hash
 一致性哈希算法将 key 映射到 2^32 的空间中，将这个数字首尾相连，形成一个环。
 1. 计算节点/机器(通常使用节点的名称、编号和 IP 地址)的哈希值，放置在环上。
 2. 计算 key 的哈希值，放置在环上，顺时针寻找到的第一个节点，就是应选取的节点/机器。
@@ -3962,7 +3978,7 @@ func (l *LRU) Put(key string, value Value) {
 
 
 
-## <a name='rabbitMQ'></a>rabbitMQ
+## rabbitMQ
 rabbitmqctl list_queues  查看队列，并且显示消息数；
 rabbitmqctl list_exchanges  查看交换机；
 http://10.50.7.108:15672    浏览器登录页面，可以查看消息队列集群概况；
@@ -3993,7 +4009,7 @@ routingKey：用来绑定交换器和队列的路由键。
 就是说，每个 RabbitMQ 节点都有这个 queue 的一个完整镜像，包含 queue 的全部数据的意思。
 然后每次你写消息到 queue 的时候，都会自动把消息同步到多个实例的 queue 上。
 
-#### <a name='rocketmq'></a>rocketmq
+#### rocketmq
 
 新建producer时，如果多个producer group名称相同会报错producer group has been created, specify another one，解决就是每个producer group名称不要一致；
 
@@ -4024,7 +4040,7 @@ warmMapedFileEnable=true
 
 
 
-## <a name='kubernetesk8s'></a>kubernetes k8s
+## kubernetes k8s
 K8s 是一个管理跨主机容器化应用系统，实现了包括应用部署、高可用管理和弹性伸缩在内的一系列基础功能并封装成为一套完整、简单易用的 RESTful API 对外提供服务。
 
 k8s 整体架构
@@ -4224,7 +4240,7 @@ container networking interface
 
 
 
-## <a name='redis'></a>redis
+## redis
 1. string类型内部实现；
     SDS--simple dynamic string,简单动态字符串； 
     可以保存字符串和二进制数据；
@@ -4534,7 +4550,7 @@ cluster-announce-bus-port 16371
 8. redis-cli -c -p 6371
 
 
-## <a name='Go-1'></a>Go接口文档管理工具
+## Go接口文档管理工具
 在Go语言生态系统中，有几个流行的接口文档管理工具可以用来生成和管理API文档。以下是一些推荐的工具：
 
 1. Swagger（OpenAPI）：
@@ -4574,7 +4590,7 @@ cluster-announce-bus-port 16371
 
 这些是一些常用的Go语言接口文档管理工具。选择合适的工具取决于项目的需求、团队的偏好以及与现有工具和框架的集成程度。无论选择哪种工具，编写清晰、全面的API文档都是开发高质量软件的重要一环。
 
-## <a name='Gopackages'></a>Go packages
+## Go packages
 1. goroutine池包 github.com/panjf2000/ants
 2. 单元测试包 github.com/smartystreets/goconvey
 3. 权限访问控制库 github.com/casbin/casbin/v2

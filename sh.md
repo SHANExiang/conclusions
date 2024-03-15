@@ -5,38 +5,45 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-## <a name=''></a>快捷键
+## 快捷键
 1. 从后往前删除   ctrl+w；
 2. 从前往后删除   ctrl+k；
 3. 光标从前调到末尾  ctrl+e;  vim内部为删除光标所在行；
 
 
-## <a name='curl'></a>curl
+## curl
 curl "http://localhost:9999/hello?name=geektutu"
+
 curl "http://localhost:9999/login" -X POST -d 'username=geektutu&password=1234' -H ""
+
 curl -e ssl_cacert.pem -k 'https://192.168.11.1:18002/controller/v2/tokens' --header 'Content-Type: application/json' --header 'Cookie:bspsession=deleted' -d '{"userName": "ops@huawei.com", "password": "Xsy@2023"}'
+
 curl 33.33.33.232:30000 --connect-timeout 5    设置5s超时
+
 curl -g -i --insecure -X PUT https://10.50.90.2:18002/restconf/data/huawei-ac-neutron:neutron-cfg/routers/router/e4bffe3a-24cb-4257-aab6-48cd95499aeb -H "Content-Type:application/json" -H "X-ACCESS-TOKEN:$token" -H "Accept:application/json" -d $data
 
-## <a name='zip'></a>zip
+
+
+## zip
 zip -q -r html.zip /home/html    ## 将/home/html/这个目录下所有文件和文件夹打包为当前目录下的 html.zip
+
 unzip html.zip -d /home/         ## 将html.zip解压到/home路径下；
 
 
 
-## <a name='awk'></a>awk
+## awk
 -F     指定输入行的字段分隔符，以便将数据切分成不同的段
 awk -F "\"" '{print $6}' 
 
 
 
-## <a name='git'></a>git
+## git
 gitlab提交代码流程
-1.gitlab新建分支 hotfix/master/etcdconf/chron--- bug用hotfix，功能代码用feature，master指的是要合并的分支，etcdconf--功能路径，chron用户；feature/master/backupdriver/dongxiang
-2.本地拉取分支git fetch origin feature/master/backupdriver/dongxiang；
-3.根据远端分支新建本地分支git checkout -b feature/backup origin/feature/master/backupdriver/dongxiang；
-4.将本地另一个分支上的修改cherry-pick到新建分支git cherry-pick 5e882fedd834c4e2a4c8d41a69d565324f98c56a；
-5.提交到远端分支git push origin HEAD:feature/master/backupdriver/dongxiang；
+1. gitlab新建分支 hotfix/master/etcdconf/chron--- bug用hotfix，功能代码用feature，master指的是要合并的分支，etcdconf--功能路径，chron用户；feature/master/backupdriver/dongxiang
+2. 本地拉取分支git fetch origin feature/master/backupdriver/dongxiang；
+3. 根据远端分支新建本地分支git checkout -b feature/backup origin/feature/master/backupdriver/dongxiang；
+4. 将本地另一个分支上的修改cherry-pick到新建分支git cherry-pick 5e882fedd834c4e2a4c8d41a69d565324f98c56a；
+5. 提交到远端分支git push origin HEAD:feature/master/backupdriver/dongxiang；
 
 git恢复reset的代码
 首先git reflog查看提交记录；
@@ -53,23 +60,34 @@ gitignore加./idea
 远端分支和master改动一致
 本地checkout -b新分支，然后git pull，之后git rebase master，最后git push origin HEAD:sbx即可，不需要merge request；
 
-## <a name='-1'></a>网卡配置
-ip addr add 10.50.114.157/32 dev eth0        ## 增加网卡地址
-ip addr del 10.50.114.157/32 dev eth0        ## 删除网卡地址
-ip route add default via 10.50.114.157 dev eth0       ## 增加默认路由
-ip addr show dev eht0                        ## 查看网口的配置信息
 
+## 网卡配置
+ip addr add 10.50.114.157/32 dev eth0        ## 增加网卡地址
+
+ip addr del 10.50.114.157/32 dev eth0        ## 删除网卡地址
+
+ip route add default via 10.50.114.157 dev eth0       ## 增加默认路由
+
+ip addr show dev eht0                        ## 查看网口的配置信息
 
 
 1. 可以直接修改配置文件/etc/sysconfig/network-scripts/中的ifcfg-eth0；
 如果一个网卡配置多个ip地址，则新增文件/etc/sysconfig/network-scripts/中的ifcfg-eth0:1；
+
 2. BOOTPROTO设置为 dhcp 后，系统会在引导过程中自动向 DHCP 服务器发送请求，以获取 IP 地址和其他相关配置。
 这样，你无需手动配置网络接口，系统会自动从 DHCP 服务器获取所需的网络配置信息，并将其应用于相应的网络接口。
 手动配置网络接口，可以将 BOOTPROTO 设置为其他值，比如 static（静态IP地址）或 none（禁用IP配置）。
-3. 
+ 
 
 
-## <a name='nginx'></a>nginx
+## nginx
+反向代理和负载均衡
+
+Nginx 可以作为反向代理服务器，将客户端请求转发到后端服务器。
+通过配置反向代理规则，Nginx 可以根据请求的 URL、路径、头部等信息将请求分发到不同的后端服务器。
+Nginx 支持多种负载均衡算法，如轮询、最少连接、IP 哈希等，可以根据后端服务器的性能和负载情况进行请求分发。
+反向代理和负载均衡可以提高系统的可伸缩性、可用性和性能。
+
 server {
     listen 80;
     server_name yourdomain.com;
@@ -87,8 +105,7 @@ server {
         proxy_set_header Host $host;
     }
 }
-当客户端通过浏览器或其他方式发送请求到 yourdomain.com 这个域名时，Nginx 将监听 HTTP 请求的端口 80 ，
-将带有/socket前缀的WebSocket请求转发到ws://backend.example.com/socket，
+当客户端通过浏览器或其他方式发送请求到 yourdomain.com 这个域名时，Nginx 将监听 HTTP 请求的端口 80，将带有/socket前缀的WebSocket请求转发到ws://backend.example.com/socket，
 同时将带有/api前缀的HTTP请求转发到http://backend.example.com/api。
 
 proxy_set_header Host $host; 将客户端请求中的 Host 头部信息传递给目标服务器。这是正常的 HTTP 头部信息传递，不涉及客户端 IP 地址。
@@ -99,7 +116,7 @@ proxy_connect_timeout: 用于设置与后端服务器建立连接的超时时间
 proxy_send_timeout: 用于设置向后端服务器发送请求的超时时间。默认值60s
 
 
-#### <a name='Nginx'></a>Nginx有哪些负载均衡算法？
+#### Nginx有哪些负载均衡算法？
 Nginx支持的负载均衡算法包括：
 1. 轮询：按照顺序依次将请求分配给后端服务器。这种算法最简单，但是也无法处理某个节点变慢或者客户端操作有连续性的情况。
 2. IP哈希：根据客户端IP地址的哈希值来确定分配请求的后端服务器。
@@ -111,7 +128,8 @@ Nginx支持的负载均衡算法包括：
 适用于后端服务器性能不同的场景，可以根据服务器权重分配请求，提高高性能服务器的利用率。
 
 
-## <a name='tcpdump'></a>tcpdump
+
+## tcpdump
 sudo tcpdump -n -t -S -i enp0s3  port 80
 第一次握手，标志位Flags=S
 IP 10.0.2.2.51323 > 10.0.2.15.80: Flags [S], seq 84689409, win 65535, options [mss 1460], length 0
@@ -131,7 +149,7 @@ port: 指定监听端口是80
 host:指定监听的主机名
 
 
-## <a name='socket'></a>查看socket信息
+## 查看socket信息
 netstat -napt或ss -ntlp
 -n表示不显示名字，而是以数字方式显示ip和端口
 -l只显示LISTEN状态的socket
@@ -146,12 +164,12 @@ ss -tunlp|grep 9696     查看端口打开情况
 
 
 
-## <a name='-1'></a>证书
+## 证书
 CA 证书文件（ssl_cacert.pem）---即根证书；
 客户端证书和私钥文件----cert.pem, key.pem
 
 
-## <a name='-1'></a>用户及用户组
+## 用户及用户组
 添加用户---adduser dx
 设置用户密码---passwd dx
 添加用户组---groupadd docker
@@ -160,7 +178,7 @@ CA 证书文件（ssl_cacert.pem）---即根证书；
 
 
 
-## <a name='k8s'></a>k8s部署
+## k8s部署
 1. 格式化数据盘并挂载
 sudo cat /etc/fstab |tail -n1
 UUID=36158b9f-f0cb-46e0-9e8c-f9f463be06db /                       xfs     defaults        0 0
@@ -229,20 +247,14 @@ kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboar
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 ```
 
-###### helm
+## helm
 安装helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
     && chmod 700 get_helm.sh \
     && ./get_helm.sh
 
-###### k8s源码
 
-######## kube-apiserver
-对外提供api的方式与其它组件进行交互；
-
-
-
-######## deepcopy-gen使用
+## deepcopy-gen使用
 deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 -O zz_generated.deepcopy
 -v 5 指定输出内容的详细程度
 -h boilerplate.txt指定所有生成的文件的头部声明内容
@@ -252,7 +264,7 @@ deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/api
 
 
 
-######## client-gen
+## client-gen
 client-gen --clientset-name versioned -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 --output-package clientset --go-header-file hack/boilerplate.go.txt -v 5
 volcano.sh/apis增加资源client
 拉代码到本地直接执行./hack/update-codegen.sh即可在本地生成client
@@ -262,7 +274,7 @@ volcano.sh/apis增加资源client
 
 
 
-## <a name='sar'></a>sar
+## sar
 怀疑CPU存在瓶颈，可用 sar -u 和 sar -q 等来查看
 怀疑内存存在瓶颈，可用 sar -B、sar -r 和 sar -W 等来查看
 怀疑I/O存在瓶颈，可用 sar -b、sar -u 和 sar -d 等来查看
@@ -272,7 +284,7 @@ sar -n EDEV，显示关于网络错误的统计数据；
 sar -n TCP，显示 TCP 的统计数据
 
 
-## <a name='keepalived'></a>keepalived
+## keepalived
 /etc/keepalived/keepalived.conf中
 vrrp_instance VI_1 {
     state BACKUP    ## 主服务器为MASTER，备服务器为BACKUP
@@ -290,24 +302,24 @@ vrrp_instance VI_1 {
 }
 
 
-## <a name='-1'></a>磁盘
+## 磁盘
 fdisk---磁盘分区的工具
 fdisk -l显示磁盘分区表
 fdisk /dev/sda -l显示磁盘设备sda的详情
 
 
-## <a name='-1'></a>文件描述符
+## 文件描述符
 1. 每个文件描述符都会与一个打开的文件相对应；
 2. 不同的文件描述符可能指向同一个文件；
 3. 相同的文件可以被不同的进程打开，也可以在一个进程中被打开多次；
 
 
 
-## <a name='ldap'></a>ldap
-###### ldap搭建
+## ldap
+### ldap搭建
 https://blog.csdn.net/qq_37733540/article/details/123988481
 
-###### ldap使用
+### ldap使用
 1. 服务为slapd；
 2. ldapsearch检查内容
 ldapsearch -x -D cn=Manager,dc=my-domain,dc=com -w admin -b "dc=my-domain,dc=com"
@@ -328,12 +340,15 @@ cn-----common name，公共名称；
 
 
 
-## <a name='-1'></a>内存
+## 内存
 
-#### <a name='-1'></a>内核态和用户态区别？内核态的底层操作有什么？为什么要分两个不同的态？
+### 内核态和用户态区别？内核态的底层操作有什么？为什么要分两个不同的态？
 内核态和用户态是操作系统中的两种运行模式。它们的主要区别在于权限和可执行的操作：
+
 内核态（Kernel Mode）：在内核态下，CPU可以执行所有的指令和访问所有的硬件资源。这种模式下的操作具有更高的权限，主要用于操作系统内核的运行。
+
 用户态（User Mode）：在用户态下，CPU只能执行部分指令集，无法直接访问硬件资源。这种模式下的操作权限较低，主要用于运行用户程序。
+
 内核态的底层操作主要包括：内存管理、进程管理、设备驱动程序控制、系统调用等。这些操作涉及到操作系统的核心功能，需要较高的权限来执行。
 
 分为内核态和用户态的原因主要有以下几点：
@@ -343,25 +358,31 @@ cn-----common name，公共名称；
 内核态和用户态的划分有助于保证操作系统的安全性、稳定性和易维护性。
 
 
-#### <a name='-1'></a>物理内存
+### 物理内存
 平时所称的内存也叫随机访问存储器（ random-access memory ）也叫 RAM 。而 RAM 分为两类：
+
 一类是静态 RAM（ SRAM ），这类 SRAM 用于 CPU 高速缓存 L1Cache，L2Cache，L3Cache。其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。
+
 另一类则是动态 RAM ( DRAM )，这类 DRAM 用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。
 
 
 
-#### <a name='-1'></a>虚拟内存地址
+### 虚拟内存地址
 64 位虚拟地址的格式为：全局页目录项（9位）+ 上层页目录项（9位）+ 中间页目录项（9位）+ 页表项（9位）+ 页内偏移（12位）。共 48 位组成的虚拟内存地址。
+
 32 位虚拟地址的格式为：页目录项（10位）+ 页表项（10位） + 页内偏移（12位）。共 32 位组成的虚拟内存地址。
 
-#### <a name='-1'></a>进程虚拟内存空间所包含的主要区域
+
+
+### 进程虚拟内存空间所包含的主要区域
 1. 用于存放进程程序二进制文件中的机器指令的代码段
 2. 用于存放程序二进制文件中定义的全局变量和静态变量的数据段和 BSS 段。
 3. 用于在程序运行过程中动态申请内存的堆。
 4. 用于存放动态链接库以及内存映射区域的文件映射与匿名映射区。
 5. 用于存放函数调用过程中的局部变量和函数参数的栈。
 
-#### <a name='-1'></a>内存分段
+
+### 内存分段
 程序是由若干个逻辑分段组成的，如可由代码分段、数据分段、栈段、堆段组成。不同的段是有不同的属性的，所以就用分段（Segmentation）的形式把这些段分离出来。
 
 出现内存碎片：
@@ -372,34 +393,38 @@ cn-----common name，公共名称；
 过程就是将某一段的内存写到硬盘上（Swap空间），然后再从硬盘读回到内存，在读回内存时会紧紧跟着被占用的区域，这样可以将碎片连续从而让别的程序转载这些碎片区域。
 
 
-#### <a name='-1'></a>内存分页
+### 内存分页
 分页是把整个虚拟和物理内存空间切成一段段固定尺寸的大小。这样一个连续并且尺寸固定的内存空间，我们叫页（Page）。在 Linux 下，每一页的大小为 4KB。
 
 因为内存分页机制分配内存的最小单位是一页，即使程序不足一页大小，我们最少只能分配一个页，所以页内会出现内存浪费，所以针对内存分页机制会有内部内存碎片的现象。
 
 
-#### <a name='-1'></a>多级页表
-将页表（一级页表）分为 1024 个页表（二级页表），每个表（二级页表）中包含 1024 个「页表项」，形成二级分页。再吧二级分页推广到多级分页；
+### 多级页表
+将页表（一级页表）分为 1024 个页表（二级页表），每个表（二级页表）中包含 1024 个「页表项」，形成二级分页。再把二级分页推广到多级分页；
 一级页表覆盖到了全部虚拟地址空间，二级页表在需要时创建。
 
-#### <a name='TLB'></a>TLB
+
+### TLB
 translation lookaside buffer，通常成为页表缓存、地址旁路缓存、快表等；
 把最常访问的几个页表项存储到访问速度更快的硬件，于是计算机科学家们，就在 CPU 芯片中，加入了一个专门存放程序最常访问的页表项的 Cache，这个 Cache 就是 TLB。
 在 CPU 芯片里面，封装了内存管理单元（Memory Management Unit）芯片，它用来完成地址转换和 TLB 的访问与交互。
 有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表。
 
 
-#### <a name='-1'></a>段页式内存管理
+### 段页式内存管理
 内存分段和内存分页组合在同一个系统中使用。
+
 段页式内存管理实现的方式：
 1. 先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制；
 2. 接着再把每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页；
 这样，地址结构就由段号、段内页号和页内位移三部分组成。
 
-#### <a name='-1'></a>内存分配的过程
+
+### 内存分配的过程
 应用程序通过 malloc 函数申请内存的时候，实际上申请的是虚拟内存，此时并不会分配物理内存。
-当应用程序读写了这块虚拟内存，CPU 就会去访问这个虚拟内存， 这时会发现这个虚拟内存没有映射到物理内存，
+当应用程序读写了这块虚拟内存，CPU 就会去访问这个虚拟内存，这时会发现这个虚拟内存没有映射到物理内存，
 CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将缺页中断交给内核的 Page Fault Handler （缺页中断函数）处理。
+
 缺页中断处理函数会看是否有空闲的物理内存：
 如果有，就直接分配物理内存，并建立虚拟内存与物理内存之间的映射关系。
 如果没有空闲的物理内存，那么内核就会开始进行回收内存 (opens new window)的工作，
@@ -412,7 +437,7 @@ CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将�
 
 
 
-###### 虚拟内存的作用
+### 虚拟内存的作用
 第一，虚拟内存可以使得进程对运行内存超过物理内存大小，因为程序运行符合局部性原理，CPU 访问内存会有很明显的重复访问的倾向性，
 对于那些没有被经常使用到的内存，我们可以把它换出到物理内存之外，比如硬盘上的 swap 区域。
 
@@ -423,29 +448,34 @@ CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将�
 在内存访问方面，操作系统提供了更好的安全性。
 
 
-#### <a name='swap'></a>swap机制
-当系统的物理内存不够用的时候，就需要将物理内存中的一部分空间释放出来，以供当前运行的程序使用。那些被释放的空间可能来自一些很长时间没有什么操作的程序，这些被释放的空间会被临时保存到磁盘，等到那些程序要运行时，再从磁盘中恢复保存的数据到内存中。
+### swap机制
+当系统的物理内存不够用的时候，就需要将物理内存中的一部分空间释放出来，以供当前运行的程序使用。
+那些被释放的空间可能来自一些很长时间没有什么操作的程序，这些被释放的空间会被临时保存到磁盘，等到那些程序要运行时，再从磁盘中恢复保存的数据到内存中。
 
-另外，当内存使用存在压力的时候，会开始触发内存回收行为，会把这些不常访问的内存先写到磁盘中，然后释放这些内存，给其他更需要的进程使用。再次访问这些内存时，重新从磁盘读入内存就可以了。
+另外，当内存使用存在压力的时候，会开始触发内存回收行为，会把这些不常访问的内存先写到磁盘中，然后释放这些内存，给其他更需要的进程使用。
+再次访问这些内存时，重新从磁盘读入内存就可以了。
 
 这种，将内存数据换出磁盘，又从磁盘中恢复数据到内存的过程，就是 Swap 机制负责的。
 
 Swap 就是把一块磁盘空间或者本地文件，当成内存来使用，它包含换出和换入两个过程：
 
-换出（Swap Out） ，是把进程暂时不用的内存数据存储到磁盘中，并释放这些数据占用的内存；
+换出（Swap Out），是把进程暂时不用的内存数据存储到磁盘中，并释放这些数据占用的内存；
 换入（Swap In），是在进程再次访问这些内存的时候，把它们从磁盘读到内存中来；
 
-使用 Swap 机制优点是，应用程序实际可以使用的内存空间将远远超过系统的物理内存。由于硬盘空间的价格远比内存要低，因此这种方式无疑是经济实惠的。当然，频繁地读写硬盘，会显著降低操作系统的运行速率，这也是 Swap 的弊端。
-
+使用 Swap 机制优点是，应用程序实际可以使用的内存空间将远远超过系统的物理内存。由于硬盘空间的价格远比内存要低，因此这种方式无疑是经济实惠的。
+当然，频繁地读写硬盘，会显著降低操作系统的运行速率，这也是 Swap 的弊端。
 
 Linux提供了两种方法启用Swap，分别是Swap分区和Swap文件；
 
-#### <a name='Linux'></a>Linux操作系统的缓存
+
+### Linux操作系统的缓存
 在应用程序读取文件的数据的时候，Linux操作系统会对读取的文件数据进行缓存，会缓存在文件系统中的Page Cache（页缓存）；
+
 Page Cache 属于内存空间里的数据，由于内存访问比磁盘访问快很多，在下一次访问相同的数据就不需要通过磁盘 I/O 了，命中缓存就直接返回数据即可。
 因此，Page Cache 起到了加速访问数据的作用。
 
-###### 预读机制
+
+#### 预读机制
 Linux 操作系统为基于 Page Cache 的读缓存机制提供预读机制
 比如说，应用程序利用 read 系统调动读取 4KB 数据，实际上内核使用预读机制（ReadaHead） 机制完成了 16KB 数据的读取，也就是通过一次磁盘顺序读将多个 Page 数据装入 Page Cache。
 这样下次读取 4KB 数据后面的数据的时候，就不用从磁盘读取了，直接在 Page Cache 即可命中数据。因此，预读机制带来的好处就是减少了 磁盘 I/O 次数，提高系统磁盘 I/O 吞吐量。
@@ -463,7 +493,7 @@ inactive_list非活跃内存页链表：存放是很少被访问的内存页；
 预读页就只需要加入到 inactive list 区域的头部，当页被真正访问的时候，才将页插入 active list 的头部。如果预读的页一直没有被访问，就会从 inactive list 移除，这样就不会影响 active list 中的热点数据。
 
 
-###### 缓存污染
+#### 缓存污染
 还是使用「只要数据被访问一次，就将数据加入到活跃 LRU 链表头部（或者 young 区域）」这种方式的话，那么还存在缓存污染的问题。
 当我们在批量读取数据的时候，由于数据被访问了一次，这些大量数据都会被加入到「活跃 LRU 链表」里，然后之前缓存在活跃 LRU 链表（或者 young 区域）里的热点数据全部都被淘汰了，如果这些大量的数据在很长一段时间都不会被访问的话，那么整个活跃 LRU 链表（或者 young 区域）就被污染了。
 
@@ -474,14 +504,53 @@ MySQL Innodb：在内存页被访问第二次的时候，并不会马上将该�
 如果第二次的访问时间与第一次访问的时间在 1 秒内（默认值），那么该页就不会被从 old 区域升级到 young 区域；
 如果第二次的访问时间与第一次访问的时间超过 1 秒，那么该页就会从 old 区域升级到 young 区域；
 
-###### 程序局部性原理
-时间局部性和空间局部性。时间局部性是指如果程序中的某条指令一旦执行，则不久之后该指令可能再次被执行；如果某块数据被访问，则不久之后该数据可能再次被访问。空间局部性是指一旦程序访问了某个存储单元，则不久之后，其附近的存储单元也将被访问。
+
+#### 程序局部性原理
+时间局部性和空间局部性。时间局部性是指如果程序中的某条指令一旦执行，则不久之后该指令可能再次被执行；如果某块数据被访问，则不久之后该数据可能再次被访问。
+空间局部性是指一旦程序访问了某个存储单元，则不久之后，其附近的存储单元也将被访问。
+
+
+### 查询正在运行的进程的状态和资源占用情况
+在 Linux 系统中，有多种方法可以查询正在运行的进程的状态和资源占用情况。下面是一些常用的命令和工具：
+
+1. ps 命令
+ps aux 可以显示所有进程的详细信息，包括进程 ID（PID）、CPU 和内存占用率、进程状态等。
+ps -ef 可以显示进程的父进程 ID（PPID）和命令行参数等信息。
+
+2. top 命令
+top 命令可以实时显示系统中运行的进程及其资源占用情况。
+它提供了交互式界面，可以根据 CPU 使用率、内存使用量等对进程进行排序。
+通过 top 命令，可以快速定位占用资源较多的进程。
+
+3. htop 命令
+htop 是一个增强版的 top 命令，提供了更友好的用户界面和更多的功能。
+它可以显示进程的树形结构、CPU 和内存使用情况的图形化表示等。
+
+4. pmap 命令
+pmap 命令可以显示指定进程的内存映射情况。
+通过 pmap -x <PID> 可以查看进程的内存映射详情，包括映射的地址范围、权限、占用的物理内存大小等。
+
+5. /proc 文件系统
+Linux 的 /proc 文件系统提供了进程的详细信息。
+对于每个进程，都有一个对应的 /proc/PID 目录，其中包含了进程的各种信息文件。
+例如，/proc/PID/status 文件包含进程的状态信息，/proc/PID/maps 文件包含进程的内存映射信息等。
 
 
 
+### 进程的内存管理
+关于进程的内存管理，Linux 系统采用了虚拟内存管理机制：
+
+每个进程都有自己独立的虚拟地址空间，通过页表将虚拟地址映射到物理内存。
+当进程需要分配内存时，操作系统会在物理内存中找到空闲的页框，并将其映射到进程的虚拟地址空间中。
+如果物理内存不足，操作系统会将一些不常用的页面换出到交换空间（如交换分区或交换文件）中，以腾出内存空间。
+当进程访问已经换出的页面时，会触发缺页异常，操作系统会将页面从交换空间换入到物理内存中。
+Linux 还使用了写时复制（Copy-on-Write）技术，多个进程可以共享相同的物理内存页面，直到其中一个进程需要修改页面时，才会复制一份副本。
+
+通过以上机制，Linux 系统可以高效地管理进程的内存使用，并提供了各种工具和接口供用户查询和监控进程的状态和资源占用情况。
 
 
-## <a name='-1'></a>进程间通信
+
+## 进程间通信
 a) 管道/匿名管道(Pipes)：管道是半双工的，数据只能向一个方向流动；
 双方通信时，需要建立起两个管道；一个进程向管道中写的内容被管道另一端的进程读出。
 写入的内容每次都添加在管道缓冲区的末尾，并且每次都是从缓冲区的头部读出数据；
@@ -495,7 +564,7 @@ b) 有名管道(Names Pipes): 匿名管道由于没有名字，只能用于亲�
 为了克服这个缺点，提出了有名管道。有名管道严格遵循先进先出(first in first out)。
 有名管道以磁盘文件的方式存在，可以实现本机任意两个进程通信。 
 
-c)消息队列(Message Queuing)：消息队列是消息的链表，具有特定的格式，存放在内存中并由消息队列标识符标识。
+c) 消息队列(Message Queuing)：消息队列是消息的链表，具有特定的格式，存放在内存中并由消息队列标识符标识。
 管道和消息队列的通信数据都是先进先出的原则。
 与管道（无名管道：只存在于内存中的文件；命名管道：存在于实际的磁盘介质或者文件系统）不同的是消息队列存放在内核中，
 只有在内核重启(即，操作系统重启)或者显示地删除一个消息队列时，该消息队列才会被真正的删除。
@@ -517,29 +586,63 @@ f) 共享内存(Shared memory)：使得多个进程可以访问同一块内存�
 h) 套接字(Sockets): 此方法主要用于在客户端和服务器之间通过网络进行通信。
 套接字是支持 TCP/IP 的网络通信的基本操作单元，可以看做是不同主机之间的
 进程进行双向通信的端点，简单的说就是通信的两方的一种约定，用套接字中的相关函数来完成通信过程。 
-int socket(int domain, int type, int protocal) 
-优缺点： 
+int socket(int domain, int type, int protocal)
+
+优缺点：
 管道：速度慢，容量有限； 
 Socket：任何进程间都能通讯，但速度慢； 
 消息队列：容量受到系统限制，且要注意第一次读的时候，要考虑上一次没有读完数据的问题； 
 信号量：不能传递复杂消息，只能用来同步； 
-共享内存区：能够很容易控制容量，速度快，但要保持同步，比如一个进程在写
-的时候，另一个进程要注意读写的问题，相当于线程中的线程安全，当然，共享
-内存区同样可以用作线程间通讯，不过没这个必要，线程间本来就已经共享了同一进程内的一块内存。 
+共享内存区：能够很容易控制容量，速度快，但要保持同步，比如一个进程在写的时候，另一个进程要注意读写的问题，相当于线程中的线程安全，当然，共享内存区同样可以用作线程间通讯，不过没这个必要，线程间本来就已经共享了同一进程内的一块内存。 
 
 
-## <a name='-1'></a>线程间通信有哪些
+### 操作系统中的锁机制能起到锁lock 这个功能的一些操作系统特性有哪些？
+
+在操作系统中，有多种锁机制可以实现对共享资源的互斥访问和同步控制。以下是一些常见的锁机制及其使用场景：
+
+1. 自旋锁（Spinlock）：
+自旋锁是一种简单且低开销的锁机制，适用于短时间的临界区保护。
+当一个线程尝试获取已经被其他线程持有的自旋锁时，它会一直循环等待（自旋），直到锁被释放。
+自旋锁适用于锁的持有时间非常短且线程间竞争不激烈的情况，例如内核中的一些简单操作。
+自旋锁的优点是低延迟，缺点是在高竞争情况下会浪费 CPU 资源。
+
+2. 信号量（Semaphore）：
+信号量是一种计数器式的同步机制，用于控制对共享资源的访问。
+信号量的值表示可用资源的数量，线程可以通过 P（等待）和 V（释放）操作来获取和释放资源。
+当信号量的值为零时，尝试获取资源的线程会被阻塞，直到有其他线程释放资源。
+信号量适用于控制有限的共享资源，如限制同时访问某个资源的线程数量。
+信号量还可以用于线程间的同步和通信，例如生产者-消费者模型中的缓冲区同步。
+
+3. 互斥量（Mutex）：
+互斥量是一种用于实现互斥访问的锁机制，确保同一时刻只有一个线程可以进入临界区。
+线程通过 lock 和 unlock 操作来获取和释放互斥量，如果互斥量已经被其他线程持有，尝试获取的线程会被阻塞。
+互斥量适用于保护共享数据结构的完整性，防止多个线程同时修改共享数据而导致的竞态条件。
+互斥量的特点是互斥性，即同一时刻只能有一个线程持有互斥量。
+
+4. 条件变量（Condition Variable）：
+条件变量是一种用于线程间通信和同步的机制，常与互斥量一起使用。
+线程可以在条件变量上等待（wait）特定条件的满足，而其他线程可以在条件满足时通知（signal）等待的线程。
+条件变量适用于线程间的协调和等待，例如在生产者-消费者模型中，消费者线程在缓冲区为空时等待，生产者线程在生产数据后通知消费者线程。
+条件变量的特点是可以让线程在特定条件未满足时进入休眠状态，避免了忙等待的资源浪费。
+
+
+
+## 线程间通信有哪些
 在Linux系统中，线程间通信的方式包括：
 
 互斥锁（Mutex）：线程可以使用互斥锁来保护共享资源，确保同时只有一个线程可以访问该资源。
+
 条件变量：线程可以使用条件变量来等待特定条件的发生，以实现线程间的协调和通知。
+
 信号量：线程可以使用信号量来控制对共享资源的访问，实现线程间的同步和互斥。
+
 读写锁：允许多个线程同时读取共享资源，但只允许一个线程写入共享资源。
 
 
 
-## <a name='IOselectepoll'></a>讲讲IO多路复用的实现原理，select和epoll的区别是什么？
+## 讲讲IO多路复用的实现原理，select和epoll的区别是什么？
 I/O 的多路复用，可以只在一个进程里处理多个文件的 I/O，Linux 下有三种提供 I/O 多路复用的 API，分别是：select、poll、epoll。
+
 select 和 poll 并没有本质区别，它们内部都是使用「线性结构」来存储进程关注的 Socket 集合。
 
 在使用的时候，首先需要把关注的 Socket 集合通过 select/poll 系统调用从用户态拷贝到内核态，然后由内核检测事件，
@@ -547,6 +650,7 @@ select 和 poll 并没有本质区别，它们内部都是使用「线性结构�
 然后把整个 Socket 集合从内核态拷贝到用户态，用户态还要继续遍历整个 Socket 集合找到可读/可写的 Socket，然后对其处理。
 
 很明显发现，select 和 poll 的缺陷在于，当客户端越多，也就是 Socket 集合越大，Socket 集合的遍历和拷贝会带来很大的开销，因此也很难应对 C10K。
+
 epoll 是解决 C10K 问题的利器，通过两个方面解决了 select/poll 的问题。
 
 epoll 在内核里使用「红黑树」来关注进程所有待检测的 Socket，红黑树是个高效的数据结构，增删改一般时间复杂度是 O(logn)，
@@ -555,12 +659,35 @@ epoll 使用事件驱动的机制，内核里维护了一个「链表」来记�
 不需要像 select/poll 那样轮询扫描整个集合（包含有和无事件的 Socket ），大大提高了检测的效率。
 
 
+IO多路复用是一种同时监控多个IO事件的机制,可以提高系统的并发处理能力。其基本原理是:
+1. 首先将要监听的IO事件注册到内核中的一个事件表。
+2. 然后调用一个函数如select或epoll_wait,阻塞等待这些事件发生。
+3. 当有事件发生时,该函数返回,通知应用程序轮询处理这些就绪的IO事件。
+4. 处理完后,继续调用该函数阻塞监听。
 
-## <a name='json'></a>格式化json
+这样,一个线程就可以同时监控多个IO,而不是阻塞在单个IO上,提高了效率。
+
+select和epoll是Linux中两种IO多路复用的实现方式,区别在于:
+1. 监听事件的存储方式
+- select使用线性表存储监听事件,有最大数量限制,通常是1024
+- epoll使用红黑树存储,理论上没有最大数量限制
+
+2. 事件通知方式
+- select通过轮询整个监听列表来找到就绪事件,时间复杂度O(n)
+- epoll通过回调函数直接得到就绪事件,时间复杂度O(1)
+
+3. 内核与用户空间的数据拷贝
+- select需要将整个监听列表在内核和用户空间之间来回拷贝
+- epoll通过mmap共享内存,避免了不必要的数据拷贝
+
+因此,epoll相比select,具有更好的性能和可扩展性,是目前使用更广泛的IO多路复用技术。但select实现更简单,在监听事件数量不多时,性能差异并不明显。
+
+
+## 格式化json
 cat test.json |python -m json.tool；
 
 
-## <a name='pdcp'></a>pdcp
+## pdcp
 用于将文件或目录传输到多个远程主机上。
 pdcp -w remote1,remote2,...remote10 local_file remote_directory/  将本地的local_file复制到每个指定的远程主机的remote_directory目录下。
 pdcp的常用选项包括：
@@ -570,13 +697,13 @@ pdcp的常用选项包括：
 -l：限制并行复制的最大进程数。
 
 
-#### <a name='pdsh'></a>pdsh
+#### pdsh
 使用pdsh命令在多个远程主机上同时执行命令。需要在每个主机上安装pdsh包。
 使用实例：pdsh -w host1,host2,host3 systemctl restart httpd
 
 
 
-## <a name='yumrpm'></a>搭建本地yum源供其它主机rpm包安装
+## 搭建本地yum源供其它主机rpm包安装
 1. 本地路径/opt/src/slurm/下放rpm包；
 2. 在上述路径下执行createrepo . 命令生成仓库索引；
 3. 安装httpd包；
@@ -595,7 +722,7 @@ enable=1
 
 
 
-## <a name='slurm'></a>slurm
+## slurm
 开源的、具有容错性和高度可扩展的Linux集群超级计算系统资源管理和作业调度系统。
 srun --mpi=list   ## 列出已安装的mpi插件；
 srun -w slurm[1-2] hostname  ## 交互式作业提交，提交命令后，等待作业执行完成之后返回命令行窗口。
@@ -649,7 +776,7 @@ sacctmgr modify account my_account_name set QosLevel=normal,long
 
 
 
-#### <a name='-1'></a>场景
+#### 场景
 1. 2个计算节点，执行三个job，srun ./myapp -p 30000，2个job分别分发到2个计算节点上，第3个job等待；
 srun: job 53 queued and waiting for resources
 srun: job 53 has been allocated resources
@@ -673,7 +800,7 @@ JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
 
 
 
-#### <a name='slurm-1'></a>slurm安装
+#### slurm安装
 1. 安装jansson
 wget http://www.digip.org/jansson/releases/jansson-2.13.1.tar.gz
 tar -zxvf ~/jansson-2.13.1.tar.gz
@@ -917,15 +1044,15 @@ systemctl daemon-reload && systemctl restart slurmrestd
 
 
 
-## <a name='terraform'></a>terraform
+## terraform
 
-#### <a name='terraform-1'></a>terraform安装
+#### terraform安装
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 sudo yum -y install terraform
 
 
-#### <a name='terraformopenstack'></a>通过terraform编排openstack
+#### 通过terraform编排openstack
 1. 获得脚本到本地https://github.com/tf-openstack-modules/terraform-openstack-instances；
 2. 增加provider.tf；
 ```shell
@@ -1123,31 +1250,31 @@ output "ip" {
 
 
 
-## <a name='-1'></a>概念
-#### <a name='kubeflow'></a>kubeflow
+## 概念
+#### kubeflow
 它提供了一套工具和组件，用于构建、训练、部署和管理机器学习模型的端到端工作流程。
 
-#### <a name='rancher'></a>rancher
+#### rancher
 Rancher提供了在生产环境中使用的管理Docker和Kubernetes的全栈化容器部署与管理平台。
 也就是提供可视化web界面进行k8s部署；
 
-#### <a name='CRD'></a>CRD
+#### CRD
 它代表自定义资源定义（Custom Resource Definition）。CRD 允许用户扩展 Kubernetes API，以添加自定义资源和自定义控制器。
 Kubernetes 中的资源（Resource）是 API 对象的实例，例如 Pod、Service、Deployment 等。这些资源都有相应的 API 定义和控制器，用于管理它们的生命周期和状态。
 CRD 允许用户定义自己的资源类型，这些资源类型可以扩展 Kubernetes 的功能，以满足特定的需求。用户可以创建自定义资源定义，定义自己的资源结构和行为，并编写自定义控制器来管理这些资源。
 
-#### <a name='HPC'></a>HPC
+#### HPC
 高性能计算（High Performance Computing，缩写HPC）指利用聚集起来的计算能力来处理标准工作站无法完成的数据密集型的计算任务。
 
-#### <a name='tensorflow'></a>tensorflow
+#### tensorflow
 TensorFlow是一个基于数据流编程的符号数学系统，被广泛应用于各类机器学习算法的编程实现。
 PS-worker模型：Parameter Server执行模型相关业务，Work Server训练相关业务，推理计算、梯度计算等。
 
-#### <a name='NPU'></a>NPU
+#### NPU
 神经处理单元（Neural Processing Unit）的缩写，它是一种专门设计用于进行人工神经网络计算的处理器。NPU 的设计旨在加速深度学习任务，包括图像识别、语音识别、自然语言处理等
 
 
-## <a name='volcano'></a>volcano
+## volcano
 基础设施调度引擎，基于Kubernetes的容器批量计算平台，主要用于高性能计算场景。
 作为一个通用批处理平台，Volcano与几乎所有的主流计算框架无缝对接，如Spark 、TensorFlow 、PyTorch 、 Flink 、Argo 、MindSpore、 PaddlePaddle等。
 
@@ -1156,7 +1283,7 @@ kubectl get configmap -n volcano-system
 kubectl get configmap volcano-scheduler-configmap -n volcano-system -oyaml
 
 
-#### <a name='queue'></a>queue
+#### queue
 Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。而 VolcanoJob 则是一个 K8s Job 升级版，对应的下一级资源是 PodGroup。换言之，就好比 ReplicaSet 的下一级资源是 Pod 一样。
 1. queue名称不能重复；
 2. 名称限制：a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
@@ -1168,7 +1295,7 @@ Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。�
 
 
 
-#### <a name='podgroup'></a>podgroup
+#### podgroup
 互相关联的一组pod集合。
 1. 当queue设置Capability为2时，创建vcjob设置tasks.template.spec.containers.resources.requests大于2时，则不能调度；
 podgroup和job都是PENDING状态，podgroup事件信息queue resource quota insufficient，vcjob事件信息是pod group is not ready；
@@ -1184,7 +1311,7 @@ podgroup和job都是PENDING状态，podgroup事件信息queue resource quota ins
 
 
 
-#### <a name='vcjob'></a>vcjob
+#### vcjob
 1. 当vcjob删除时，跟着vcjob创建的podgroup一同删除了；
 2. svc插件实现同一vcjob中各pod之间的通信；
 3. sla插件，作业最长等待时间sla-waiting-time，表示作业停留在pending状态不被调度的最长等待时间；既可以配置在configmap中，作为sla插件的参数，对经由volcano调度的全部作业生效；也可以单独配置在作业的annotation中，只对改作业生效；
@@ -1246,9 +1373,9 @@ tensorflow: 为job中的所有container开放指定端口；开启svc插件；
 
 
 
-## <a name='GPU'></a>调度GPU
+## 调度GPU
 
-#### <a name='k8sGPU'></a>k8s中使用GPU
+#### k8s中使用GPU
 GPUs 只能设置在 limits 部分，这意味着：
 不可以仅指定 requests 而不指定 limits
 可以同时指定 limits 和 requests，不过这两个值必须相等
@@ -1269,7 +1396,7 @@ NVIDIA 驱动版本大于或者等于 384.81 版本
 nvidia-smi -L         ## 确认pod使用了GPU卡
 
 
-## <a name='jenkins'></a>jenkins
+## jenkins
 持续集成----频繁将代码集成到主干；
 持续交付----频繁将软件的新版本交付该质量团队或者用户，以供审批；
 持续部署----代码评审或者测试通过后，将其自动部署到生产环境； 

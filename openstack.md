@@ -5,7 +5,7 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-## <a name=''></a>云计算
+## 云计算
 云计算是一种资源的服务模式，该模式可以实现随时随地、便捷按需地从可配置
 计算资源共享池中获取所需的资源（如网络、服务器、存储、应用及服务），资
 源可以快速供应并释放，大大减少了资源管理工作开销。
@@ -30,7 +30,7 @@ openstack 对数据中心的计算、存储和网络资源进行统一管理。
  
 
 
-## <a name='openstack'></a>openstack 通用设计思路 
+## openstack 通用设计思路 
 1. 每个 openstack 组件包含若干个服务，其中必有一个 API 服务负责接收客户请
 求；对外提供统一接口，隐藏实现细节；运行多个 API 服务实例实现 API 的高可用；
 
@@ -49,7 +49,7 @@ rpc.cast----api 通过 messaging 调用 scheduler 就是异步调用。API 发�
 行调用操作，完成后将结果也通过 messaging 发送给 API。rpc.cast 就是请求响应类型，一个请求发出去后，不需要等待响应。
 
 
-## <a name='openstackCLI'></a>openstack CLI
+## openstack CLI
 neutron l3-agent-list-hosting-router <router_id>     ## 查看router所在的namespace节点
 namespace里中qg和qr没有ip时，通过neutron router-update --admin-state-up False，再者neutron router-update --admin-state-up True恢复；
 
@@ -103,7 +103,7 @@ openstack volume backup list
 openstack volume type list
 
 
-## <a name='openstack-1'></a>openstack 开发基础 
+## openstack 开发基础 
 setup.cfg 
 setup.py 就是调用 setuptools.setup()，setup()函数有大量的参数需要设置，包括项目的名
 称，作者，版本等。setup.cfg 文件的出现就是将 setup()函数解脱出来，它使用 pbr 工具
@@ -135,7 +135,7 @@ Key 属性与消费者 routing_key 属性一致时，此消息才会被此消费
 这样的 Routing Key; 
 
 
-## <a name='openstack-1'></a>openstack集群
+## openstack集群
 控制节点一般需要一个网络端口用于通信/管理各个节点； 
 网络节点包含三个网络端口， 
 eth0 用于与控制节点进行通信； 
@@ -152,7 +152,7 @@ eth1 与计算节点/网络节点进行通信，完成控制节点下发的各�
  
 
 
-## <a name='nova'></a>nova
+## nova
 
 1. nova的反亲和机制指的是创建一组虚拟机实例，确保他们不会被调度到同一物理主机上；
 
@@ -160,7 +160,7 @@ eth1 与计算节点/网络节点进行通信，完成控制节点下发的各�
 
 
 
-#### <a name='Ironic'></a>裸金属Ironic
+#### 裸金属Ironic
 所谓裸机，就是指没有配置操作系统的计算机。从裸机到应用还需要进行以下操作：
 （1）硬盘RAID、分区和格式化；
 （2）安装操作系统、驱动程序；
@@ -264,7 +264,7 @@ POST /v1/heartbeat/17d1f5b7-feca-44c2-bbb8-4977b026000e
 
 
 
-#### <a name='filter'></a>虚机filter
+#### 虚机filter
 AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主机分配虚拟机
 需要在HostAggregate打上flavor的对应标签，就是HostAggreagate和flavor要设置相同的metadata(key，value)，比如两个都增加ssd=true的key-value metadata，则表明只在存储为固态硬盘的主机分配虚拟机规格为flavor的虚拟机；
 1. 创建主机聚合nova aggregate-create agg nova；
@@ -273,7 +273,7 @@ AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主
 4. 主机flavor加入元数据nova flavor-key m1.nano set ssd=true；
 
 
-#### <a name='-1'></a>虚机创建
+#### 虚机创建
 1. 虚机创建报错Port 0d1f4c34-2dc8-43e6-a769-9569cb68902f not usable for instance，由于虚机和port不属于同一个租户；
 2. nova_api.request_specs表---虚拟机调度需要的信息，如虚拟机个数,uuid,类型,安全组等;
 3. nova_api.build_requests表---初始化数据；
@@ -332,7 +332,7 @@ OpenStack 创建虚拟机的流程通常如下：
 6. 关闭和删除云主机实例：当用户不再需要虚拟机实例时，可以将其关闭并从 OpenStack 中删除。 
 
 
-#### <a name='-1'></a>虚机重建
+#### 虚机重建
 1. 原系统盘volume先detach（带attachment in-use）;
 2. 数据盘detach;
 3. 创建新系统盘volume;
@@ -353,15 +353,15 @@ openstack server rebuild <server_uuid> --image <image>
 4. 重建过程中修改密码时传参是adminPass和user_data；
 
 
-#### <a name='-1'></a>主机疏散
+#### 主机疏散
 nova host-evacuate <host> --target_host <target_host>
 
 
-#### <a name='-1'></a>虚机创建快照
+#### 虚机创建快照
 1. 如果根据虚机生成的镜像快照创建虚机时报错Volume is smaller than the minimum size specified in image，则将镜像快照的min_disk设置成0，即无限制；
 
 
-#### <a name='-1'></a>挂载网卡
+#### 挂载网卡
 /v2.1/servers/f8ff90f2-ea91-4364-b6ea-23deebcb05cb/os-interface/3086a848-b523-45fc-9845-c3bbf18da9b4
 1. 先创建port；
 2. 更新port进行bound;
@@ -372,14 +372,14 @@ nova host-evacuate <host> --target_host <target_host>
 
 
 
-#### <a name='-1'></a>卸载网卡
+#### 卸载网卡
 DELETE /v2.1/servers/f8ff90f2-ea91-4364-b6ea-23deebcb05cb/os-interface/084dbf71-9beb-4955-9d0e-480d68b7f220
 先unplug，然后delete port；
 虚机在删除中再调用卸载网卡接口，报错cannot detach_interface instance <instance_uuid> while it is in task_state deleting
 
 
 
-#### <a name='GPU'></a>GPU设备
+#### GPU设备
 1. 计算节点执行：lspci -nn | grep -i nvidia，获取到显卡的vendorid和product_id，并将其相应的写到nova的配置文件里面；
 2. 在gpu计算节点的nova-compute和控制节点的nova-api，nova-schedule,nova-conductor配置文件下添加：
 [pci]
@@ -391,7 +391,7 @@ openstack flavor create 4c4g16g.3090 --ram 4096 --disk 16 --vcpus 4 --public --p
 
 
 
-#### <a name='novaattachvolume'></a>nova attach volume
+#### nova attach volume
 1. _prep_block_device-->attach_block_devices;
 2. 调用nova virt block_device的attach；
 3. 通过cinderclient调用cinder volume api的attach；
@@ -400,7 +400,7 @@ openstack flavor create 4c4g16g.3090 --ram 4096 --disk 16 --vcpus 4 --public --p
 
 
 
-#### <a name='vncconsole'></a>vnc console原理
+#### vnc console原理
 1. 先通过/servers/{server_id}/remote-consoles创建一个console；
 2. 然后拿着这个console通过浏览器访问；
 3. 实际通信过程通过websocket---ws://10.50.1.251:6080/?token=<token>。
@@ -409,7 +409,7 @@ xml路径/var/lib/docker/volumes/nova_libvirt_qemu/_data
 
 
 
-#### <a name='-1'></a>给实例注入一个密钥对并通过密钥对来访问实例
+#### 给实例注入一个密钥对并通过密钥对来访问实例
 1. 创建秘钥对
 $ openstack keypair create test > test.pem
 $ chmod 600 test.pem
@@ -420,32 +420,32 @@ $ openstack server create --image cirros-0.3.5-x86_64 --flavor m1.small \
 ip netns exec qdhcp-98f09f1e-64c4-4301-a897-5067ee6d544f ssh -i test.pem cirros@10.0.0.4
 
 
-#### <a name='nova_sshssh'></a>nova_ssh免密ssh互访
+#### nova_ssh免密ssh互访
 在hypervisor节点之间进行resize或者迁移实例时，确保每个计算节点配置SSH key认证，以能使计算服务使用ssh进行disk移动；
 主要流程就是生成公钥和私钥，将私钥拷贝到/var/lib/nova/.ssh/id_rsa，公钥拷贝到远端节点，切换nova账户即可不需密码登录到远端节点
 https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 
 
-#### <a name='-1'></a>冷迁移
+#### 冷迁移
 1. 基于ssh；
 2. 迁移过程：首先把实例先关机，然后重命名实例文件夹为instanceid_resize, ssh把实例文件给拷贝过去，数据库更改，
     在新计算节点上启动实例，此时可以revert实例，即复原迁移。确认后删除原实例文件，删除老节点qemu下xml文件并在新节点上新建；
 3. 
 
-#### <a name='-1'></a>热迁移
+#### 热迁移
 1. --block-migrate=False不需要共享存储，如NFS存储后端，也可以设置共享存储置成True；
 2. 基于qemu+tcp；
 3. 计算节点16509端口用于libvirtd的tcp连接监听；
 
 
-#### <a name='-1'></a>软重启
+#### 软重启
 软重启是通过向虚拟机发送重启指令实现的，类似于操作系统的正常重启。
 在软重启期间，虚拟机的虚拟硬件设备不会被关闭或重置。
 软重启尝试保留虚拟机的网络连接和内存状态，以便恢复到重启前的状态。
 软重启通常比硬重启快速，因为它只涉及到虚拟机的操作系统层面并避免了关机和启动的过程。
 
 
-#### <a name='-1'></a>硬重启
+#### 硬重启
 硬重启是通过直接重启虚拟机的底层实例实现的，类似于物理计算机的冷启动。
 在硬重启期间，虚拟机的虚拟硬件设备会被关闭，并从头开始引导启动。
 硬重启会中断虚拟机的所有网络连接和内存状态，相当于完全关闭和重新启动虚拟机。
@@ -453,7 +453,7 @@ https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 
 
 
-#### <a name='kvm'></a>kvm
+#### kvm
 1. 虚机支持kvm虚拟化  nova_compute/nova.conf中
 [DEFAULT]
 cpu_mode = host-passthrough
@@ -479,7 +479,7 @@ virsh 是常用的 KVM 命令行工具；
 
 
 
-#### <a name='-1'></a>169.254.169.254
+#### 169.254.169.254
 1. 虚机内部执行curl -i http://169.254.169.254/openstack/latest；
 包括meta_data.json/user_data/password/network_data.json
 2. curl -i http://169.254.169.254/latest/meta-data 包括instance-id/instance-type/local-hostname/security-groups
@@ -493,7 +493,7 @@ netwoek-id，然后转发给 neutron-metadata-agent，获取 port 信息，最�
 
 
 
-#### <a name='cloud-init'></a>cloud-init
+#### cloud-init
 自动配置虚拟机初始配置的工具；
 虚拟机通过两种方式获得用户传递的配置信息；一种是config driver；一种是metadata restful服务；
 有两种方法可以启用config drive：
@@ -565,25 +565,25 @@ fi
 --===============2309984059743762475==--
 ```
 
-#### <a name='nova-api-metadata'></a>nova-api-metadata
+#### nova-api-metadata
 nova-api的子服务，metadata的提供者，instance可以通过其restful接口获取metadata信息；
 服务端口为8775；
 
 
 
-## <a name='neutron'></a>neutron
+## neutron
 
 
 
 tracepath ip ---查看链路
-#### <a name='iproute'></a>ip route
+#### ip route
 default via 172.16.0.1 dev ens192 proto static metric 100 ## 表示去任何地方，都发送给网卡ens192，并经过网关172.16.0.1发出；
 172.16.0.0/16 dev ens192 proto kernel scope link src 172.16.1.11 metric 100 ## 表示发往172.16.0.0/26网段的包都由网卡ens192发出，src表示ens192的网卡ip是172.16.1.11，metric表示路由距离，到达指定网络所需的中转数；
 默认路由（Default route），是对IP数据包中的目的地址找不到存在的其他路由时，路由器所选择的路由。
 添加默认路由 ip route add default via <网关IP地址> dev <网络接口>
 
 
-#### <a name='-1'></a>网络设备
+#### 网络设备
 TAP/TUN 是 linux 内核实现的一对虚拟网络设备，TAP 工作在二层，TUN 工作
 在三层，linux 内核通过 TAP/TUN 设备向绑定该设备的用户空间程序发送数据。 
 
@@ -593,7 +593,7 @@ br-ex   连接网卡，发送外网，在网络节点
 br-tun  隧道端点，vxlan 和 gre 进行通信
 
 
-#### <a name='neutron-1'></a>neutron组件
+#### neutron组件
 neutron 核心组件提供了云平台中软件定义网络的功能，它负责管理虚拟网络组
 件，包括networks，subnets，switchs和routers，同时提供网络服务，如loadbalancer，Firewall 和 VPN。
 
@@ -634,7 +634,7 @@ create_resources 的返回值列表中。
 
 
 
-#### <a name='vlan'></a>vlan
+#### vlan
 virtual local area network 
 每个 vlan 对应一个广播域，不同 vlan 间的设备不能互通，只能通过路由器等三
 层设备而互通。vlan tag 由交换机端口在数据帧进入交换机时添加，数据帧出交
@@ -647,7 +647,7 @@ vlan id 取值范围是 1-4094
 
 
 
-#### <a name='vxlan'></a>vxlan 
+#### vxlan 
 virtual extensible local area network  
 采用 L2 over L4(Mac in UDP)的报文封装模式，将二层报文用三层协议进行封装
 可以实现二层网络在三层网络扩展，同时满足数据中心大二层虚拟迁移和多租户的需求。 
@@ -719,7 +719,7 @@ VXLAN 报文先通过 VXLAN 内部转发模式对报文进行封装，目的 IP 
 
 
 
-#### <a name='ml2'></a>ml2
+#### ml2
 链路层，一个可靠的点对点的数据对接，常见：网卡，二层交换机，网桥等； 
 
 ###### port
@@ -876,7 +876,7 @@ patch-tun 和 patch-int 连接 br-tun，br-tun 连接到宿主机租户网卡，
 br-tun 使用 Openflow 规则来处理 Van ID 和 Tunnel Id 的转换； 
 
 
-#### <a name='l2population'></a>l2 population原理
+#### l2 population原理
 L2 population 的原理如下：
 首先，创建一个 Overlay 网络（通常是 VXLAN），用于在不同计算节点之间传输虚拟机的二层数据帧。
 当虚拟机发送一个二层数据帧到网络中，该数据帧会通过虚拟交换机（例如 Open vSwitch）被送往连接到虚拟机所在计算节点的虚拟交换机。
@@ -915,7 +915,7 @@ MAC 地址，这样就能直接与之通信，从而避免了不必要的隧道�
 
 
 
-#### <a name='iptables'></a>iptables
+#### iptables
 iptables -t filter -I INPUT -s 192.168.1.2 -p tcp --dport 22 -j DROP ---拒绝192.168.1.2访问目标22端口
 iptables -nL |grep 'policy' ----查看filter表各个链的默认策略
 ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables -t nat -S   ## 命名空间内查看nat规则
@@ -924,7 +924,7 @@ iptables -t nat -nvL
 iptables-save
 
 
-#### <a name='router'></a>router
+#### router
 网络层，在网络的各个节点之间进行地址分配、路由和分发报文，常见：路由器，多层交换机，防火墙等； 
 
  
@@ -978,7 +978,7 @@ One-to-One NAT，NAT 路由器维护一张私有 IP 地址到公共 IP 地址的
 Router 的 NAT 功能通过 iptables 实现： 
  
 
-#### <a name='floatingip'></a>floatingip
+#### floatingip
 1. 创建floatingip可以指定subnet，是指定的network下的subnet，内部逻辑是将传的subnet_id放到port中，去创建port；如果不传subnet_id返回时不带subnet_id；
 2. 限速测试：服务端iperf3 -s -i 10 -p 5201--设置监控时间10s，端口为5201，防火墙端口要放行；客户端iperf3 -c x.x.x.x -p 5201 -t 5 -P 10 -R---指定-c测速服务器IPx.x.x.x，-p指定端口为5201，-t测速时间5s，-P指定发送连接数10，-R表示下载测速
     iperf3 -c 192.168.3.250 -i 1 -t 10          测试上行
@@ -1017,7 +1017,7 @@ openstack floating ip port forwarding delete 10.50.98.165 <id>
 
 
 
-#### <a name='fwaasv1'></a>fwaas v1
+#### fwaas v1
 接入SDN后，fwaas v1即huawei的huawei_ac_fwaas service_plugin；
 ###### 创建firewall
 1. 首先判断router_ids字段中的是否有任何的router关联了其它的firewall，如何关联了即报错in-use error;
@@ -1033,7 +1033,7 @@ openstack floating ip port forwarding delete 10.50.98.165 <id>
 
 
 
-#### <a name='fwaasv2'></a>fwaas v2
+#### fwaas v2
 
 ###### create_fw
 1. firewall rule/firewall group/firewall policy均不支持批量创建； 
@@ -1103,7 +1103,7 @@ neutron-l3-agent-ov4a24248cf - [0:0]
 
 
 
-#### <a name='sg'></a>sg
+#### sg
 1. 安全组是针对每个port做网络访问控制，防火墙是针对一个VPC网络，通常是在路由做策略；
 因此security group在计算节点的tap设备上做，而firewall在网络节点的router上做。
 2. 安全组定义的是允许通过的规则集合，规则的动作是ACCEPT；
@@ -1137,7 +1137,7 @@ linuxbridge + iptables + connection track
  cookie=0x151f0564881e5c71, duration=18.246s, table=72, n_packets=0, n_bytes=0, idle_age=19, priority=77,ct_state=+new-est,tcp,reg5=0x1f6,nw_dst=33.33.33.0/24,tp_dst=22 actions=resubmit(,73)
 
 
-#### <a name='dhcp'></a>dhcp
+#### dhcp
 Dynamic Host Configuration Protocol
 
 虚机内部指定dhclient可向dhcp agent请求IP地址；
@@ -1163,7 +1163,7 @@ neutron 数据库中的 port 信息创建完成后，通知 neutron-dhcp-agent�
 
 
 
-#### <a name='rbacpolicy'></a>rbac policy
+#### rbac policy
 OpenStack RBAC（Role-Based Access Control）是一种基于角色的访问控制机制，用于管理OpenStack云平台中的资源和服务。
 它允许管理员为用户和组分配不同的角色，以控制他们对云平台中不同资源和服务的访问权限。
 OpenStack RBAC的核心是角色和权限。角色是一组权限的集合，而权限则是对特定资源或服务的访问控制。
@@ -1179,14 +1179,14 @@ target-project指的是要共享的项目id；action--access_as_shared表示可�
 
 
 
-#### <a name='quota'></a>quota
+#### quota
 1. 获得租户的份额；首先初始化份额为默认值，然后根据Quota库中条目更新资源的份额；
 2. 删除份额，即重装份额，就是删除Quota表中的条目，份额都变成默认值；
 
 
 
 
-#### <a name='Vmware'></a>Vmware 提供了三种网络工作模式 
+#### Vmware 提供了三种网络工作模式 
 bridged 桥接模式
 手工为虚机配置 IP 地址掩码并且和宿主机同一网段，使用桥接模式的虚机和宿主机的关系就像连接到同一 hub 上的两台电脑。
 
@@ -1199,7 +1199,7 @@ NAT 网络地址转化模式
 
 
 
-#### <a name='octavia'></a>octavia
+#### octavia
 ###### 概念
 1. LB management network，打通Openstack management和Amphora;
 2. VIP network，作为vip pool的网络，东侧接入Amphora有keepalived实现的VRRP协议支持具有高可用特性的虚拟IP地址；
@@ -1279,10 +1279,10 @@ o-hm0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
 
 
 
-## <a name='cinder'></a>cinder
+## cinder
 
 
-#### <a name='volume-type'></a>volume-type
+#### volume-type
 对于每个ceph后端，创建一个volume type，并将volume type关联配置文件中的volume_backend_name：
 cinder type-create ceph
 cinder type-key ceph set volume_backend_name=ceph
@@ -1298,12 +1298,12 @@ Cinder不仅支持本地volume的管理，还能把本地volume备份到远端�
 4. create from image: 基于Glance image创建一个volume。
 
 
-#### <a name='volume'></a>创建volume
+#### 创建volume
 1. scheduler.create_volume-->error；
 2. 根据快照创建快照，如果更换硬盘类型有如下条件：硬盘类型的加密不变；硬盘类型的volume_backend_name相同，如果volume_backend_name为空还是不能创建；
 
 
-#### <a name='volume-1'></a>删除volume
+#### 删除volume
 volume.delete.end--->deleted,
 1. 如果volume有snapshot，则不允许删除；
 2. 删除虚机时，如果创建虚机带的BDM中delete_on_termination=true，则会删除系统盘；如果delete_on_termination不带或是false,则不删除系统盘；
@@ -1311,7 +1311,7 @@ volume.delete.end--->deleted,
 
 
 
-#### <a name='volume-1'></a>挂载volume
+#### 挂载volume
 volume.attach.end--->in-use
 1. 问题--比如说虚机挂载两个数据盘 vol1-->vdb，vol2-->vdc，把vol1卸载掉，重启云服务器，虚机fdisk -l显示的是vdb，和openstack目前存在的挂载情况vdc不一致；
 2. 虚机挂载数据盘时，盘符按序vdb，vdc...进行自动分配；
@@ -1319,12 +1319,12 @@ volume.attach.end--->in-use
 
 
 
-#### <a name='volume-1'></a>卸载volume
+#### 卸载volume
 volume.detach.end--->available
 1. 卸载有条件判断，volume的status必须为in-use和attach_status必须为attached；
 
 
-#### <a name='os-force_detach'></a>os-force_detach
+#### os-force_detach
 {
     "os-force_detach": {
         "attachment_id": "d8777f54-84cf-4809-a679-468ffed56cf1",
@@ -1342,18 +1342,18 @@ volume.detach.end--->available
 
 
 
-#### <a name='snapshot'></a>创建snapshot
+#### 创建snapshot
 snapshot.create.end--->available
 1. 创建快照，volume状态必须是available，error_deleting不行；
 
 
-#### <a name='snapshot-1'></a>删除snapshot
+#### 删除snapshot
 snapshot.delete.end--->deleted
 1. snapshot状态必须是available和error,且不属于group的一部分才能删除；
 2. 快照如果有根据其创建的硬盘，则此快照不允许删除；
 
 
-#### <a name='volume-1'></a>volume类型更改
+#### volume类型更改
 volume.retype--->available/in-use
 
 1. Retype needs volume to be in available or in-use state, not be part of an active migration or a consistency group, 
@@ -1362,7 +1362,7 @@ requested type has to be different that the one from the volume, and for in-use 
 
 
 
-#### <a name='-1'></a>配置文件支持多个后端
+#### 配置文件支持多个后端
 cinder.conf
 enabled_backends = lvmdriver-b21,lvmdriver-b22
 storage_availability_zone=az1
@@ -1383,7 +1383,7 @@ cinder backup支持将元数据序列化导出（export record)，这样即使�
 
 
 
-#### <a name='cinderrdbs3'></a>cinder备份实现rdb和s3共存
+#### cinder备份实现rdb和s3共存
 S3 Simple Storage Service 简单存储服务
 Amazon
 通过 S3 存储和检索的资产被称为对象。对象存储在存储段（bucket）中。您可以用硬盘进行类比：对象就像是文件，存储段就像是文件夹（或目录）。
@@ -1470,7 +1470,7 @@ backup做得事：
 openstack的备份对接对象存储，主要的点就是怎么优化成支持多个对象存储集群，再怎么从备份转成对应的硬盘或镜像
 
 
-#### <a name='cinderqos'></a>cinder qos限速
+#### cinder qos限速
 IOPS，每秒的输入输出量；单位事件内系统能处理的IO请求数量；
 
 Cinder 支持 front-end 端和back-end 端设置QoS，front-end指的是在宿主机上设置虚机的qos，back-end指的是在存储设备上设置qos，ceph rbd不支持qos；
@@ -1493,7 +1493,7 @@ virsh dumpxml 3|grep sec
 2. 硬盘的qos变更生效，系统盘重启，数据盘要重新挂载；
 
 
-#### <a name='-1'></a>快照恢复成卷
+#### 快照恢复成卷
 ISCSI：基于TCP/IP的共享块设备的协议，通过它能够把本地的块设备共享给其它服务器；ISCSI服务端Target可以认为一个物理存储池，
 包含多个backstores,backstore实际就是要共享出去的设备，backstore需要添加到指定的target中，target会把这些物理设备映射成逻辑设备，
 并分配一个id，称为LUN(逻辑单元号)；
@@ -1571,7 +1571,7 @@ lvm--逻辑卷管理
 docker exec -i -u root cinder_volume bash -c 'tgtadm --lld iscsi --op show --mode target |grep 556c537e-27c1-4d55-83a8-f0eb706e03ad'
 
 
-#### <a name='lvm'></a>lvm卷的备份
+#### lvm卷的备份
 ceph作为后端时，cinder_volume使用非RBD作为backend时，仅支持全量备份。
 create_backup
 1. 如果volume状态是in-use,则根据源卷创建一个临时卷，如果volume状态是available，则临时卷就是源卷；
@@ -1582,12 +1582,12 @@ create_backup
 5. 删除临时卷；
 
 
-#### <a name='cephosd'></a>ceph osd
+#### ceph osd
 查看ceph集群---->ceph osd status/ceph -s/ceph -w
 设置副本数----ceph osd pool set vms size 1
 查看副本数----ceph osd pool get vms size
 
-## <a name='glance'></a>glance
+## glance
 image 的元数据 通过 glance-registry 存放在 db 中； image 的 chunk 数据 通过 glance-store 存放在各种 backend store 中，并从中获取。 
 
 
@@ -1595,24 +1595,24 @@ image 的元数据 通过 glance-registry 存放在 db 中； image 的 chunk �
 2. 如果镜像中还有虚拟机依赖，则不能删除该镜像，换句话说，删除镜像之前，必须删除基于该镜像创建的所有虚拟机。
 
 
-#### <a name='-1'></a>创建镜像
+#### 创建镜像
 1. 创建空镜像，不指定--file,状态变成queued；
 2. 通过导入方式创建镜像，即指定导入方法import-method；
 3. 查看rbd存储的镜像文件   ceph_mon容器中执行rbd ls -p images；rbd -p images info <image_id>
 
-#### <a name='tips'></a>tips
+#### tips
 1. disk_format属性只能对queued状态的image才能替换；
 2. 设置镜像裸机使用，openstack image set <image> --property usage_type=ironic；云主机--usage_type=common
 
 
-#### <a name='-1'></a>四种镜像导入方法
+#### 四种镜像导入方法
 glance-direct，将镜像文件直接上传到后端存储系统；--file
 web-download，从官方网站或者其他可靠的镜像站点下载所需的镜像文件,之后创建镜像，--uri
 copy-image
 glance-download
 
 
-#### <a name='s3'></a>支持s3后端配置文件说明
+#### 支持s3后端配置文件说明
 * s3_store_host
 s3服务地址(e.g. s3-region.amazonaws.com, http://s3-region.amazonaws.com, https://s3-region.amazonaws.com or my-object-storage.com, http://my-object-storage.com, https://my-object-storage.com)
 
@@ -1648,7 +1648,7 @@ s3存储区域名称
 
 
 
-#### <a name='-1'></a>镜像共享
+#### 镜像共享
 1. 在sdn_test用户下，通过volume upload_to_image方式创建的镜像，默认私有的，并且不是受保护的，即visibility=private，unprotected；
 2. 当更新image protected时，则不允许删除，本用户以及admin用户均不能删除；
 3. 设置image community指的是此image可供所有其它用户共享，但是貌似不支持设置；
@@ -1662,13 +1662,13 @@ s3存储区域名称
 
 
 
-## <a name='Prometheus'></a>普罗米修斯(Prometheus)
+## 普罗米修斯(Prometheus)
 一款开源的监控和警报系统，使用节点监控模块(node_exporter)；
 
 
 
-## <a name='-1'></a>部署
-#### <a name='kolla-ansible'></a>kolla-ansible
+## 部署
+#### kolla-ansible
 1. --tags neutron                                                      ---部署单独的组件；
 2. --skip-tags neutron nova                                            ---部署时跳过某些组件
 3. kolla-ansible post-deploy                                           ---生成admin-openrc.sh
@@ -1679,7 +1679,7 @@ s3存储区域名称
 8. kolla-ansible -i /etc/ansible/hosts/ deploy --tags nova --limit node2     ---限node2部署
 
 
-#### <a name='-1'></a>部署过程
+#### 部署过程
 1.关闭 selinux，关闭防火墙，更改 hosts 并免密登陆 
 2.安装 docker-ce 
 3.安装 ansible，先 pip2.4.0 后 yum 
@@ -1692,7 +1692,7 @@ s3存储区域名称
 10.安装 openstack client 
 
 
-#### <a name='-1'></a>扩容计算节点
+#### 扩容计算节点
 1. 将计算节点配置到00host文件中；
 2. 执行初始化ansible-playbook -i /etc/ansible/hosts/ /root/ict-ansible/config.yml；
 3. kolla-ansible -i /etc/ansible/hosts/ upgrade -t nova neutron
@@ -1701,7 +1701,7 @@ s3存储区域名称
 
 
 
-## <a name='notification'></a>notification机制
+## notification机制
 from neutron_lib import rpc as n_rpc
 notifier = n_rpc.get_notifier('network')
 notifier.info(context, "firewall_group.update_status",
@@ -1714,9 +1714,9 @@ notifier.info(context, "firewall_group.update_status",
 
 
 
-## <a name='keystone'></a>keystone
+## keystone
 
-#### <a name='user'></a>user 
+#### user 
 指的任何使用 Openstack 的实体，可以是真正的用户，其它系统或者服务； 
 除了 admin、demo 外，openstack 也为 nova，cinder，glance，neutron 服务创建了相应的 user 
 credentials
@@ -1755,7 +1755,7 @@ keystone 借助 role 来进行鉴权，可以为 user 分配一个或多个 role
 个 role 能干什么，service 通过各自的 policy.json 文件对 role 进行访问控制。 
 
 
-#### <a name='LDAP'></a>LDAP
+#### LDAP
 轻量目录访问协议
 ###### openstack集成ldap
 1. 开启openstack多域支持
@@ -1876,7 +1876,7 @@ b. 在keystone容器中安装shibboleth rpm包；
 [root@openstack--1 ~]## cat /etc/yum.repos.d/shibbileth.repo
 [shibboleth]
 name=Shibboleth (CentOS_7)
-## <a name='Pleasereportanyproblemstohttps:shibboleth.atlassian.netjira'></a>Please report any problems to https://shibboleth.atlassian.net/jira
+## Please report any problems to https://shibboleth.atlassian.net/jira
 type=rpm-md
 mirrorlist=https://shibboleth.net/cgi-bin/mirrorlist.cgi/CentOS_7
 gpgcheck=1
@@ -1978,15 +1978,15 @@ openstack --os-service-provider keystonesp token issue --debug
 3. 再拿获取到token向sp请求资源，例如创建network；
 
 
-## <a name='nonick-notifier-service'></a>状态机nonick-notifier-service
-#### <a name='dev'></a>dev环境构建
+## 状态机nonick-notifier-service
+#### dev环境构建
 docker build -t notifier:0921 .
 docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/service/logs/dev/nonick/nonick-notifier-service -v /etc/localtime:/etc/localtime -p 8081 notifier:0921 bash
 起在10.251.28.21:/home/dongxiang/openstack_notifier
 
 
 
-## <a name='SDN'></a>SDN
+## SDN
 背景
 手工配置和维护各种硬件设备，网络业务变复杂，多租户场景不能通过手工来保证。 
 SDN 是新型网络架构，设计理念是将网络的控制平面和数据转发平面进行分离，
@@ -1999,7 +1999,7 @@ SDN 是新型网络架构，设计理念是将网络的控制平面和数据转�
 
 
 
-## <a name='issue'></a>issue
+## issue
 1. 硬盘的备份恢复支持s3对象存储。过程：获取uid或AK/SK+备份类型s3+endpoint+bucket之后初始化s3 client进行备份、恢复操作（cinder）；
 2. openstack 虚机、硬盘、网络等资源状态同步推送到集成层；支持资源成功失败的场景（neutron/cinder/nova）；
 3. 支持lvm类型的系统盘根据快照恢复到硬盘；过程就是调用driver的create_export（cinder）；

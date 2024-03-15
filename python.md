@@ -7,8 +7,8 @@
 
 
 
-## <a name='python'></a>1. python
-#### <a name='python-1'></a>python概述
+## 1. python
+### python概述
  Python 是一种解释型语言，就是解释一行，运行一行；解释型语言使用解释器将源码逐行解释成机器码并立即执行，不会进行整体性的编译和链接处理，相当于把编译语言中的编译和解释混合到一起同时完成。 可解释
 
  强类型、动态类型语言。不允许隐式类型转换，比如不允许"12"+34。在声明变量时，不需要说明变量的类型； 具有动态特性
@@ -33,7 +33,7 @@ Python 最大的缺点：
 a. ./run.py shell 直接调用 python 脚本 
 b. python run.py 调用 python 解释器来调用 python 脚本 
 
-#### <a name='python2python3'></a>python2 与 python3 区别
+### python2 与 python3 区别
 1. Python3 使用 print 必须要以小括号包裹打印内容，比如 print('hi') Python2 既可以使用带小括号的方式，也可以使用一个空格来分隔打印内容，比如 print 'hi'  
 2. python2 range(1,10)返回列表，python3 中返回迭代器，节约内存； 
 3. python2 中使用 ascii 编码，python 中使用 utf-8 编码； 
@@ -42,13 +42,13 @@ b. python run.py 调用 python 解释器来调用 python 脚本
 6. python2 中是 raw_input()函数，python3 中是 input()函数； 
 
 
-#### <a name='py2py3'></a>py2 项目如何迁移成 py3 
+### py2 项目如何迁移成 py3 
 1. 先备份原文件，然后使用 python3 自带工具 2to3.py 将 py2 文件转换位 py3 文件 
 2. 手动将不兼容的代码改写成兼容 py3 的代码 
  
 
 
-#### <a name='python-1'></a>python 解释代码原理，函数怎么解析的
+#### python 解释代码原理，函数怎么解析的
 python 解释器由一个编译器和一个虚拟机构成，编译器负责将源代码转换成字节码文件，而虚拟机负责执行字节码。
 所以，解释型语言其实也有编译过程，只不过这个编译过程并不是直接生成目标代码，而是中间代码（字节码），然后再通过虚拟机来逐行解释执行字节码
 
@@ -63,7 +63,8 @@ python 解释器由一个编译器和一个虚拟机构成，编译器负责将�
 3、当Python解释器版本发生变化：不同版本的Python解释器可能使用不同的字节码格式，因此在切换Python解释器版本时，旧的.pyc文件可能会被认为不兼容并被重新生成。
 
 
-## <a name=''></a>可变和不可变数据类型，简述原理 
+
+## 可变和不可变数据类型，简述原理 
 不可变数据类型：数值型、字符串型 string 和元组 tuple
 不允许变量的值发生变化，如果改变了变量的值，相当于是新建了一个对象，而对于相同的值的对象，在内存中则只有一个对象（一个地址）
 
@@ -88,7 +89,7 @@ python 解释器由一个编译器和一个虚拟机构成，编译器负责将�
 
 
 
-#### <a name='GIL'></a>GIL 
+## GIL 
 GIL 是 python 的全局解释器锁，同一进程中假如有多个线程运行，一个线程在运行 python 程序的时候会霸占 python 解释器（加了一把锁即 GIL），使该进程
 内的其他线程无法运行，等该线程运行完后其他线程才能运行。如果线程运行过程中遇到耗时操作，则解释器锁解开，使其他线程运行。
 所以在多线程中，线程的运行仍是有先后顺序的，并不是同时进行。 
@@ -109,11 +110,11 @@ CPython 使用引用计数来管理内容，所有 Python 脚本中创建的实�
 内存的条件（引用计数为 0），当第 2 个线程再次视图访问 a 时，就无法找到有效的内存了。所以，CPython 引进 GIL，可以最大程度上规避类似内存管理这样复杂的竞争风险问题。 
 
 
-#### <a name='-1'></a>装饰器
+## 装饰器
 装饰器本质上是一个 callable object，它可以让其他函数在不需要做任何代码变动的前提下增加额外功能，装饰器的返回值也是一个函数对象。
 装饰器的实现原理是将原函数作为参数传递给装饰器函数，然后将原函数替换为装饰器函数返回的新函数。
 这意味着当我们调用原函数时，实际上是在调用装饰器函数返回的新函数。这使得我们可以在不修改原函数代码的情况下，为函数增加额外的功能。 
-###### 1. 不带参数的装饰器
+### 1. 不带参数的装饰器
 ```python
 def wrap1(func): 
     def inner_func(*args, **kwargs): 
@@ -134,7 +135,7 @@ func1('dong', 'xiang', name='dongxiang')
 ## I'm func1...
 ```
 
-###### 2. 带参数的装饰器 
+### 2. 带参数的装饰器 
 ```python
 def wrap2(type): 
     def outer(func): 
@@ -201,7 +202,7 @@ def foo():
 ``` 
 
 
-#### <a name='-1'></a>可迭代对象、生成器、迭代器的区别 
+## 可迭代对象、生成器、迭代器的区别 
 可迭代对象：包含__iter__()方法的对象； 
 
 迭代器：包含__iter__()和__next__()方法的对象；可以使用 iter() 以从任何序列得到迭代器（如 list，tuple，dict，set 等） 
@@ -213,7 +214,7 @@ def foo():
 可以同时节省内存。除了创建和保存程序状态的自动方法，当生成器终结时，还会自动抛出 StopIteration 异常。 
 
 
-#### <a name='copydeepcopy'></a>copy 和 deepcopy 区别
+## copy 和 deepcopy 区别
 1. 复制不可变数据类型，不管 copy 还是 deepcopy，都是同一个地址。当浅复制的值是不可变对象（数值，字符串，元组）时和=“赋值”的情况一样，对象的 id 值与浅复制原来的值相同。 
 2. 复制的值是可变对象（列表和字典）
 浅拷贝 copy 有两种情况： 
@@ -225,7 +226,7 @@ def foo():
 深拷贝：深拷贝使复制过程递归。这意味着首先构造一个新的集合对象，然后递归地用在原始对象中找到的子对象的副本填充它。以这种方式复制一个对象，遍历整个对象树，以创建原始对象及其所有子对象的完全独立的克隆。 
 
 
-#### <a name='-1'></a>进程、线程、协程 
+## 进程、线程、协程 
 1. 进程（Process），一个程序运行起来后，代码+用到的资源称之为进程，是系统进行资源分配和调度的基本单位； 
 线程（Thread）是进程中的一个实体，是 CPU 调度和分派的基本单位； 
 协程是一种用户态的轻量级线程，协程的调度完全由用户控制。在Python中使用asyncio库来实现。
@@ -247,7 +248,7 @@ Python3.4 加入了 asyncio 模块，在 Python3.5 中又提供了 async/await �
 3. 在高并发下的最佳实践就是多进程+协程，既充分利用多核，又充分发挥协程的高效率，可获得极高的性能。 
 
 
-#### <a name='pythonIO'></a>python 中 IO 密集型为什么用多线程
+### python 中 IO 密集型为什么用多线程
 在 Python 中,对于 IO 密集型任务,使用多线程可以显著提高程序的性能。这主要有以下几个原因:
 1. IO 操作的阻塞特性
 IO 操作,如读写文件、网络通信等,都是阻塞式的。当一个线程发起 IO 请求时,它会被阻塞,直到 IO 操作完成。在单线程模型下,IO 阻塞会导致整个程序停滞,无法继续执行其他任务。
@@ -259,7 +260,7 @@ Python 有全局解释器锁(GIL),导致在任意时刻只能有一个线程在�
 对于一些需要频繁 IO 操作的应用,如 Web 服务器,使用多线程可以显著提高用户感知的响应速度。当一个线程在处理请求时阻塞于 IO,其他线程可以继续处理新的请求,从而缩短了用户的等待时间。
 
 
-#### <a name='pythonasyncio'></a>python asyncio
+## python asyncio
 asyncio是Python标准库中提供的异步I/O框架，用于编写高性能、高并发的网络应用程序。
 它基于事件循环（event loop）的概念，允许在单个线程内处理大量的并发操作，而不会阻塞程序的执行。
 
@@ -402,7 +403,7 @@ Total time: 3.14 seconds.
 当然，`asyncio`模块还提供了许多其他的函数和类，用于更高级的异步编程场景，如异步上下文管理器、异步迭代器、异步队列等。你可以根据具体的需求进一步探索和使用这些功能。
 
 
-#### <a name='__new____init__'></a>简述__new__和__init__区别
+## 简述__new__和__init__区别
 1. __new__至少要有一个参数 cls，代表当前类，此参数在实例化时由 Python 解释器自动识别；__init__是初始化方法，创建对象后，就立刻被默认调用了，可接收参数； 
 2. __new__必须要有返回值，返回实例化出来的实例，可以 return 父类（通过super(当前类名, cls)）__new__出来的实例，或者直接是 object 的__new__出来的实例；
 __init__有一个参数 self，就是这个__new__返回的实例，__init__在__new__的基础上可以完成一些其它初始化的动作，__init__不需要返回值； 
@@ -412,8 +413,8 @@ _init__函数，也不会调用其他类的__init__函数。
 5. 创建对象的动作有两步：1. 在内存中为对象分配空间，调用__new__()方法完成；2. 调用初始化方法__init__为对象初始化； 
  
  
-#### <a name='python-1'></a>python 内存管理机制 
-###### python 内存池
+## python 内存管理机制 
+#### python 内存池
 当创建大量消耗小内存的对象时，频繁调用 new/malloc 会导致大量的内存碎片， 致使效率降低。 内存池的作用就是预先在内存中申请一定数量的，大小相等的内存块留作备用，当有新的内存需求时，就先从内存池中分配内存给这个需求，不够之后再申请新的内存。
 这样做最显著的优势就是能够减少内存碎片，提升效率。 python 中的内存管理机制为 Pymalloc。
 内存池是如果工作的（how）
@@ -426,15 +427,15 @@ Level+1 层：当申请的内存大小大于 256KB 时，由 Python 原生的内
 关于释放内存方面，当一个对象的引用计数变为 0 时，Python 就会调用它的析构函数。调用析构函数并不意味着最终一定会调用 free 来释放内存空间，如果真是这样的话，那频繁地申请、释放内存空间会使 Python 的执行效率大打折扣。
 因此在析构时也采用了内存池机制，从内存池申请到的内存会被归还到内存池中， 以避免频繁地申请和释放动作。 
 
-###### 垃圾回收 
+### 垃圾回收 
 垃圾回收机制：主要是以对象引用计数为主标记清除和分代技术为辅的那么一种方式； 
 
-######## 引用计数 PyObject 
+#### 引用计数 PyObject 
 python 里每一个东西都是对象，它们的核心就是一个结构体：PyObject。 PyObject 是每个对象必有的内容，其中 ob_refcnt 就是做为引用计数。
 当一个对象有新的引用时，它的 ob_refcnt 就会增加，当引用它的对象被删除，它的 ob_refcnt就会减少，当引用计数降为 0 时，说明没有任何引用指向该对象，该对象就成为 要被回收的垃圾了。
 不过如果出现循环引用（当对象 1 中的某个属性指向对象 2， 对象 2 中的某个属性指向对象 1 就会出现循环引用）的话，引用计数机制就不再起有效的作用了，del 语句可以减少引用次数，但是引用计数不会归 0，对象也就不会被销毁，从而造成了内存泄漏问题。 
 
-######## 标记清除
+#### 标记清除
 标记-清除机制，顾名思义，首先标记对象（垃圾检测），然后清除垃圾（垃圾回收）。首先初始所有对象标记为白色，并确定根节点对象（这些对象是不会被删除），标记它们为黑色（表示对象有效）。将有效对象引用的对象标记为灰色（表示对象可达，但它们所引用的对象还没检查），检查完灰色对象引用的对象后，将灰色标记为黑色。重复直到不存在灰色节点为止。最后白色结点都是需要清除的对象。 
 解决循环引用： 
 ```shell
@@ -461,7 +462,7 @@ a 引用 b,b 引用 a,此时两个对象各自被引用了 2 次（去除 getref
 清除: 被标记为不可达的对象就是真正需要被释放的对象 
 
 
-###### 分代回收 
+#### 分代回收 
 Python 使用一种叫做分代垃圾回收(Generational Garbage Collection)的机制来管理内存。
 这种机制基于这样一个观察:大部分对象的生命周期都很短,而那些生命周期长的对象通常会存活更长时间。
 基于这个观察,Python 将所有对象分为三代:年轻代(Young Generation)、中年代(Middle Generation)和老年代(Old Generation)。
@@ -486,7 +487,7 @@ Python 使用一种叫做分代垃圾回收(Generational Garbage Collection)的�
 只在必要时才进行成本较高的 major collection 和 full collection,从而提高了垃圾回收的效率。
 
  
-###### 哪些操作会导致 Python 内存泄露，怎么处理？
+### 哪些操作会导致 Python 内存泄露，怎么处理？
 内存泄漏指由于疏忽或错误造成程序未能释放已经不再使用的内存。内存泄漏并非指内存在物理上的消失，而是应用程序分配某段内存后，由于设计错误，导致在释放该段内存之前就失去了对该段内存的控制，从而造成了内存的浪费。 有 
 __del__() 函数的对象间的循环引用是导致内存泄露的主凶。不使用一个对象时使用: del object 来删除一个对象的引用计数就可以有效防止内存泄露问题。 
 通过 Python 扩展模块 gc 来查看不能回收的对象的详细信息。 
@@ -519,27 +520,10 @@ Python 有两种共存的内存管理机制: 引用计数和垃圾回收
 2.调高垃圾回收阈值 
 3.避免循环引用 
 
-在 Python 中是如何管理内存的？ 
-Python 有一个私有堆空间来保存所有的对象和数据结构。作为开发者，我们无法访问它，是解释器在管理它。但是有了核心 API 后，我们可以访问一些工具。 Python 内存管理器控制内存分配。 
-另外，内置垃圾回收器会回收使用所有的未使用内存，所以使其适用于堆空间。 Python 引用了一个内存池(memory pool)机制，即 Pymalloc 机制(malloc:n.分配内存)，用于管理对小块内存的申请和释放。
-
-一、垃圾回收：python 不像 C++，Java 等语言一样，他们可以不用事先声明变量类型而直接对变量进行赋值。对 Python 语言来讲，对象的类型和内存都是在运行时确定的。
-这也是为什么我们称 Python 语言为动态类型的原因（这里我们把动态类型可以简单的归结为对变量内存地址的分配是在运行时自动判断变量类型并对变量进行赋值）。
-
-二、引用计数：Python 采用了类似 Windows 内核对象一样的方式来对内存进行管理。每一个对象，都维护这一个对指向该对对象的引用的计数。当变量被绑定在一个对象上的时候，该变量的引用计数就是 1，(还有另外一些情况也会导致变量引用计数的增加),系统会自动维护这些标签，并定时扫描，当某标签的引用计数变为 0 的时候，该对就会被回收。
-
-三、内存池机制 Python 的内存机制以金字塔行，-1，-2 层主要有操作系统进行操作， 
-第 0 层是 C 中的 malloc，free 等内存分配和释放函数进行操作； 
-第 1 层和第 2 层是内存池，有 Python 的接口函数 PyMem_Malloc 函数实现，当对象小于 256K 时有该层直接分配内存； 
-第 3 层是最上层，也就是我们对 Python 对象的直接操作； 
-在 C 中如果频繁的调用 malloc 与 free 时,是会产生性能问题的.再加上频繁的分配与释放小块的内存会产生内存碎片. Python 在这里主要干的工作有: 
-如果请求分配的内存在 1~256 字节之间就使用自己的内存管理系统,否则直接使用 malloc. 
-这里还是会调用 malloc 分配内存,但每次会分配一块大小为 256k 的大块内存. 
-经由内存池登记的内存到最后还是会回收到内存池,并不会调用 C 的 free 释放掉.以便下次使用.对于简单的 Python 对象，例如数值、字符串，元组（tuple 不允许被更改)采用的是复制的方式(深拷贝?)，也就是说当将另一个变量 B 赋值给变量 A 时，虽然 A 和 B 的内存空间仍然相同，但当 A 的值发生变化时，会重新给A 分配空间，A 和 B 的地址变得不再相同 
 
 
 
-#### <a name='python-1'></a>python 中单例模式实现方式 
+## python 中单例模式实现方式 
 第一种方法：使用装饰器 
 ```python
 def singleton(cls): 
@@ -614,7 +598,7 @@ class Singleton:
         return cls._instance
 ```
 
-## <a name='python-1'></a>python 上下文管理器的两种方式？ 
+## python 上下文管理器的两种方式？ 
 1. __enter__ __exit__ 
 with 声明是从 Python2.5 开始引进的关键词。你应该遇过这样子的代码: 
 with open('foo.txt') as bar: 
@@ -633,6 +617,7 @@ __exit__定义了代码段结束后的一些操作，可以这里执行一些清
 将正常抛出，这时候 with 的作用将不会显现出来。 
 举例说明： 
 这该示例中，IndexError 始终会被隐藏，而 TypeError 始终会抛出。 
+```python
 class DemoManager(object): 
  
     def __enter__(self): 
@@ -661,6 +646,7 @@ with DemoManager() as nothing:
 Traceback (most recent call last): 
   ... 
 '''
+```
 
 with 方法打开处理文件做了什么? 
 
@@ -675,10 +661,9 @@ __enter__：在执行语句之前，首先执行该方法，通常返回一个�
 __exit__：执行语句结束后，自动调用__exit__方法，用户释放资源，若此方法返
 回布尔值 True，程序会忽略异常。 使用环境：文件读写、线程锁的自动释放等。
 
-
-
 2. contextlib 实现上下文管理器 
 contextlib 模块中@contextmanager 装饰器 
+```python
 @contextmanager 
 def timethis(label): 
     start_time = time.time() 
@@ -692,12 +677,16 @@ def timethis(label):
 with timethis('counting'): 
     n = 100000 
     while n > 0: 
+        print("running...")
+        
+```
+
 yield 之前的代码会在上下文管理器中作为__enter__()方法执行，所有再 yield 之后的代
 码会作为__exit__()方法执行，如果出现了异常，代码会在 yield 那里抛出； 
 
 
 
-## <a name='Python'></a>Python 中的反射 
+## Python 中的反射 
 反射就是通过字符串的形式，导入模块；通过字符串的形式，去模块寻找指定函数，并执行。
 利用字符串的形式去对象（模块）中操作（查找/获取/删除/添加）成员，一种基于字符串的事件驱动！ 
 自省就是面向对象的语言所写的程序在运行时,所能知道对象的类型。
@@ -705,7 +694,7 @@ yield 之前的代码会在上下文管理器中作为__enter__()方法执行，
 getattr,hasattr,setattr,delattr 对模块的修改都在内存中进行，并不会影响文件中真
 实内容。并且他们的入参可以是模块名；
 
-1. getattr()函数是 Python 自省的核心函数，具体使用大体如下： 
+1. getattr()函数是 Python 自省的核心函数，具体使用大体如下：
 ```python
 class A:  
     def __init__(self):  
@@ -725,21 +714,21 @@ print(getattr(Instance, 'method', 'default')()) ##如果有方法 method，运�
 2. hasattr(object, name) 
 说明：判断对象 object 是否包含名为 name 的特性（hasattr 是通过调用 getattr(ojbect, name)是否抛出异常来实现的） 
 
-3. setattr(object, name, value) 
+3. setattr(object, name, value)
 这是相对应的 getattr()。参数是一个对象,一个字符串和一个任意值。字符串可能会列出
 一个现有的属性或一个新的属性。这个函数将值赋给属性的。该对象允许它提供。例
 如,setattr(x,“foobar”,123)相当于 x.foobar = 123。 
- 
-4. delattr(object, name) 
+
+4. delattr(object, name)
 与 setattr()相关的一组函数。参数是由一个对象(记住 python 中一切皆是对象)和一个字
 符串组成的。string 参数必须是对象属性名之一。该函数删除该 obj 的一个由 string 指定
 的属性。delattr(x, 'foobar')=del x.foobar 
 
 
 
-## <a name='-1'></a>面向对象
+## 面向对象
 
-#### <a name='class'></a>类class
+#### 类class
 类以及类中的方法在内存中只有一份，而根据类创建的每一个对象都在内存中需要存一份。只要创建一个对象,其内存空间就会保存一份。
 
  普通字段属于对象
@@ -827,7 +816,7 @@ class Foo1(object):
 4) 你可以将它作为函数参数进行传递 
 
 
-#### <a name='-1'></a>封装 
+#### 封装 
  属性和方法封装到一个抽象的类中，外界使用类创建对象，然后让对象调用方法，对象方法的细节都被封装到类的内部；一个对象的属性可以是另外一个类创建的对象； 
  在对象方法的内部，是可以直接访问对象的属性；
  同一个类创建的多个对象之间，它们的属性是互不干扰的；
@@ -879,7 +868,7 @@ print(dir(b))    ## '_internal', 'public', 'public_method','_A__private_method',
 ```
 
 
-#### <a name='-1'></a>继承 
+#### 继承 
  继承用来实现代码的重用；子类拥有父类所有的属性和方法，可以直接使用父类的中封装好的方法，不需要再次开发；子类继承父类，子类的实例可以拥有父类的属性； 
  继承传递性； 
  重写父类方法： 
@@ -901,7 +890,7 @@ python 通过引入模块 abc 提供官方的解决方案，这个模块为抽�
 持。 
 
 
-#### <a name='-1'></a>多态 
+#### 多态 
  不同的子类对象调用相同的父类方法，产生不同的执行结果； 
  以继承和重写父类方法为前提； 
  类：
@@ -926,7 +915,7 @@ o 类属性或类方法：
  类方法----修饰器@classmethod 标识； 
  静态方法----修饰器@staticmethod 标识； 
 
-#### <a name='-1'></a>元类 
+#### 元类 
 元类就是用来创建这些类（对象）的，元类就是类的类。 
 MyClass = type('MyClass', (), {}) 
 type 实际上是一个元类，type 就是 python 在背后用来创建所有类的元类。 
@@ -1016,7 +1005,7 @@ new class() 第四个参数最神秘，它是一个用来接受类命名空间�
 Stock = collections.nametuple('Stock', ['name', 'shares', 'price']) 
  
  
-#### <a name='-1'></a>定义接口和抽象基类 
+#### 定义接口和抽象基类 
 继承 metaclass=abc.ABCMeta，方法加@abstractmethod 
 抽象类的定义就是让别的类继承它并实现特定的抽象方法，抽象类不能被实例化；
 
@@ -1044,7 +1033,7 @@ class Bar(object, metaclass=MetaClass):
 
 
 
-## <a name='-1'></a>函数 
+## 函数 
 函数名其实就是指向一段内存空间的地址，既然是地址，那么我们可以利用这种特性来： 
 a. 函数名可以作为一个值; 
 b. 函数名可以作为返回值; 
@@ -1150,7 +1139,7 @@ when the default is a mutable object such as a list, dictionary, or instances of
 classes. 
 所以，如果默认参数是一个可修改的容器比如一个列表、集合或者字典，最好使
 用 None 作为默认值。 
-## <a name='Usingalistasadefaultvalue'></a>Using a list as a default value 
+## Using a list as a default value 
 def spam(a, b=None):  
     if b is None:  
         b = []  
@@ -1199,7 +1188,7 @@ lambda 表达式的时候，x 的值是执行时的值。
 
 ```
  
-#### <a name='-1'></a>内建函数 
+#### 内建函数 
 ######## range 
 range(1,10)---左开右闭， 
  
@@ -1590,7 +1579,7 @@ if __name__ == "__main__":
 个粒度上。若在一个函数中处理多件事，不利于代码的重用 
  
  
-## <a name='-1'></a>迭代器 
+## 迭代器 
 何为迭代：重复+继续 
 第一，迭代需要重复进行某一操作； 
 第二，本次迭代的要依赖上一次的结果继续往下做，如果中途有任何停顿，都不能算是迭代； 
@@ -1670,7 +1659,7 @@ print(isinstance(g, Iterator)) ## False
  
  
  
-## <a name='-1'></a>生成器 
+## 生成器 
 将列表生成式中[]改成()之后数据结构是否改变？ 答案：是，从列表变为生成器。 
 生成器： 
 如果一个函数中有 yield 语句，表明这个函数就不再是一个函数了，而是一个生成器模板，如果调用这个函数的时候，就不再是调用这个函数了，而是创建一个生成器对象。
@@ -1785,7 +1774,7 @@ yield 将一个函数变成一个生成器
 yield 返回一个值 
 yield from 后面跟的可以是生成器、元组、列表等可迭代对象以及 range()函数产生的序列; 
 
-#### <a name='-1'></a>什么是闭包？ 
+#### 什么是闭包？ 
 作用域 
 全局变量能够被文件任何地方引用，但修改只能在全局进行操作; 
 如果局部没有找到所需的变量，就会往外进行查找，没有找到就会报错。 
@@ -1810,7 +1799,7 @@ bb(26)  ## name: the5fire age: 26
 
 
 
-## <a name='python-1'></a>python 中的魔法方法 
+## python 中的魔法方法 
 在 Python 中，所有以__双下划线包起来的方法，都统称为"魔术方法"。比如我们接触最多的__init__. 
 有些魔术方法,我们可能以后一辈子都不会再遇到了,这里也就只是简单介绍下; 
 而有些魔术方法,巧妙使用它可以构造出非常优美的代码,比如将复杂的逻辑封装
@@ -1830,7 +1819,7 @@ __metaclass__ ----其用来表示该类由谁来实例化创建;
 __call__ ----对象后面加括号，触发执行。注：构造方法的执行是由创建对象触发
 的，即：对象 = 类名() ；而对于 __call__ 方法的执行是由对象后加括号触发的，即：对象() 或者 类()()
 
-#### <a name='init____new____del__'></a>__init__ __new__ __del__ 构造和初始化
+#### __init__ __new__ __del__ 构造和初始化
 __init__我们很熟悉了,它在对象初始化的时候调用,我们一般将它理解为"构造函数". 
 简化数据结构的初始化-----在基类的初始化方法__init__中对传参与每个实例的可允许传参进行校验。 
 定义多个构造器，定义__init__(*args)方法，另外的构造器--定义类方法，调用 cls(*args); 
@@ -1863,7 +1852,7 @@ print foo  ## NameError, foo is not defined
 了。所以__del__并不能替代良好的编程习惯。 比如，在处理 socket 时，及时关闭结束的连接。 
 
 
-#### <a name='setattr____getattr____delattr__'></a>__setattr__ __getattr__ __delattr__属性访问控制 
+#### __setattr__ __getattr__ __delattr__属性访问控制 
 希望 Python 能够定义私有属性，然后提供公共可访问的 getter 和 setter。 
 代理----一种编程模式，将某个操作转移给另一个对象来实现； 
 当需要代理的方法很多时，可以尝试使用__getattr__来实现； 
@@ -1981,7 +1970,7 @@ if __name__ == '__main__':
 属性处理后返回给调用者。 
  
 
-#### <a name='get____set____delete__'></a>__get__ __set__ __delete__描述器
+#### __get__ __set__ __delete__描述器
 就是一个实现了三个核心属性访问操作的类，分别为__get__，__set__和
 __delete__方法； 这些方法接受一个实例作为输入，之后相应地操作实例底层的
 字典；描述其只能在类级别被定义；__get__方法就是确保绑定方法对象能被正确的创建； 
@@ -2129,7 +2118,7 @@ __delete__在其拥有者对其进行删除的时候调用。
  
  
  
-#### <a name='getitem____setitem____delitem__'></a>__getitem__ __setitem__ __delitem__构造自定义容器  
+#### __getitem__ __setitem__ __delitem__构造自定义容器  
 列表，字典取元素的方式，lst = [1,2,3,4],取第一个元素 lst[0],d ={'name':'xiaohua'} 取元
 素 dd['name'],与__setitem__，__getitem__，delitem__三个函数有关 
 ```python
@@ -2246,7 +2235,7 @@ print(weather)
  
  
 
-#### <a name='slots____dict__'></a>__slots__ __dict__
+#### __slots__ __dict__
 Python 是一门动态语言。通常，动态语言允许我们在程序运行时给对象绑定新的
 属性或方法，当然也可以对已经绑定的属性和方法进行解绑定。但是如果我们需
 要限定自定义类型的对象只能绑定某些属性，可以通过在类中定义__slots__变量
@@ -2311,7 +2300,7 @@ print('p4.__dict__==%s, 以及 p4.__dict__内存地址==%s, ' %
 ``` 
  
  
-#### <a name='repr____str____format__'></a>__repr__ __str__ __format__格式化代码  
+#### __repr__ __str__ __format__格式化代码  
 __repr__返回一个实例的代码表示形式，通常用来重新构造这个函数，跟我们使
 用交互式解释器显示的是同一个值；!r----格式化代码时表示使用__repr__代替
 __str__输出； 
@@ -2489,7 +2478,7 @@ obj.show()
  
  
  
-#### <a name='call__'></a>__call__
+#### __call__
 __call__()----特殊的类实例方法，使得类实例对象可以像调用普通函数那样，以"对象名()"的形式调用； 
 Python 中，凡是可以将()直接应用到自身并执行，都称为可调用对象。
 可调用对象包括自定义的函数、Python 内置函数以及本节所讲的类实例对象。 
@@ -2514,7 +2503,7 @@ e(4, 5) //实例可以象函数那样执行，并传入 x y 值，修改对象�
  
  
  
-#### <a name='all__'></a>__all__ 
+#### __all__ 
 模块中定义__all__变量，当这个模块被导入到别处； 
 from module import *----这样的导入将会导入所有不以下划线开头的属性和方法； 
 from . import A----导入同级目录下的 A 模块 
@@ -2643,7 +2632,7 @@ print(slate.print_changes())  ## 输出历史记录与上面一致
 ```
 
 
-#### <a name='-1'></a>运算符相关的魔术方法 
+#### 运算符相关的魔术方法 
 运算符相关的魔术方法实在太多了，也很好理解，不打算多讲。在其他语言里，
 也有重载运算符的操作，所以我们对这些魔术方法已经很了解了。 
 比较运算符 
@@ -2698,7 +2687,7 @@ print('bar != foo:', Word('bar') != Word('foo'))  ## True
 
 ```
 
-#### <a name='-1'></a>一元运算符和函数 
+#### 一元运算符和函数 
 __pos__(self) 
 实现了'+'号一元运算符(比如+some_object) 
 __neg__(self) 
@@ -3021,7 +3010,7 @@ rows 中的记录用来查找值的索引参数。可 以是一个字典键名�
  
  
  
-## <a name='-1'></a>文件 
+## 文件 
 python 文件操作步骤：1. 打开；2. 读写；3. 关闭。
 第一次打开文件时，文件指针会指向文件的开始位置，当执行了 read 方法后，文件指针会移动到读取内容的末尾。read 一次性全部读取到内存。
 文件以什么方式编码的，就应该以什么方式解码；
@@ -3233,7 +3222,7 @@ with open('test.csv', 'w') as new_file:
  
  
  
-## <a name='-1'></a>正则表达式 
+## 正则表达式 
 一是：检测某一段字符串是否符合规则，也就是我们常说的"校验"  
 二是：从一大段字符串中找到符合规则的字符串，可以理解为"检索" 
 
@@ -3276,7 +3265,7 @@ re.sub(r,x,s,m) 对正则表达式 r 的每次匹配（如果给定 m，那么�
 re.subn(r,x,s,m) 与 re.sub()函数相同，区别在于此函数返回一个二元组；
 
 
-#### <a name='-1'></a>贪婪模式和惰性模式 
+#### 贪婪模式和惰性模式 
 在正则中，默认的匹配模式是“贪婪匹配”，也就是说，在符合匹配规则的前提下尽可能
 多的去匹配字符，但是有些时候，我们不需要匹配太多的内容，只要得到需要的“片段” 内容就好了。 
 而量词是匹配多次的，这时我们可以在量词的后面加上?就可以让匹配“适可而止”了，这
@@ -3331,7 +3320,7 @@ r 表示后面的字符串是一个普通字符串（比如\n 会译为\和 n，
 .group(1) 列出第一个括号匹配部分 
 .group(2) 列出第二个括号匹配部分 
  
-#### <a name='re.matchre.search'></a>re.match 与 re.search 的区别 
+#### re.match 与 re.search 的区别 
 re.match 只匹配字符串的开始，如果字符串开始不符合正则表达式，则匹配失败，函数
 返回 None；而 re.search 匹配整个字符串，直到找到一个匹配。 
 ```python
@@ -3354,7 +3343,7 @@ else:
 
 ``` 
  
-#### <a name='-1'></a>正则表达式中的特殊字符 
+#### 正则表达式中的特殊字符 
 正则表达式中的特殊字符： 
 $ 
 匹配输入字符串的结尾位置。如果设置了 RegExp 对象的 Multiline 属性，则 
@@ -3430,7 +3419,7 @@ taobao" 中除了 e o u a 字母的所有字母。
 匹配一个垂直制表符。等价于 \x0b 和 \cK。 
  
  
-## <a name='-1'></a>多线程、多进程、协程
+## 多线程、多进程、协程
  多任务： 
 简单地说，就是操作系统可以同时执行多个任务。CPU 执行代码都是顺序执行
 的，也就是说同一时间片 CPU 只能执行一个任务。单核 CPU 也可以执行多任务
@@ -4067,7 +4056,7 @@ output:
  
  
  
-#### <a name='-1'></a>解释一下什么是锁，有哪几种锁？ 
+#### 解释一下什么是锁，有哪几种锁？ 
 锁(Lock)是 python 提供的对线程控制的对象。有互斥锁，可重入锁，死锁。 
 
 ###### 死锁
@@ -4130,7 +4119,7 @@ output:
 
 
 
-#### <a name='-1'></a>什么是僵尸进程和孤儿进程？怎么避免僵尸进程？
+#### 什么是僵尸进程和孤儿进程？怎么避免僵尸进程？
 孤儿进程： 父进程退出，子进程还在运行的这些子进程都是孤儿进程，孤儿进
 程将被 init 进程（进程号为 1）所收养，并由 init 进程对他们完成状态收集工作。 
 僵尸进程：进程使用 fork 创建子进程，如果子进程退出，而父进程并没有调用
@@ -4187,7 +4176,7 @@ CPU 密集型： 大部分时间用来做计算，逻辑判断等 CPU 动作的�
 比如说写入日志，将多线程产生的日志放在队列中，然后写入。 
 
 
-## <a name='python-1'></a>python 模块 
+## python 模块 
 就好比工具包，模块中定义的全局变量、函数、类都是提供给外界直接使用的工具；
 一个独立的 python 文件就是一个模块，在导入文件时，文件中所有没有任何缩进的代码都会被执行一遍。
 
@@ -4263,7 +4252,7 @@ from . import jpg
 from . import png 
 像这样一个文件,用户可以仅仅通过import grahpics.formats来代替import graphics.formats.jpg 以及 import graphics.formats.png。
 
-#### <a name='1random'></a><1> random 
+#### <1> random 
 import random 
 print(random.randrange(1, 10))   ## 左开右闭,不包括 10 
 print(random.randrange(1, 20, 3))   ## 1-20 之间，步长为 3 的数字 
@@ -4287,13 +4276,13 @@ random.shuffle(l)
 print(l)  
  
  
-#### <a name='2requests'></a><2> requests 
+#### <2> requests 
 在 requests 模块中，requests.content 和 requests.text 什么区别 
 .content 中间存的是字节码 .text 存的是.content 编码后的字符串 
 操作方式就是，如果想取得文本就用.text，如果想获取图片，就用.content 
 
 
-#### <a name='3glob'></a><3> glob 
+#### <3> glob 
 glob.glob(pathname) 
 返回所有匹配的文件路径列表。它只有一个参数 pathname，定义了文件路径匹配规则，
 这里可以是绝对路径，也可以是相对路径。 
@@ -4306,7 +4295,7 @@ files = glob.glob('*.py')
 files = glob.glob(dir + filenames) 
 
 
-#### <a name='4functools'></a><4> functools 
+#### <4> functools 
 functools.reduce() 
 reduce() 函数会对参数序列中元素进行累积。 
 函数将一个数据集合（链表，元组等）中的所有数据进行下列操作： 
@@ -4393,7 +4382,7 @@ def spam(a, b, c, d):
 数。 
 
 
-#### <a name='collections'></a>collections 
+#### collections 
 collections 定义了很多抽象类，如果想自定义容器类的时候可以继承其中的类；
 使用 collections 中的抽象基类，可以确保自定义的容器实现了所有必要的方法，
 并且还能简化类型检查； 
@@ -4496,7 +4485,7 @@ Counter 实例一个鲜为人知的特性是它们可以很容易的跟数学运
 
 
 
-#### <a name='inspect'></a>inspect ## 获取给定对象的实际模块对象 
+#### inspect ## 获取给定对象的实际模块对象 
 import inspect 
 import math 
 from python.w3resource import sort_tests_69 
@@ -4522,7 +4511,7 @@ sig.bind(*args, **kwargs),
 认、重复等等 
 
 
-#### <a name='pkg_resources'></a>pkg_resources 获取本地安装的所有模块 
+#### pkg_resources 获取本地安装的所有模块 
 import pkg_resources 
  
  
@@ -4532,7 +4521,7 @@ installed_packages_list = sorted(
 for p in installed_packages_list: 
     print(p) 
  
-#### <a name='8array'></a><8> array 
+#### <8> array 
 导入 array---from array improt *; 
 定义一个 Integer 类型的 array----arr = array('i', original_list)； 
 数组最后添加元素----arr.append(10); 
@@ -4557,7 +4546,7 @@ tolist() -- return the array converted to an ordinary list
 tobytes() -- return the array converted to a string 
 
 
-#### <a name='9itertools'></a><9> itertools 
+#### <9> itertools 
 itertools.product(*iterables, repeart=1) 
 获取所有迭代器的组合，默认重复一次 
 ```shell
@@ -4680,7 +4669,7 @@ args = parse.parse_args()
 
 ```
 
-#### <a name='11os'></a><11> os 
+#### <11> os 
 ###### 获取 os 的位数，32bit 还是 64bit 
 import struct 
 def get_os_mode_32bit_or_64bit(): 
@@ -4914,7 +4903,7 @@ tm_sec=23, tm_wday=5, tm_yday=101, tm_isdst=-1)
 
 ``` 
  
-#### <a name='12json'></a><12> json 
+#### <12> json 
 json.dumps()   ## 将 python 对象编码成 json 字符串； 
 json.loads()   ## 将已编码的 json 字符串解码成 python 对象； 
 json.dump()    ## 编码处理文件 
@@ -4942,13 +4931,13 @@ with open('tickets.json', 'w', encoding='utf-8') as f:
 
 ```
      
-#### <a name='13bisect'></a><13> bisect 
+#### <13> bisect 
 bisect 模块 bisect.insort(lis, item)-----在排序列表中插入元素，保证元素插入后还保持顺
 序；bisect.bisect_left(list, item)----返回元素 item 插入 list 中的索引； 
  
  
 
-#### <a name='14heapq'></a><14> heapq 
+#### <14> heapq 
 heapq.nlargest(num, dict1)----表示获取最大 num 的 dict1 的键； 
 ```shell
 >>> nlargest(3, {'item1': 45.50, 'item2':35, 'item3': 41.30, 'item4':55, 'item5': 24}.items(), 
@@ -4963,7 +4952,7 @@ heapq.heappushpop(iterable_obj, item)---pop 最小的元素，push 一个 item;
 ``` 
  
  
-#### <a name='15enum'></a><15> enum 
+#### <15> enum 
 枚举类： 
 class Country(enum.Enum): 
     Afghanistan = 93 
@@ -4986,7 +4975,7 @@ for data in Country:
  
  
  
-#### <a name='16getpass'></a><16> getpass 
+#### <16> getpass 
 弹出密码输入提示，并且不会再任务终端回显密码。 
 user = getpass.getuser() ## 不会弹出用户名的输入提示。它会根据该用户的 shell 环境或者
 会依据本地系统的密码库（支持 pwd 模块的平台）来使用当前用户的登录名 
@@ -5007,7 +4996,7 @@ output_bytes = subprocess.check_output('grep python |wc > out', shell=True)
  
  
  
-#### <a name='subprocess'></a><> subprocess 
+#### <> subprocess 
 系统命令输出 
 import subprocess 
  
@@ -5018,7 +5007,7 @@ print(returned_text)
  
  
  
-#### <a name='17sys'></a><17> sys 
+#### <17> sys 
 你无法导入你的 python 代码因为它所在的目录不在 sys.path 里； 
 两种常见的方式将新目录添加到 sys.path 中： 
 1. 可以使用 PYTHONPATH 环境变量来添加； 
@@ -5094,7 +5083,7 @@ sys.version_info  python 版本
 
  
  
-#### <a name='19importlib'></a><19> importlib 
+#### <19> importlib 
 对字符串调用导入命令 
 import importlib 
 mod = importlib.import_module('urllib.request') 
@@ -5104,7 +5093,7 @@ import module 只是简单地执行和 import 相同的步骤，但是返回生�
  
  
  
-#### <a name='20pickle'></a><20> pickle 
+#### <20> pickle 
 持久化存储对象，模块为 pickle 或 cpickle 
 pickle.dump() ----用来把对象存储在打开的文件中，成为存储； 
 pickle.load() ----用来取对象，成为取存储； 
@@ -5174,7 +5163,7 @@ x==0, y==[1, 2, 3], z==4
 5
  
 
-## <a name='-1'></a>简述同源策略 
+## 简述同源策略 
 同源策略需要同时满足以下三点要求： 
 1）协议相同 
 2）域名相同 
@@ -5185,10 +5174,10 @@ http://www.test.com 与 http://www.test.com:8081 不同源——端口不同
 只要不满足其中任意一个要求，就不符合同源策略，就会出现“跨域” 
  
 
-## <a name='tips'></a>tips 
+## tips 
  
  
-#### <a name='listtuplecopydeepcopy'></a>关于 list tuple copy 和 deepcopy 的区别是什么？ 
+#### 关于 list tuple copy 和 deepcopy 的区别是什么？ 
 tuple： 
 a = (1, 2, 3, [4, 5, 6, 7], 8) 
 a[3] = 3  //typeerror 
@@ -5222,7 +5211,7 @@ copy 仅拷贝对象本身，而不拷贝对象中引用的其它对象。 deepc
 本身，而且拷贝对象中引用的其它对象。（子对象） 
  
 
-#### <a name='sortsorted'></a>sort 和 sorted 对列表排序区别 
+#### sort 和 sorted 对列表排序区别 
 sort 是在原列表的基础上修改，无返回值，sort()不能对 dict 字典进行排序； 
 sorted 有返回值，是新的 list，对 dict 排序默认会按照 dict 的 key 值进行排序，最
 后返回的结果是一个对 key 值排序好的 list。 
@@ -5230,7 +5219,7 @@ sorted 对 tuple， dict 依然有效，而 sort 不行。
  
  
 
-#### <a name='-1'></a>列表推导式、字典推导式、生成器 
+#### 列表推导式、字典推导式、生成器 
 ```shell
 >>> l = [i for i in range(4)] 
 >>> print(l, type(l)) 
@@ -5246,11 +5235,11 @@ sorted 对 tuple， dict 依然有效，而 sort 不行。
 ``` 
  
  
-#### <a name='int1.4int1.4'></a>int("1.4"),int(1.4)输出结果？ 
+#### int("1.4"),int(1.4)输出结果？ 
 int("1.4")报错-->float("1.4")输出 1.4，int(1.4)输出 1 
  
 
-#### <a name='Python-1'></a>Python 对象的命名规范，例如方法或者类等 
+#### Python 对象的命名规范，例如方法或者类等 
 变量命名：字母数字下划线，不能以数字开头 
 _ 受保护的 
 __ 私有的 
@@ -5265,17 +5254,17 @@ __init__ 内置变量
 class A 中定义的属性__cont ，这样的变量获取时需要用 A._A__cont 
  
  
-#### <a name='GBKSUTF-8'></a>编码为 GBK 的字符串 S，转成 UTF-8 编码的字符串 
+#### 编码为 GBK 的字符串 S，转成 UTF-8 编码的字符串 
 demo_str = "demo".encode("gbk")  
 demo=demo_str.decode('gbk').encode('utf-8'） 
  
  
-#### <a name='-1'></a>哪些不能作为字典的健 
+#### 哪些不能作为字典的健 
 字典中的键是不可变类型，可变类型 list 和 dict 不能作为字典键 一个对象能不
 能作为字典的 key，就取决于其有没有__hash__方法; 
  
  
-#### <a name='-1'></a>如何判断一个对象是函数还是方法 
+#### 如何判断一个对象是函数还是方法 
 在类外声明 def 为函数 
 类中声明 def：使用类调用为函数，使用实例化对象调用为方法 
 可以使用 isinstance()判断 
@@ -5300,7 +5289,7 @@ True
 True 
  
  
-#### <a name='python-1'></a>python 实现接口 
+#### python 实现接口 
 接口只是定义了一些方法，而没有去实现，多用于程序设计时，只是设计需要有
 什么样的功能，但是并没有实现任何功能，这些功能需要被另一个类（B）继承
 后，由类 B 去实现其中的某个功能或全部功能。 
@@ -5317,7 +5306,7 @@ True
 义接口（推荐） 
  
  
-#### <a name='Python-1'></a>Python 中变量的作用域？（变量查找顺序) 
+#### Python 中变量的作用域？（变量查找顺序) 
 函数作用域的 LEGB 顺序 
 1.什么是 LEGB? 
 L： local 函数内部作用域 
@@ -5327,7 +5316,7 @@ B：build-in 内置作用
 python 在函数里面的查找分为 4 种，称之为 LEGB，也正是按照这是顺序来查找的。 
  
  
-#### <a name='python-1'></a>python 判断对象相等 
+#### python 判断对象相等 
 python 中的 == python 中的对象包含三要素:id, type, value id 用来标识唯一一个
 对象，type 标识对象的类型，value 用来设置对象的值。  
 is 判断是否是一个对象，使用 id 来判断的，比较的是两个对象的 id 值是否相等，
@@ -5335,31 +5324,31 @@ is 判断是否是一个对象，使用 id 来判断的，比较的是两个对�
 == 是判断 a 对象的值是否是 b 对象的值，默认调用它的__eq__方法。 
  
  
-#### <a name='notAAisNone'></a>not A 与 A is None 
+#### not A 与 A is None 
 not A 就是 True,但是这并不代表该对象没有定义，也不代表该对象没有其它的属
 性，它只是代表 A 中元素为空，仅此而已； 
 如果要看对象是否又定义，就要使用 is None 来判断； 
  
  
-#### <a name='-1'></a>通过字符串调用某个对象对应的方法 
+#### 通过字符串调用某个对象对应的方法 
 1. 直接 getattr(obj, 'func')(*args)；    
 2. operator.methodcaller('func', *args)(obj)； 
 
 
-#### <a name='python-1'></a>如何提高 python 的运行效率 
+#### 如何提高 python 的运行效率 
 使用生成器； 
 关键代码使用外部功能包（Cython，pylnlne，pypy，pyrex）； 
 针对循环的优化–尽量避免在循环中访问变量的属性。 
  
  
  
-#### <a name='-1'></a>如果你想让某个匿名函数在定义时就捕获到值，可以将那个参数值定义成默认参数即可 
+#### 如果你想让某个匿名函数在定义时就捕获到值，可以将那个参数值定义成默认参数即可 
 a = lambda y, x=x: x + y 
 b = lambda y, x=x: x + y 
 funcs = [lambda x: x+n for n in range(5) 
 funcs = [lambda x, n=n: x+n for n in range(5)] 
 
-#### <a name='sys.modules__name__'></a>sys.modules[__name__] 
+#### sys.modules[__name__] 
 def function(): 
     print('test sys.modules') 
  
@@ -5370,7 +5359,7 @@ function_obj = getattr(sys.modules[__name__], function.__name__)## 获得此函�
 function_obj() 
 
 
-#### <a name='-1'></a>各种加密方式 
+#### 各种加密方式 
 Base64 编码 
 Base64 是一种用 64 个字符来表示任意二进制数据的方法。 
 Base64 编码可以称为密码学的基石。可以将任意的二进制数据进行 Base64 编码。
@@ -5527,7 +5516,7 @@ def hash_word():
     print('the coded word is ', coded) 
   
  
-#### <a name='logging'></a>logging 模块使用记录日志 
+#### logging 模块使用记录日志 
 DEBUG   ## 级别最低，详细的信息，通常只出现在诊断问题上； 
 INFO    ## 确认一切按预期进行； 
 WARNING ## 一个迹象表明，一些意想不到事情发生了，或表明一些问题在不久将来，这个软件能按预期进行；  
@@ -5584,7 +5573,7 @@ if __name__ == '__main__':
         write_log(msg)
 
 
-#### <a name='iter'></a>iter 方法取文件方式 
+#### iter 方法取文件方式 
 def iter_file(file, size=1024): 
     with open(file, 'r') as f: 
         for data in iter(lambda: f.read(size), b''): 
@@ -5595,7 +5584,7 @@ def test_iter():
     for row in iter_file('test.txt'): 
         print(row)
 
-#### <a name='type'></a>type 
+#### type 
 isinstance 不止可以判断对象与实例化这个对象类的关系，还能接受“继承关系” 
 只有直接实例化这个对象的类才是 type(对象)的类，即使有继承关系，type 也不会“承认”
 这个类的父类的； 
@@ -5678,7 +5667,7 @@ set() {b'78', 12, '23'}
 type(('a'))--表示的是 str 类型，不是 tuple 类型； 
 
 
-#### <a name='-1'></a>时间格式化 
+#### 时间格式化 
 import datetime 
 时间戳转时间 
 d = datetime.datetime.fromtimestamp(23343555) 
@@ -5699,7 +5688,7 @@ delta = l_date - f_date
 from datetime import datetime 
 datetime.now() 
 
-#### <a name='-1'></a>闭包使用外围作用域的变量 
+#### 闭包使用外围作用域的变量 
 自定义比较器，根据列中的元素的索引为 2 的元素大小进行排序 
 students_tuples = [('join','a',15),('kane','b',20),('pole','c',30)] 
 students_tuples.sort(key=lambda student:student[2]) 
@@ -5820,7 +5809,7 @@ found==True
 说明：可以使用可变值来实现 nonlocal 语句相仿的机制。 
 
  
-#### <a name='-1'></a>函数的默认参数 
+#### 函数的默认参数 
 def foo(x=[]): 
     x.append(1) 
     print(x) 
@@ -5841,7 +5830,7 @@ foo_safe() ## [1]
 foo_safe() ## [1] 
 
 
-#### <a name='isinstance'></a>isinstance 可以接收一个元组 
+#### isinstance 可以接收一个元组 
 print(isinstance(1, (int, float))) ## 判断 1 是不是 int 类型或者 float 类型 
 True 
 
@@ -5851,11 +5840,11 @@ True
 print(isinstance('2.5', (str, int))) 
 True 
 
-#### <a name='-1'></a>打印一年中的某一个月的日历 
+#### 打印一年中的某一个月的日历 
 calendar.month(year, month)
 
 
-#### <a name='python-1'></a>python 重定向 
+#### python 重定向 
 标准输入、标准输出和错误输出。 
 sys.stdin、sys.stdout 和 sys.stderr 
  
@@ -5906,7 +5895,7 @@ func()
  
  
  
-#### <a name='-1'></a>写一个类，并让它尽可能多的支持操作符? 
+#### 写一个类，并让它尽可能多的支持操作符? 
 class Array: 
  
 __list = [] 
@@ -5938,7 +5927,7 @@ __list = []
  
  
  
-#### <a name='-1'></a>请描述抽象类和接口类的区别和联系 
+#### 请描述抽象类和接口类的区别和联系 
 1.抽象类： 规定了一系列的方
 法，并规定了必须由继承类实现的方法。由于有抽象方法的存在，所以抽 象类
 不能实例化。可以将抽象类理解为毛坯房，门窗，墙面的样式由你自己来定，所
@@ -5956,7 +5945,7 @@ __list = []
  
  
  
-## <a name='-1'></a>爬虫 
+## 爬虫 
 常见的反爬虫和应对方法 
 1）.通过 Headers 反爬虫 
 从用户请求的 Headers 反爬虫是最常见的反爬虫策略。很多网站都会对 Headers
@@ -6178,10 +6167,10 @@ Python3 学乖了，默认编码是 Unicode 了...(祝大家早日拥抱 Python3
 //div[@class="mine"]: 选择所有具有 class="mine" 属性的 div 元素 
 举例我们读取网站 http://www.itcast.cn/ 的网站标题，修改 itcast.py 文件代码
 如下：： 
-## <a name='coding:utf-8--'></a>-*- coding: utf-8 -*- 
+## -*- coding: utf-8 -*- 
 import scrapy 
  
-## <a name='Python2.xPython3.x'></a>以下三行是在 Python2.x 版本中解决乱码问题，Python3.x 版本的可以去掉 
+## 以下三行是在 Python2.x 版本中解决乱码问题，Python3.x 版本的可以去掉 
 import sys 
 reload(sys) 
 sys.setdefaultencoding("utf-8") 
@@ -6357,8 +6346,8 @@ Scrapy 优缺点：
 算法 
  
  
-## <a name='-1'></a>网络编程 
-#### <a name='socket'></a>socket 
+## 网络编程 
+#### socket 
  
 python 获取本机主机名和 ip 地址` 
 import socket 
@@ -6400,7 +6389,7 @@ s = socket(AF_INET, SOCK_DGRAM)
 s.sendto(b'', ('localhost', 20000)) 
  
  
-#### <a name='ipaddress'></a>ipaddress 使用 
+#### ipaddress 使用 
 CIDR 网络地址转换成所代表的所有 IP----net = ipaddress.ip_network("10.42.115.0/24"); 
 允许像数组一样索引取值----net[0],net.num_address---地址数; 
 创建一个 ip----address = ipaddress.ip_address('10.42.115.99'); 
@@ -6423,7 +6412,7 @@ select.select()调用，它会不断轮询文件描述符从而激活它。
 然后它将结果列表提供给 select()。然后 select()返回准备接受或发送的对象组成的列表。 
  
  
-#### <a name='tcp'></a>创建一个简单 tcp 服务器需要的流程 
+#### 创建一个简单 tcp 服务器需要的流程 
 1.socket 创建一个套接字 
 2.bind 绑定 ip 和 port 
 3.listen 使套接字变为可以被动链接 
@@ -6482,7 +6471,7 @@ while True:
 ``` 
      
      
-#### <a name='ip'></a>判断 ip 地址是否有效 
+#### 判断 ip 地址是否有效 
 import socket 
 def test_valid_ip_address(addr): 
  
@@ -6503,7 +6492,7 @@ test_valid_ip_address(addr2) ## valid ip address
  
  
  
-## <a name='-1'></a>异常 
+## 异常 
 AttributeError 试图访问一个对象没有的树形，比如 foo.x，但是 foo 没有属性 x 
 IOError 输入/输出异常；基本上是无法打开文件 
 ImportError 无法引入模块或包；基本上是路径问题或名称错误 
@@ -6520,7 +6509,7 @@ SyntaxError:Python 代码逻辑语法出错，不能执行
 
 
  
-## <a name='-1'></a>设计模式 
+## 设计模式 
 ###### 单例模式的应用场景有那些？ 
 单例模式应用的场景一般发现在以下条件下：资源共享的情况下，避免由于资源操作时导致的性能或损耗等，如日志文件，应用配置。 控制资源的情况下，方便资源之间的互相通信。如线程池等， 
 1.网站的计数器 
@@ -7297,11 +7286,11 @@ if __name__ == '__main__':
 
 
  
-## <a name='python-1'></a>python基础
+## python基础
 
 
 
-#### <a name='python-1'></a>python 编码 
+#### python 编码 
 文件以什么编码保存的，就以什么编码方式打开. 
 python2 中默认使用 ascii，python3 中默认使用 utf-8。 
 x="hello",其中的 x，等号，引号，地位都一样，都是普通字符而已，都是以 unicode
@@ -7536,7 +7525,7 @@ Jython Jython 是将 Python code 在 JVM 上面跑和调用 java code 的解释�
  
  
  
-#### <a name='python-1'></a>python 新式类和经典类的区别
+#### python 新式类和经典类的区别
 a. 在 python 里凡是继承了 object 的类，都是新式类 
 b. Python3 里只有新式类 
 c. Python2 里面继承 object 的是新式类，没有写父类的是经典类 
@@ -7985,7 +7974,7 @@ collections.Counter(list1)  == collections.Counter(list2)---用来比较两个 l
       
       
 ###### 合并两个字典 
-## <a name='-1'></a>第一种方式 
+## 第一种方式 
 ```python
 import uuid
 x = {'name': 'dong', 'age': 10}  
@@ -8001,7 +7990,7 @@ print('z==%s' % z, 'id(z)==%s' % id(z))
 ## update()是就地和并字典，z 还是同样的内存地址 
 ```
  
-## <a name='python3.5'></a>第二种方式，python3.5 以上版本 
+## 第二种方式，python3.5 以上版本 
 ```python
 import uuid
 x = {'name': 'dong', 'age': 10}  
@@ -8013,7 +8002,7 @@ print('z==%s' % z, 'id(z)==%s' % id(z))
 ## z 又存储到另一块内存 
 ```
  
-## <a name='-1'></a>第三种方式 
+## 第三种方式 
 python3.9 可以使用 "|" 操作符合并两个字典 
 >>> z3 = z|y 
 {'a': 1, 'b': 2, 'c': 3, 'd': 4} 
@@ -8057,7 +8046,7 @@ sorted()构造排序规则
 [('address', 'nj'), ('age', 20), ('name', 'dx')] 
 
 
-#### <a name='bytes'></a>bytes 字节
+#### bytes 字节
 在 Python3 以后，字符串和 bytes 类型彻底分开了。字符串是以字符为单位进行处理的，bytes 类型是以字节为单位处理的。 
 bytes 数据类型在所有的操作和使用甚至内置方法上和字符串数据类型基本一样，也是不可变的序列对象。 
 bytes 对象只负责以二进制字节序列的形式记录所需记录的对象，至于该对象到底表示什么（比如到底是什么字符）则由相应的编码格式解码所决定。
@@ -8065,7 +8054,7 @@ Python3中，bytes 通常用于网络数据传输、二进制图片和文件的�
 b = b''          ## 创建一个空的 bytes 
 b = bytes()      ## 创建一个空的 bytes 
 
-#### <a name='set'></a>set 集合 
+#### set 集合 
 set 集合是一个无序不重复元素的集，基本功能包括关系测试和消除重复元素。
 集合使用大括号({})框定元素，并以逗号进行分隔。但是注意：如果要创建一个空集合，必须用set()而不是{}，因为后者创建的是一个空字典。集合除了在形式上最外层用的也是花括号外，其它的和字典没有一毛钱关系。 
 集合数据类型的核心在于自动去重。 
