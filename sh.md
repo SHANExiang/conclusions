@@ -1,61 +1,62 @@
 <!-- vscode-markdown-toc -->
-	* [CLI](#CLI)
-	* [kube-apiserver](#kube-apiserver)
-	* [pod](#pod)
-	* [Deployment](#Deployment)
-	* [DaemonSet](#DaemonSet)
-	* [Job](#Job)
-	* [minikube安装](#minikube)
-	* [controller控制器](#controller)
-	* [service](#service)
-	* [Namespace](#Namespace)
-	* [coredns](#coredns)
-	* [kubernetes健康检查机制](#kubernetes)
-	* [kubernetes volume](#kubernetesvolume)
-	* [Secret](#Secret)
-	* [ConfigMap](#ConfigMap)
-	* [Helm](#Helm)
-	* [CNI](#CNI)
-	* [network policy](#networkpolicy)
-	* [k8s部署](#k8s)
-	* [helm](#helm)
-	* [k8s源码](#k8s-1)
-		* [kube-apiserver](#kube-apiserver-1)
-		* [deepcopy-gen使用](#deepcopy-gen)
-		* [client-gen](#client-gen)
-	* [ldap搭建](#ldap)
-	* [ldap使用](#ldap-1)
-* [物理内存](#)
-* [虚拟内存地址](#-1)
-* [进程虚拟内存空间所包含的主要区域](#-1)
-* [内存分段](#-1)
-* [内存分页](#-1)
-* [多级页表](#-1)
-* [TLB](#TLB)
-* [段页式内存管理](#-1)
-* [内存分配的过程](#-1)
-	* [虚拟内存的作用](#-1)
-* [swap机制](#swap)
-* [Linux操作系统的缓存](#Linux)
-	* [预读机制](#-1)
-	* [缓存污染](#-1)
-	* [程序局部性原理](#-1)
-* [管道](#-1)
-* [pdsh](#pdsh)
-* [场景](#-1)
-* [slurm安装](#slurm)
-* [terraform安装](#terraform)
-* [通过terraform编排openstack](#terraformopenstack)
-* [kubeflow](#kubeflow)
-* [rancher](#rancher)
-* [CRD](#CRD)
-* [HPC](#HPC)
-* [tensorflow](#tensorflow)
-* [NPU](#NPU)
-* [queue](#queue)
-* [podgroup](#podgroup)
-* [vcjob](#vcjob)
-* [k8s中使用GPU](#k8sGPU)
+* [快捷键](#)
+* [curl](#curl)
+* [zip](#zip)
+* [awk](#awk)
+* [git](#git)
+* [网卡配置](#-1)
+* [nginx](#nginx)
+		* [Nginx有哪些负载均衡算法？](#Nginx)
+* [tcpdump](#tcpdump)
+* [查看socket信息](#socket)
+* [证书](#-1)
+* [用户及用户组](#-1)
+* [k8s部署](#k8s)
+* [sar](#sar)
+* [keepalived](#keepalived)
+* [磁盘](#-1)
+* [文件描述符](#-1)
+* [ldap](#ldap)
+* [内存](#-1)
+		* [内核态和用户态区别？内核态的底层操作有什么？为什么要分两个不同的态？](#-1)
+		* [物理内存](#-1)
+		* [虚拟内存地址](#-1)
+		* [进程虚拟内存空间所包含的主要区域](#-1)
+		* [内存分段](#-1)
+		* [内存分页](#-1)
+		* [多级页表](#-1)
+		* [TLB](#TLB)
+		* [段页式内存管理](#-1)
+		* [内存分配的过程](#-1)
+		* [swap机制](#swap)
+		* [Linux操作系统的缓存](#Linux)
+* [进程间通信](#-1)
+* [线程间通信有哪些](#-1)
+* [讲讲IO多路复用的实现原理，select和epoll的区别是什么？](#IOselectepoll)
+* [格式化json](#json)
+* [pdcp](#pdcp)
+		* [pdsh](#pdsh)
+* [搭建本地yum源供其它主机rpm包安装](#yumrpm)
+* [slurm](#slurm)
+		* [场景](#-1)
+		* [slurm安装](#slurm-1)
+* [terraform](#terraform)
+		* [terraform安装](#terraform-1)
+		* [通过terraform编排openstack](#terraformopenstack)
+* [概念](#-1)
+		* [kubeflow](#kubeflow)
+		* [rancher](#rancher)
+		* [CRD](#CRD)
+		* [HPC](#HPC)
+		* [tensorflow](#tensorflow)
+		* [NPU](#NPU)
+* [volcano](#volcano)
+		* [queue](#queue)
+		* [podgroup](#podgroup)
+		* [vcjob](#vcjob)
+* [调度GPU](#GPU)
+		* [k8s中使用GPU](#k8sGPU)
+* [jenkins](#jenkins)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -63,32 +64,32 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-# 快捷键
+## <a name=''></a>快捷键
 1. 从后往前删除   ctrl+w；
 2. 从前往后删除   ctrl+k；
 3. 光标从前调到末尾  ctrl+e;  vim内部为删除光标所在行；
 
 
-# curl
+## <a name='curl'></a>curl
 curl "http://localhost:9999/hello?name=geektutu"
 curl "http://localhost:9999/login" -X POST -d 'username=geektutu&password=1234' -H ""
 curl -e ssl_cacert.pem -k 'https://192.168.11.1:18002/controller/v2/tokens' --header 'Content-Type: application/json' --header 'Cookie:bspsession=deleted' -d '{"userName": "ops@huawei.com", "password": "Xsy@2023"}'
 curl 33.33.33.232:30000 --connect-timeout 5    设置5s超时
 curl -g -i --insecure -X PUT https://10.50.90.2:18002/restconf/data/huawei-ac-neutron:neutron-cfg/routers/router/e4bffe3a-24cb-4257-aab6-48cd95499aeb -H "Content-Type:application/json" -H "X-ACCESS-TOKEN:$token" -H "Accept:application/json" -d $data
 
-# zip
-zip -q -r html.zip /home/html    # 将/home/html/这个目录下所有文件和文件夹打包为当前目录下的 html.zip
-unzip html.zip -d /home/         # 将html.zip解压到/home路径下；
+## <a name='zip'></a>zip
+zip -q -r html.zip /home/html    ## 将/home/html/这个目录下所有文件和文件夹打包为当前目录下的 html.zip
+unzip html.zip -d /home/         ## 将html.zip解压到/home路径下；
 
 
 
-# awk
+## <a name='awk'></a>awk
 -F     指定输入行的字段分隔符，以便将数据切分成不同的段
 awk -F "\"" '{print $6}' 
 
 
 
-# git
+## <a name='git'></a>git
 gitlab提交代码流程
 1.gitlab新建分支 hotfix/master/etcdconf/chron--- bug用hotfix，功能代码用feature，master指的是要合并的分支，etcdconf--功能路径，chron用户；feature/master/backupdriver/dongxiang
 2.本地拉取分支git fetch origin feature/master/backupdriver/dongxiang；
@@ -111,11 +112,11 @@ gitignore加./idea
 远端分支和master改动一致
 本地checkout -b新分支，然后git pull，之后git rebase master，最后git push origin HEAD:sbx即可，不需要merge request；
 
-# 网卡配置
-ip addr add 10.50.114.157/32 dev eth0        # 增加网卡地址
-ip addr del 10.50.114.157/32 dev eth0        # 删除网卡地址
-ip route add default via 10.50.114.157 dev eth0       # 增加默认路由
-ip addr show dev eht0                        # 查看网口的配置信息
+## <a name='-1'></a>网卡配置
+ip addr add 10.50.114.157/32 dev eth0        ## 增加网卡地址
+ip addr del 10.50.114.157/32 dev eth0        ## 删除网卡地址
+ip route add default via 10.50.114.157 dev eth0       ## 增加默认路由
+ip addr show dev eht0                        ## 查看网口的配置信息
 
 
 
@@ -127,7 +128,7 @@ ip addr show dev eht0                        # 查看网口的配置信息
 3. 
 
 
-# nginx
+## <a name='nginx'></a>nginx
 server {
     listen 80;
     server_name yourdomain.com;
@@ -157,7 +158,7 @@ proxy_connect_timeout: 用于设置与后端服务器建立连接的超时时间
 proxy_send_timeout: 用于设置向后端服务器发送请求的超时时间。默认值60s
 
 
-## Nginx有哪些负载均衡算法？
+#### <a name='Nginx'></a>Nginx有哪些负载均衡算法？
 Nginx支持的负载均衡算法包括：
 1. 轮询：按照顺序依次将请求分配给后端服务器。这种算法最简单，但是也无法处理某个节点变慢或者客户端操作有连续性的情况。
 2. IP哈希：根据客户端IP地址的哈希值来确定分配请求的后端服务器。
@@ -169,7 +170,7 @@ Nginx支持的负载均衡算法包括：
 适用于后端服务器性能不同的场景，可以根据服务器权重分配请求，提高高性能服务器的利用率。
 
 
-# tcpdump
+## <a name='tcpdump'></a>tcpdump
 sudo tcpdump -n -t -S -i enp0s3  port 80
 第一次握手，标志位Flags=S
 IP 10.0.2.2.51323 > 10.0.2.15.80: Flags [S], seq 84689409, win 65535, options [mss 1460], length 0
@@ -189,7 +190,7 @@ port: 指定监听端口是80
 host:指定监听的主机名
 
 
-# 查看socket信息
+## <a name='socket'></a>查看socket信息
 netstat -napt或ss -ntlp
 -n表示不显示名字，而是以数字方式显示ip和端口
 -l只显示LISTEN状态的socket
@@ -204,12 +205,12 @@ ss -tunlp|grep 9696     查看端口打开情况
 
 
 
-# 证书
+## <a name='-1'></a>证书
 CA 证书文件（ssl_cacert.pem）---即根证书；
 客户端证书和私钥文件----cert.pem, key.pem
 
 
-# 用户及用户组
+## <a name='-1'></a>用户及用户组
 添加用户---adduser dx
 设置用户密码---passwd dx
 添加用户组---groupadd docker
@@ -218,7 +219,7 @@ CA 证书文件（ssl_cacert.pem）---即根证书；
 
 
 
-### <a name='k8s'></a>k8s部署
+## <a name='k8s'></a>k8s部署
 1. 格式化数据盘并挂载
 sudo cat /etc/fstab |tail -n1
 UUID=36158b9f-f0cb-46e0-9e8c-f9f463be06db /                       xfs     defaults        0 0
@@ -238,14 +239,14 @@ sudo ./ezdown -S
 ezctl new gpu_dev
 步骤二：修改网络类型
 修改网络类型暂为calico，因为底层是openstack，vxlan本环境冲突，不能使用flannel。 工程目录为：/etc/kubeasz/clusters/gpu_dev/
-bash-5.1# grep -rw "calico" hosts 
+bash-5.1## grep -rw "calico" hosts 
 // Network plugins supported: calico, flannel, kube-router, cilium, kube-ovn
 CLUSTER_NETWORK="calico"
 步骤三：添加集群的ip地址
 添加master、worker节点ip地址，此处需要在hosts文本里添加即可
  
 步骤四：修改数据目录
-bash-5.1# grep -rw "/mnt" config.yml
+bash-5.1## grep -rw "/mnt" config.yml
 ETCD_DATA_DIR: "/mnt/etcd"
 DOCKER_STORAGE_DIR: "/mnt/docker"
 KUBELET_ROOT_DIR: "/mnt/kubelet
@@ -260,47 +261,47 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/a
 会在kubernetes-dashboard namespace中创建Deployment和Service；
 kubectl --namespace=kubernetes-dashboard edit service kubernetes-dashboard
 修改成NodePort模式；
-#新建目录：
+##新建目录：
 mkdir key && cd key
 
-#生成证书
+##生成证书
 openssl genrsa -out dashboard.key 2048 
 
-#我这里写的自己的node1节点，因为我是通过nodeport访问的；如果通过apiserver访问，可以写成自己的master节点ip
+##我这里写的自己的node1节点，因为我是通过nodeport访问的；如果通过apiserver访问，可以写成自己的master节点ip
 openssl req -new -out dashboard.csr -key dashboard.key -subj '/CN=10.13.1.3'
 openssl x509 -req -in dashboard.csr -signkey dashboard.key -out dashboard.crt 
 
-#删除原有的证书secret
+##删除原有的证书secret
 kubectl delete secret kubernetes-dashboard-certs -n kubernetes-dashboard
 
-#创建新的证书secret
+##创建新的证书secret
 kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.key --from-file=dashboard.crt -n kubernetes-dashboard
 
-#查看pod
+##查看pod
 kubectl get pod -n kubernetes-dashboard
 
-#重启pod
+##重启pod
 kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboard
 
-# 创建用户令牌
+## 创建用户令牌
 创建ServiceAccount-->绑定关系ClusterRoleBinding-->获取令牌
 kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 ```
 
-### <a name='helm'></a>helm
+###### helm
 安装helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
     && chmod 700 get_helm.sh \
     && ./get_helm.sh
 
-### <a name='k8s-1'></a>k8s源码
+###### k8s源码
 
-#### <a name='kube-apiserver-1'></a>kube-apiserver
+######## kube-apiserver
 对外提供api的方式与其它组件进行交互；
 
 
 
-#### <a name='deepcopy-gen'></a>deepcopy-gen使用
+######## deepcopy-gen使用
 deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 -O zz_generated.deepcopy
 -v 5 指定输出内容的详细程度
 -h boilerplate.txt指定所有生成的文件的头部声明内容
@@ -310,7 +311,7 @@ deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/api
 
 
 
-#### <a name='client-gen'></a>client-gen
+######## client-gen
 client-gen --clientset-name versioned -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 --output-package clientset --go-header-file hack/boilerplate.go.txt -v 5
 volcano.sh/apis增加资源client
 拉代码到本地直接执行./hack/update-codegen.sh即可在本地生成client
@@ -320,7 +321,7 @@ volcano.sh/apis增加资源client
 
 
 
-# sar
+## <a name='sar'></a>sar
 怀疑CPU存在瓶颈，可用 sar -u 和 sar -q 等来查看
 怀疑内存存在瓶颈，可用 sar -B、sar -r 和 sar -W 等来查看
 怀疑I/O存在瓶颈，可用 sar -b、sar -u 和 sar -d 等来查看
@@ -330,42 +331,42 @@ sar -n EDEV，显示关于网络错误的统计数据；
 sar -n TCP，显示 TCP 的统计数据
 
 
-# keepalived
+## <a name='keepalived'></a>keepalived
 /etc/keepalived/keepalived.conf中
 vrrp_instance VI_1 {
-    state BACKUP    # 主服务器为MASTER，备服务器为BACKUP
-    interface eth0  # 替换为备份服务器上的网络接口名称
-    virtual_router_id 51  # 虚拟路由器 ID，与主服务器配置相同
-    priority 90  # 备份服务器的优先级较低
-    advert_int 1  # 广告间隔，单位为秒
+    state BACKUP    ## 主服务器为MASTER，备服务器为BACKUP
+    interface eth0  ## 替换为备份服务器上的网络接口名称
+    virtual_router_id 51  ## 虚拟路由器 ID，与主服务器配置相同
+    priority 90  ## 备份服务器的优先级较低
+    advert_int 1  ## 广告间隔，单位为秒
     authentication {
         auth_type PASS
-        auth_pass your_password  # 与主服务器配置相同的密码
+        auth_pass your_password  ## 与主服务器配置相同的密码
     }
     virtual_ipaddress {
-        192.168.0.100  # 虚拟 IP 地址，与主服务器配置相同
+        192.168.0.100  ## 虚拟 IP 地址，与主服务器配置相同
     }
 }
 
 
-# 磁盘
+## <a name='-1'></a>磁盘
 fdisk---磁盘分区的工具
 fdisk -l显示磁盘分区表
 fdisk /dev/sda -l显示磁盘设备sda的详情
 
 
-# 文件描述符
+## <a name='-1'></a>文件描述符
 1. 每个文件描述符都会与一个打开的文件相对应；
 2. 不同的文件描述符可能指向同一个文件；
 3. 相同的文件可以被不同的进程打开，也可以在一个进程中被打开多次；
 
 
 
-# ldap
-### <a name='ldap'></a>ldap搭建
+## <a name='ldap'></a>ldap
+###### ldap搭建
 https://blog.csdn.net/qq_37733540/article/details/123988481
 
-### <a name='ldap-1'></a>ldap使用
+###### ldap使用
 1. 服务为slapd；
 2. ldapsearch检查内容
 ldapsearch -x -D cn=Manager,dc=my-domain,dc=com -w admin -b "dc=my-domain,dc=com"
@@ -386,9 +387,9 @@ cn-----common name，公共名称；
 
 
 
-# 内存
+## <a name='-1'></a>内存
 
-## 内核态和用户态区别？内核态的底层操作有什么？为什么要分两个不同的态？
+#### <a name='-1'></a>内核态和用户态区别？内核态的底层操作有什么？为什么要分两个不同的态？
 内核态和用户态是操作系统中的两种运行模式。它们的主要区别在于权限和可执行的操作：
 内核态（Kernel Mode）：在内核态下，CPU可以执行所有的指令和访问所有的硬件资源。这种模式下的操作具有更高的权限，主要用于操作系统内核的运行。
 用户态（User Mode）：在用户态下，CPU只能执行部分指令集，无法直接访问硬件资源。这种模式下的操作权限较低，主要用于运行用户程序。
@@ -401,25 +402,25 @@ cn-----common name，公共名称；
 内核态和用户态的划分有助于保证操作系统的安全性、稳定性和易维护性。
 
 
-## <a name=''></a>物理内存
+#### <a name='-1'></a>物理内存
 平时所称的内存也叫随机访问存储器（ random-access memory ）也叫 RAM 。而 RAM 分为两类：
 一类是静态 RAM（ SRAM ），这类 SRAM 用于 CPU 高速缓存 L1Cache，L2Cache，L3Cache。其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。
 另一类则是动态 RAM ( DRAM )，这类 DRAM 用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。
 
 
 
-## <a name='-1'></a>虚拟内存地址
+#### <a name='-1'></a>虚拟内存地址
 64 位虚拟地址的格式为：全局页目录项（9位）+ 上层页目录项（9位）+ 中间页目录项（9位）+ 页表项（9位）+ 页内偏移（12位）。共 48 位组成的虚拟内存地址。
 32 位虚拟地址的格式为：页目录项（10位）+ 页表项（10位） + 页内偏移（12位）。共 32 位组成的虚拟内存地址。
 
-## <a name='-1'></a>进程虚拟内存空间所包含的主要区域
+#### <a name='-1'></a>进程虚拟内存空间所包含的主要区域
 1. 用于存放进程程序二进制文件中的机器指令的代码段
 2. 用于存放程序二进制文件中定义的全局变量和静态变量的数据段和 BSS 段。
 3. 用于在程序运行过程中动态申请内存的堆。
 4. 用于存放动态链接库以及内存映射区域的文件映射与匿名映射区。
 5. 用于存放函数调用过程中的局部变量和函数参数的栈。
 
-## <a name='-1'></a>内存分段
+#### <a name='-1'></a>内存分段
 程序是由若干个逻辑分段组成的，如可由代码分段、数据分段、栈段、堆段组成。不同的段是有不同的属性的，所以就用分段（Segmentation）的形式把这些段分离出来。
 
 出现内存碎片：
@@ -430,31 +431,31 @@ cn-----common name，公共名称；
 过程就是将某一段的内存写到硬盘上（Swap空间），然后再从硬盘读回到内存，在读回内存时会紧紧跟着被占用的区域，这样可以将碎片连续从而让别的程序转载这些碎片区域。
 
 
-## <a name='-1'></a>内存分页
+#### <a name='-1'></a>内存分页
 分页是把整个虚拟和物理内存空间切成一段段固定尺寸的大小。这样一个连续并且尺寸固定的内存空间，我们叫页（Page）。在 Linux 下，每一页的大小为 4KB。
 
 因为内存分页机制分配内存的最小单位是一页，即使程序不足一页大小，我们最少只能分配一个页，所以页内会出现内存浪费，所以针对内存分页机制会有内部内存碎片的现象。
 
 
-## <a name='-1'></a>多级页表
+#### <a name='-1'></a>多级页表
 将页表（一级页表）分为 1024 个页表（二级页表），每个表（二级页表）中包含 1024 个「页表项」，形成二级分页。再吧二级分页推广到多级分页；
 一级页表覆盖到了全部虚拟地址空间，二级页表在需要时创建。
 
-## <a name='TLB'></a>TLB
+#### <a name='TLB'></a>TLB
 translation lookaside buffer，通常成为页表缓存、地址旁路缓存、快表等；
 把最常访问的几个页表项存储到访问速度更快的硬件，于是计算机科学家们，就在 CPU 芯片中，加入了一个专门存放程序最常访问的页表项的 Cache，这个 Cache 就是 TLB。
 在 CPU 芯片里面，封装了内存管理单元（Memory Management Unit）芯片，它用来完成地址转换和 TLB 的访问与交互。
 有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表。
 
 
-## <a name='-1'></a>段页式内存管理
+#### <a name='-1'></a>段页式内存管理
 内存分段和内存分页组合在同一个系统中使用。
 段页式内存管理实现的方式：
 1. 先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制；
 2. 接着再把每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页；
 这样，地址结构就由段号、段内页号和页内位移三部分组成。
 
-## <a name='-1'></a>内存分配的过程
+#### <a name='-1'></a>内存分配的过程
 应用程序通过 malloc 函数申请内存的时候，实际上申请的是虚拟内存，此时并不会分配物理内存。
 当应用程序读写了这块虚拟内存，CPU 就会去访问这个虚拟内存， 这时会发现这个虚拟内存没有映射到物理内存，
 CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将缺页中断交给内核的 Page Fault Handler （缺页中断函数）处理。
@@ -470,7 +471,7 @@ CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将�
 
 
 
-### <a name='-1'></a>虚拟内存的作用
+###### 虚拟内存的作用
 第一，虚拟内存可以使得进程对运行内存超过物理内存大小，因为程序运行符合局部性原理，CPU 访问内存会有很明显的重复访问的倾向性，
 对于那些没有被经常使用到的内存，我们可以把它换出到物理内存之外，比如硬盘上的 swap 区域。
 
@@ -481,7 +482,7 @@ CPU 就会产生缺页中断，进程会从用户态切换到内核态，并将�
 在内存访问方面，操作系统提供了更好的安全性。
 
 
-## <a name='swap'></a>swap机制
+#### <a name='swap'></a>swap机制
 当系统的物理内存不够用的时候，就需要将物理内存中的一部分空间释放出来，以供当前运行的程序使用。那些被释放的空间可能来自一些很长时间没有什么操作的程序，这些被释放的空间会被临时保存到磁盘，等到那些程序要运行时，再从磁盘中恢复保存的数据到内存中。
 
 另外，当内存使用存在压力的时候，会开始触发内存回收行为，会把这些不常访问的内存先写到磁盘中，然后释放这些内存，给其他更需要的进程使用。再次访问这些内存时，重新从磁盘读入内存就可以了。
@@ -498,12 +499,12 @@ Swap 就是把一块磁盘空间或者本地文件，当成内存来使用，它
 
 Linux提供了两种方法启用Swap，分别是Swap分区和Swap文件；
 
-## <a name='Linux'></a>Linux操作系统的缓存
+#### <a name='Linux'></a>Linux操作系统的缓存
 在应用程序读取文件的数据的时候，Linux操作系统会对读取的文件数据进行缓存，会缓存在文件系统中的Page Cache（页缓存）；
 Page Cache 属于内存空间里的数据，由于内存访问比磁盘访问快很多，在下一次访问相同的数据就不需要通过磁盘 I/O 了，命中缓存就直接返回数据即可。
 因此，Page Cache 起到了加速访问数据的作用。
 
-### <a name='-1'></a>预读机制
+###### 预读机制
 Linux 操作系统为基于 Page Cache 的读缓存机制提供预读机制
 比如说，应用程序利用 read 系统调动读取 4KB 数据，实际上内核使用预读机制（ReadaHead） 机制完成了 16KB 数据的读取，也就是通过一次磁盘顺序读将多个 Page 数据装入 Page Cache。
 这样下次读取 4KB 数据后面的数据的时候，就不用从磁盘读取了，直接在 Page Cache 即可命中数据。因此，预读机制带来的好处就是减少了 磁盘 I/O 次数，提高系统磁盘 I/O 吞吐量。
@@ -521,7 +522,7 @@ inactive_list非活跃内存页链表：存放是很少被访问的内存页；
 预读页就只需要加入到 inactive list 区域的头部，当页被真正访问的时候，才将页插入 active list 的头部。如果预读的页一直没有被访问，就会从 inactive list 移除，这样就不会影响 active list 中的热点数据。
 
 
-### <a name='-1'></a>缓存污染
+###### 缓存污染
 还是使用「只要数据被访问一次，就将数据加入到活跃 LRU 链表头部（或者 young 区域）」这种方式的话，那么还存在缓存污染的问题。
 当我们在批量读取数据的时候，由于数据被访问了一次，这些大量数据都会被加入到「活跃 LRU 链表」里，然后之前缓存在活跃 LRU 链表（或者 young 区域）里的热点数据全部都被淘汰了，如果这些大量的数据在很长一段时间都不会被访问的话，那么整个活跃 LRU 链表（或者 young 区域）就被污染了。
 
@@ -532,22 +533,22 @@ MySQL Innodb：在内存页被访问第二次的时候，并不会马上将该�
 如果第二次的访问时间与第一次访问的时间在 1 秒内（默认值），那么该页就不会被从 old 区域升级到 young 区域；
 如果第二次的访问时间与第一次访问的时间超过 1 秒，那么该页就会从 old 区域升级到 young 区域；
 
-### <a name='-1'></a>程序局部性原理
+###### 程序局部性原理
 时间局部性和空间局部性。时间局部性是指如果程序中的某条指令一旦执行，则不久之后该指令可能再次被执行；如果某块数据被访问，则不久之后该数据可能再次被访问。空间局部性是指一旦程序访问了某个存储单元，则不久之后，其附近的存储单元也将被访问。
 
 
 
 
 
-# 进程间通信
+## <a name='-1'></a>进程间通信
 a) 管道/匿名管道(Pipes)：管道是半双工的，数据只能向一个方向流动；
 双方通信时，需要建立起两个管道；一个进程向管道中写的内容被管道另一端的进程读出。
 写入的内容每次都添加在管道缓冲区的末尾，并且每次都是从缓冲区的头部读出数据；
 用于具有亲缘关系的父子进程间或者兄弟进程之间的通信。 
 
-mkfifo myPipe    # 创建管道，在目录内生成一个文件，文件类型是p
-echo test > myPipe    # 往管道内写数据,执行命令停在这里不动了，这是因为管道内的数据没有被读取；
-cat < myPipe          # 读取管道内的数据，另一方面上面的echo也正常退出了。
+mkfifo myPipe    ## 创建管道，在目录内生成一个文件，文件类型是p
+echo test > myPipe    ## 往管道内写数据,执行命令停在这里不动了，这是因为管道内的数据没有被读取；
+cat < myPipe          ## 读取管道内的数据，另一方面上面的echo也正常退出了。
 
 b) 有名管道(Names Pipes): 匿名管道由于没有名字，只能用于亲缘关系的进程间通信。
 为了克服这个缺点，提出了有名管道。有名管道严格遵循先进先出(first in first out)。
@@ -586,7 +587,7 @@ Socket：任何进程间都能通讯，但速度慢；
 内存区同样可以用作线程间通讯，不过没这个必要，线程间本来就已经共享了同一进程内的一块内存。 
 
 
-# 线程间通信有哪些
+## <a name='-1'></a>线程间通信有哪些
 在Linux系统中，线程间通信的方式包括：
 
 互斥锁（Mutex）：线程可以使用互斥锁来保护共享资源，确保同时只有一个线程可以访问该资源。
@@ -596,7 +597,7 @@ Socket：任何进程间都能通讯，但速度慢；
 
 
 
-# 讲讲IO多路复用的实现原理，select和epoll的区别是什么？
+## <a name='IOselectepoll'></a>讲讲IO多路复用的实现原理，select和epoll的区别是什么？
 I/O 的多路复用，可以只在一个进程里处理多个文件的 I/O，Linux 下有三种提供 I/O 多路复用的 API，分别是：select、poll、epoll。
 select 和 poll 并没有本质区别，它们内部都是使用「线性结构」来存储进程关注的 Socket 集合。
 
@@ -614,11 +615,11 @@ epoll 使用事件驱动的机制，内核里维护了一个「链表」来记�
 
 
 
-# 格式化json：
+## <a name='json'></a>格式化json
 cat test.json |python -m json.tool；
 
 
-# pdcp
+## <a name='pdcp'></a>pdcp
 用于将文件或目录传输到多个远程主机上。
 pdcp -w remote1,remote2,...remote10 local_file remote_directory/  将本地的local_file复制到每个指定的远程主机的remote_directory目录下。
 pdcp的常用选项包括：
@@ -628,13 +629,13 @@ pdcp的常用选项包括：
 -l：限制并行复制的最大进程数。
 
 
-## <a name='pdsh'></a>pdsh
+#### <a name='pdsh'></a>pdsh
 使用pdsh命令在多个远程主机上同时执行命令。需要在每个主机上安装pdsh包。
 使用实例：pdsh -w host1,host2,host3 systemctl restart httpd
 
 
 
-# 搭建本地yum源供其它主机rpm包安装
+## <a name='yumrpm'></a>搭建本地yum源供其它主机rpm包安装
 1. 本地路径/opt/src/slurm/下放rpm包；
 2. 在上述路径下执行createrepo . 命令生成仓库索引；
 3. 安装httpd包；
@@ -653,22 +654,22 @@ enable=1
 
 
 
-# slurm
+## <a name='slurm'></a>slurm
 开源的、具有容错性和高度可扩展的Linux集群超级计算系统资源管理和作业调度系统。
-srun --mpi=list   # 列出已安装的mpi插件；
-srun -w slurm[1-2] hostname  # 交互式作业提交，提交命令后，等待作业执行完成之后返回命令行窗口。
+srun --mpi=list   ## 列出已安装的mpi插件；
+srun -w slurm[1-2] hostname  ## 交互式作业提交，提交命令后，等待作业执行完成之后返回命令行窗口。
 
-scontrol show jobs        # 查看MPI作业详细信息
-scontrol show node              #查看所有节点详细信息
-scontrol show node node-name    #查看指定节点详细信息
-scontrol show node | grep CPU   #查看各节点cpu状态
-scontrol show node node-name | grep CPU #查看指定节点cpu状态
-scontrol token username=root lifespan=5000    # 为用户root生成token，token有效期5000s
+scontrol show jobs        ## 查看MPI作业详细信息
+scontrol show node              ##查看所有节点详细信息
+scontrol show node node-name    ##查看指定节点详细信息
+scontrol show node | grep CPU   ##查看各节点cpu状态
+scontrol show node node-name | grep CPU ##查看指定节点cpu状态
+scontrol token username=root lifespan=5000    ## 为用户root生成token，token有效期5000s
 
 
-sacct	                # 查看已完成作业
+sacct	                ## 查看已完成作业
 
-squeue                  # 查看job的运行状态
+squeue                  ## 查看job的运行状态
 JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
 49     batch        myapp     root  R       0:12      1 slurm1
 50     batch        myapp     root  R       0:04      1 slurm2
@@ -688,26 +689,26 @@ JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
 -D，--chdir：指定脚本/命令的工作目录
 
 
-#添加账户，指定账户名称和所属集群名称，这里的账户可以理解成用户组的概念
+##添加账户，指定账户名称和所属集群名称，这里的账户可以理解成用户组的概念
 sacctmgr add account name=<your_account> cluster=cluster
 
-#添加用户，指定所属账户
+##添加用户，指定所属账户
 sacctmgr add user name=my_user_name account=<your_account>
 
-#添加俩qos，分别叫normal和long
+##添加俩qos，分别叫normal和long
 sacctmgr add qos normal
 sacctmgr add qos long
 
-#修改qos
+##修改qos
 sacctmgr modify qos normal set MaxWall=3-00:00:00 MaxTRES="gres/gpu=4" MaxTRESPU="gres/gpu=4" MaxJobsPU=4 MaxSubmitJobsPU=4
 sacctmgr modify qos long set MaxWall=7-00:00:00 MaxTRES="gres/gpu=8" MaxTRESPU="gres/gpu=8" MaxJobsPU=1 MaxSubmitJobsPU=1
 
-#设置account可使用的qoslevel
+##设置account可使用的qoslevel
 sacctmgr modify account my_account_name set QosLevel=normal,long
 
 
 
-## <a name='-1'></a>场景
+#### <a name='-1'></a>场景
 1. 2个计算节点，执行三个job，srun ./myapp -p 30000，2个job分别分发到2个计算节点上，第3个job等待；
 srun: job 53 queued and waiting for resources
 srun: job 53 has been allocated resources
@@ -720,18 +721,18 @@ JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
 70     batch calculate     root  R       0:11      1 slurm1
 71     batch calculate     root  R       0:08      1 slurm1
 ```shell
-#SBATCH -N 1
-#SBATCH --ntasks 1
-#SBATCH --cpus-per-task=1
-#SBATCH -t 1:00
-#SBATCH -o /home/myapp.log
-#SBATCH --ntasks-per-node 1
-#SBATCH --mem 2000
+##SBATCH -N 1
+##SBATCH --ntasks 1
+##SBATCH --cpus-per-task=1
+##SBATCH -t 1:00
+##SBATCH -o /home/myapp.log
+##SBATCH --ntasks-per-node 1
+##SBATCH --mem 2000
 ```
 
 
 
-## <a name='slurm'></a>slurm安装
+#### <a name='slurm-1'></a>slurm安装
 1. 安装jansson
 wget http://www.digip.org/jansson/releases/jansson-2.13.1.tar.gz
 tar -zxvf ~/jansson-2.13.1.tar.gz
@@ -752,199 +753,199 @@ cd /usr/local && ln -s libjwt-1.12.0 libjwt
 ./configure --prefix=/usr/local/slurm-20.11.9 --sysconfdir=/etc/slurm/ --with-jwt=/usr/local/libjwt --enable-slurmrestd && make -j16 && make install 
 配置文件路径 /etc/slurm/slurm.conf
 ```shell
-# Cluster Name：集群名
- ClusterName=MyCluster # 集群名，任意英文和数字名字
+## Cluster Name：集群名
+ ClusterName=MyCluster ## 集群名，任意英文和数字名字
 
-# Control Machines：Slurmctld控制进程节点
- SlurmctldHost=slurm # 启动slurmctld进程的节点名，如这里的admin
-# BackupController=   # 冗余备份节点，可空着
- SlurmctldParameters=enable_configless # 采用无配置模式
+## Control Machines：Slurmctld控制进程节点
+ SlurmctldHost=slurm ## 启动slurmctld进程的节点名，如这里的admin
+## BackupController=   ## 冗余备份节点，可空着
+ SlurmctldParameters=enable_configless ## 采用无配置模式
 
- # Slurm User：Slurm用户
- SlurmUser=slurm # slurmctld启动时采用的用户名
+ ## Slurm User：Slurm用户
+ SlurmUser=slurm ## slurmctld启动时采用的用户名
 
- # Slurm Port Numbers：Slurm服务通信端口
- SlurmctldPort=6817 # Slurmctld服务端口，设为6817，如不设置，默认为6817号端口
- SlurmdPort=6818    # Slurmd服务端口，设为6818，如不设置，默认为6818号端口
+ ## Slurm Port Numbers：Slurm服务通信端口
+ SlurmctldPort=6817 ## Slurmctld服务端口，设为6817，如不设置，默认为6817号端口
+ SlurmdPort=6818    ## Slurmd服务端口，设为6818，如不设置，默认为6818号端口
 
- # State Preservation：状态保持
- StateSaveLocation=/var/spool/slurmctld # 存储slurmctld服务状态的目录，如有备份控制节点，则需要所有SlurmctldHost节点都能共享读写该目录
- SlurmdSpoolDir=/var/spool/slurmd # Slurmd服务所需要的目录，为各节点各自私有目录，不得多个slurmd节点共享
+ ## State Preservation：状态保持
+ StateSaveLocation=/var/spool/slurmctld ## 存储slurmctld服务状态的目录，如有备份控制节点，则需要所有SlurmctldHost节点都能共享读写该目录
+ SlurmdSpoolDir=/var/spool/slurmd ## Slurmd服务所需要的目录，为各节点各自私有目录，不得多个slurmd节点共享
 
- # auth type
+ ## auth type
  AuthAltTypes=auth/jwt
  AuthAltParameters=jwt_key=/var/spool/slurm/statesave/jwt_hs256.key
 
- ReturnToService=1 #设定当DOWN（失去响应）状态节点如何恢复服务，默认为0。
-     # 0: 节点状态保持DOWN状态，只有当管理员明确使其恢复服务时才恢复
-     # 1: 仅当由于无响应而将DOWN节点设置为DOWN状态时，才可以当有效配置注册后使DOWN节点恢复服务。如节点由于任何其它原因（内存不足、意外重启等）被设置为DOWN，其状态将不会自动更改。当节点的内存、GRES、CPU计数等等于或大于slurm.conf中配置的值时，该节点才注册为有效配置。
-     # 2: 使用有效配置注册后，DOWN节点将可供使用。该节点可能因任何原因被设置为DOWN状态。当节点的内存、GRES、CPU计数等等于或大于slurm.conf 中配置的值，该节点才注册为有效配置。￼
+ ReturnToService=1 ##设定当DOWN（失去响应）状态节点如何恢复服务，默认为0。
+     ## 0: 节点状态保持DOWN状态，只有当管理员明确使其恢复服务时才恢复
+     ## 1: 仅当由于无响应而将DOWN节点设置为DOWN状态时，才可以当有效配置注册后使DOWN节点恢复服务。如节点由于任何其它原因（内存不足、意外重启等）被设置为DOWN，其状态将不会自动更改。当节点的内存、GRES、CPU计数等等于或大于slurm.conf中配置的值时，该节点才注册为有效配置。
+     ## 2: 使用有效配置注册后，DOWN节点将可供使用。该节点可能因任何原因被设置为DOWN状态。当节点的内存、GRES、CPU计数等等于或大于slurm.conf 中配置的值，该节点才注册为有效配置。￼
 
- # Default MPI Type：默认MPI类型
+ ## Default MPI Type：默认MPI类型
  MPIDefault=pmi2
-     # MPI-PMI2: 对支持PMI2的MPI实现
-     # MPI-PMIx: Exascale PMI实现
-     # None: 对于大多数其它MPI，建议设置
+     ## MPI-PMI2: 对支持PMI2的MPI实现
+     ## MPI-PMIx: Exascale PMI实现
+     ## None: 对于大多数其它MPI，建议设置
 
- # Process Tracking：进程追踪，定义用于确定特定的作业所对应的进程的算法，它使用信号、杀死和记账与作业步相关联的进程
+ ## Process Tracking：进程追踪，定义用于确定特定的作业所对应的进程的算法，它使用信号、杀死和记账与作业步相关联的进程
  ProctrackType=proctrack/cgroup
-     # Cgroup: 采用Linux cgroup来生成作业容器并追踪进程，需要设定/etc/slurm/cgroup.conf文件
-     # Cray XC: 采用Cray XC专有进程追踪
-     # LinuxProc: 采用父进程IP记录，进程可以脱离Slurm控制
-     # Pgid: 采用Unix进程组ID(Process Group ID)，进程如改变了其进程组ID则可以脱离Slurm控制
+     ## Cgroup: 采用Linux cgroup来生成作业容器并追踪进程，需要设定/etc/slurm/cgroup.conf文件
+     ## Cray XC: 采用Cray XC专有进程追踪
+     ## LinuxProc: 采用父进程IP记录，进程可以脱离Slurm控制
+     ## Pgid: 采用Unix进程组ID(Process Group ID)，进程如改变了其进程组ID则可以脱离Slurm控制
 
- # Scheduling：调度
- # DefMemPerCPU=0 # 默认每颗CPU可用内存，以MB为单位，0为不限制。如果将单个处理器分配给作业（SelectType=select/cons_res 或 SelectType=select/cons_tres），通常会使用DefMemPerCPU
- # MaxMemPerCPU=0 # 最大每颗CPU可用内存，以MB为单位，0为不限制。如果将单个处理器分配给作业（SelectType=select/cons_res 或 SelectType=select/cons_tres），通常会使用MaxMemPerCPU
- # SchedulerTimeSlice=30 # 当GANG调度启用时的时间片长度，以秒为单位
- SchedulerType=sched/backfill # 要使用的调度程序的类型。注意，slurmctld守护程序必须重新启动才能使调度程序类型的更改生效（重新配置正在运行的守护程序对此参数无效）。如果需要，可以使用scontrol命令手动更改作业优先级。可接受的类型为：
-     # sched/backfill # 用于回填调度模块以增加默认FIFO调度。如这样做不会延迟任何较高优先级作业的预期启动时间，则回填调度将启动较低优先级作业。回填调度的有效性取决于用户指定的作业时间限制，否则所有作业将具有相同的时间限制，并且回填是不可能的。注意上面SchedulerParameters选项的文档。这是默认配置
-     # sched/builtin # 按优先级顺序启动作业的FIFO调度程序。如队列中的任何作业无法调度，则不会调度该队列中优先级较低的作业。对于作业的一个例外是由于队列限制（如时间限制）或关闭/耗尽节点而无法运行。在这种情况下，可以启动较低优先级的作业，而不会影响较高优先级的作业。
-     # sched/hold # 如果 /etc/slurm.hold 文件存在，则暂停所有新提交的作业，否则使用内置的FIFO调度程序。
+ ## Scheduling：调度
+ ## DefMemPerCPU=0 ## 默认每颗CPU可用内存，以MB为单位，0为不限制。如果将单个处理器分配给作业（SelectType=select/cons_res 或 SelectType=select/cons_tres），通常会使用DefMemPerCPU
+ ## MaxMemPerCPU=0 ## 最大每颗CPU可用内存，以MB为单位，0为不限制。如果将单个处理器分配给作业（SelectType=select/cons_res 或 SelectType=select/cons_tres），通常会使用MaxMemPerCPU
+ ## SchedulerTimeSlice=30 ## 当GANG调度启用时的时间片长度，以秒为单位
+ SchedulerType=sched/backfill ## 要使用的调度程序的类型。注意，slurmctld守护程序必须重新启动才能使调度程序类型的更改生效（重新配置正在运行的守护程序对此参数无效）。如果需要，可以使用scontrol命令手动更改作业优先级。可接受的类型为：
+     ## sched/backfill ## 用于回填调度模块以增加默认FIFO调度。如这样做不会延迟任何较高优先级作业的预期启动时间，则回填调度将启动较低优先级作业。回填调度的有效性取决于用户指定的作业时间限制，否则所有作业将具有相同的时间限制，并且回填是不可能的。注意上面SchedulerParameters选项的文档。这是默认配置
+     ## sched/builtin ## 按优先级顺序启动作业的FIFO调度程序。如队列中的任何作业无法调度，则不会调度该队列中优先级较低的作业。对于作业的一个例外是由于队列限制（如时间限制）或关闭/耗尽节点而无法运行。在这种情况下，可以启动较低优先级的作业，而不会影响较高优先级的作业。
+     ## sched/hold ## 如果 /etc/slurm.hold 文件存在，则暂停所有新提交的作业，否则使用内置的FIFO调度程序。
 
- # Resource Selection：资源选择，定义作业资源（节点）选择算法
+ ## Resource Selection：资源选择，定义作业资源（节点）选择算法
  SelectType=select/cons_tres
-     # select/cons_tres: 单个的CPU核、内存、GPU及其它可追踪资源作为可消费资源（消费及分配），建议设置
-     # select/cons_res: 单个的CPU核和内存作为可消费资源
-     # select/cray_aries: 对于Cray系统
-     # select/linear: 基于主机的作为可消费资源，不管理单个CPU等的分配
+     ## select/cons_tres: 单个的CPU核、内存、GPU及其它可追踪资源作为可消费资源（消费及分配），建议设置
+     ## select/cons_res: 单个的CPU核和内存作为可消费资源
+     ## select/cray_aries: 对于Cray系统
+     ## select/linear: 基于主机的作为可消费资源，不管理单个CPU等的分配
 
- # SelectTypeParameters：资源选择类型参数，当SelectType=select/linear时仅支持CR_ONE_TASK_PER_CORE和CR_Memory；当SelectType=select/cons_res、SelectType=select/cray_aries和SelectType=select/cons_tres时，默认采用CR_Core_Memory
+ ## SelectTypeParameters：资源选择类型参数，当SelectType=select/linear时仅支持CR_ONE_TASK_PER_CORE和CR_Memory；当SelectType=select/cons_res、SelectType=select/cray_aries和SelectType=select/cons_tres时，默认采用CR_Core_Memory
  SelectTypeParameters=CR_Core_Memory
-     # CR_CPU: CPU核数作为可消费资源
-     # CR_Socket: 整颗CPU作为可消费资源
-     # CR_Core: CPU核作为可消费资源，默认
-     # CR_Memory: 内存作为可消费资源，CR_Memory假定MaxShare大于等于1
-     # CR_CPU_Memory: CPU和内存作为可消费资源
-     # CR_Socket_Memory: 整颗CPU和内存作为可消费资源
-     # CR_Core_Memory: CPU和和内存作为可消费资源
+     ## CR_CPU: CPU核数作为可消费资源
+     ## CR_Socket: 整颗CPU作为可消费资源
+     ## CR_Core: CPU核作为可消费资源，默认
+     ## CR_Memory: 内存作为可消费资源，CR_Memory假定MaxShare大于等于1
+     ## CR_CPU_Memory: CPU和内存作为可消费资源
+     ## CR_Socket_Memory: 整颗CPU和内存作为可消费资源
+     ## CR_Core_Memory: CPU和和内存作为可消费资源
 
- # Task Launch：任务启动
- TaskPlugin=task/cgroup,task/affinity #设定任务启动插件。可被用于提供节点内的资源管理（如绑定任务到特定处理器），TaskPlugin值可为:
-     # task/affinity: CPU亲和支持（man srun查看其中--cpu-bind、--mem-bind和-E选项）
-     # task/cgroup: 强制采用Linux控制组cgroup分配资源（man group.conf查看帮助）
-     # task/none: #无任务启动动作
+ ## Task Launch：任务启动
+ TaskPlugin=task/cgroup,task/affinity ##设定任务启动插件。可被用于提供节点内的资源管理（如绑定任务到特定处理器），TaskPlugin值可为:
+     ## task/affinity: CPU亲和支持（man srun查看其中--cpu-bind、--mem-bind和-E选项）
+     ## task/cgroup: 强制采用Linux控制组cgroup分配资源（man group.conf查看帮助）
+     ## task/none: ##无任务启动动作
 
- # Prolog and Epilog：前处理及后处理
- # Prolog/Epilog: 完整的绝对路径，在用户作业开始前(Prolog)或结束后(Epilog)在其每个运行节点上都采用root用户执行，可用于初始化某些参数、清理作业运行后的可删除文件等
- # Prolog=/opt/bin/prolog.sh # 作业开始运行前需要执行的文件，采用root用户执行
- # Epilog=/opt/bin/epilog.sh # 作业结束运行后需要执行的文件，采用root用户执行
+ ## Prolog and Epilog：前处理及后处理
+ ## Prolog/Epilog: 完整的绝对路径，在用户作业开始前(Prolog)或结束后(Epilog)在其每个运行节点上都采用root用户执行，可用于初始化某些参数、清理作业运行后的可删除文件等
+ ## Prolog=/opt/bin/prolog.sh ## 作业开始运行前需要执行的文件，采用root用户执行
+ ## Epilog=/opt/bin/epilog.sh ## 作业结束运行后需要执行的文件，采用root用户执行
 
- # SrunProlog/Epilog # 完整的绝对路径，在用户作业步开始前(SrunProlog)或结束后(Epilog)在其每个运行节点上都被srun执行，这些参数可以被srun的--prolog和--epilog选项覆盖
- # SrunProlog=/opt/bin/srunprolog.sh # 在srun作业开始运行前需要执行的文件，采用运行srun命令的用户执行
- # SrunEpilog=/opt/bin/srunepilog.sh # 在srun作业结束运行后需要执行的文件，采用运行srun命令的用户执行
+ ## SrunProlog/Epilog ## 完整的绝对路径，在用户作业步开始前(SrunProlog)或结束后(Epilog)在其每个运行节点上都被srun执行，这些参数可以被srun的--prolog和--epilog选项覆盖
+ ## SrunProlog=/opt/bin/srunprolog.sh ## 在srun作业开始运行前需要执行的文件，采用运行srun命令的用户执行
+ ## SrunEpilog=/opt/bin/srunepilog.sh ## 在srun作业结束运行后需要执行的文件，采用运行srun命令的用户执行
 
- # TaskProlog/Epilog: 绝对路径，在用户任务开始前(Prolog)和结束后(Epilog)在其每个运行节点上都采用运行作业的用户身份执行
- # TaskProlog=/opt/bin/taskprolog.sh # 作业开始运行前需要执行的文件，采用运行作业的用户执行
- # TaskEpilog=/opt/bin/taskepilog.sh # 作业结束后需要执行的文件，采用运行作业的用户执行行
+ ## TaskProlog/Epilog: 绝对路径，在用户任务开始前(Prolog)和结束后(Epilog)在其每个运行节点上都采用运行作业的用户身份执行
+ ## TaskProlog=/opt/bin/taskprolog.sh ## 作业开始运行前需要执行的文件，采用运行作业的用户执行
+ ## TaskEpilog=/opt/bin/taskepilog.sh ## 作业结束后需要执行的文件，采用运行作业的用户执行行
 
- # 顺序：
-    # 1. pre_launch_priv()：TaskPlugin内部函数
-    # 2. pre_launch()：TaskPlugin内部函数
-    # 3. TaskProlog：slurm.conf中定义的系统范围每个任务
-    # 4. User prolog：作业步指定的，采用srun命令的--task-prolog参数或SLURM_TASK_PROLOG环境变量指定
-    # 5. Task：作业步任务中执行
-    # 6. User epilog：作业步指定的，采用srun命令的--task-epilog参数或SLURM_TASK_EPILOG环境变量指定
-    # 7. TaskEpilog：slurm.conf中定义的系统范围每个任务
-    # 8. post_term()：TaskPlugin内部函数
+ ## 顺序：
+    ## 1. pre_launch_priv()：TaskPlugin内部函数
+    ## 2. pre_launch()：TaskPlugin内部函数
+    ## 3. TaskProlog：slurm.conf中定义的系统范围每个任务
+    ## 4. User prolog：作业步指定的，采用srun命令的--task-prolog参数或SLURM_TASK_PROLOG环境变量指定
+    ## 5. Task：作业步任务中执行
+    ## 6. User epilog：作业步指定的，采用srun命令的--task-epilog参数或SLURM_TASK_EPILOG环境变量指定
+    ## 7. TaskEpilog：slurm.conf中定义的系统范围每个任务
+    ## 8. post_term()：TaskPlugin内部函数
 
- # Event Logging：事件记录
- # Slurmctld和slurmd守护进程可以配置为采用不同级别的详细度记录，从0（不记录）到7（极度详细）
- SlurmctldDebug=debug # 默认为info
- SlurmctldLogFile=/var/log/slurm/slurmctld.log # 如是空白，则记录到syslog
- SlurmdDebug=debug # 默认为info
- SlurmdLogFile=/var/log/slurm/slurmd.log # 如为空白，则记录到syslog，如名字中的有字符串"%h"，则"%h"将被替换为节点名
- #SlurmrestdDebug=debug
- #SlurmrestdLogFile=/var/log/slurm/slurmrestd.log
+ ## Event Logging：事件记录
+ ## Slurmctld和slurmd守护进程可以配置为采用不同级别的详细度记录，从0（不记录）到7（极度详细）
+ SlurmctldDebug=debug ## 默认为info
+ SlurmctldLogFile=/var/log/slurm/slurmctld.log ## 如是空白，则记录到syslog
+ SlurmdDebug=debug ## 默认为info
+ SlurmdLogFile=/var/log/slurm/slurmd.log ## 如为空白，则记录到syslog，如名字中的有字符串"%h"，则"%h"将被替换为节点名
+ ##SlurmrestdDebug=debug
+ ##SlurmrestdLogFile=/var/log/slurm/slurmrestd.log
 
- # Job Completion Logging：作业完成记录
+ ## Job Completion Logging：作业完成记录
  JobCompType=jobcomp/mysql
- # 指定作业完成是采用的记录机制，默认为None，可为以下值之一:
-    # None: 不记录作业完成信息
-    # Elasticsearch: 将作业完成信息记录到Elasticsearch服务器
-    # FileTxt: 将作业完成信息记录在一个纯文本文件中
-    # Lua: 利用名为jobcomp.lua的文件记录作业完成信息
-    # Script: 采用任意脚本对原始作业完成信息进行处理后记录
-    # MySQL: 将完成状态写入MySQL或MariaDB数据库
+ ## 指定作业完成是采用的记录机制，默认为None，可为以下值之一:
+    ## None: 不记录作业完成信息
+    ## Elasticsearch: 将作业完成信息记录到Elasticsearch服务器
+    ## FileTxt: 将作业完成信息记录在一个纯文本文件中
+    ## Lua: 利用名为jobcomp.lua的文件记录作业完成信息
+    ## Script: 采用任意脚本对原始作业完成信息进行处理后记录
+    ## MySQL: 将完成状态写入MySQL或MariaDB数据库
 
- # JobCompLoc= # 设定记录作业完成信息的文本文件位置（若JobCompType=filetxt），或将要运行的脚本（若JobCompType=script），或Elasticsearch服务器的URL（若JobCompType=elasticsearch），或数据库名字（JobCompType为其它值时）
+ ## JobCompLoc= ## 设定记录作业完成信息的文本文件位置（若JobCompType=filetxt），或将要运行的脚本（若JobCompType=script），或Elasticsearch服务器的URL（若JobCompType=elasticsearch），或数据库名字（JobCompType为其它值时）
 
- # 设定数据库在哪里运行，且如何连接
- JobCompHost=localhost # 存储作业完成信息的数据库主机名
- # JobCompPort= # 存储作业完成信息的数据库服务器监听端口
- JobCompUser=slurm # 用于与存储作业完成信息数据库进行对话的用户名
- JobCompPass=SomePassWD # 用于与存储作业完成信息数据库进行对话的用户密码
+ ## 设定数据库在哪里运行，且如何连接
+ JobCompHost=localhost ## 存储作业完成信息的数据库主机名
+ ## JobCompPort= ## 存储作业完成信息的数据库服务器监听端口
+ JobCompUser=slurm ## 用于与存储作业完成信息数据库进行对话的用户名
+ JobCompPass=SomePassWD ## 用于与存储作业完成信息数据库进行对话的用户密码
 
- # Job Accounting Gather：作业记账收集
- JobAcctGatherType=jobacct_gather/linux # Slurm记录每个作业消耗的资源，JobAcctGatherType值可为以下之一：
-    # jobacct_gather/none: 不对作业记账
-    # jobacct_gather/cgroup: 收集Linux cgroup信息
-    # jobacct_gather/linux: 收集Linux进程表信息，建议
- JobAcctGatherFrequency=30 # 设定轮寻间隔，以秒为单位。若为-，则禁止周期性抽样
+ ## Job Accounting Gather：作业记账收集
+ JobAcctGatherType=jobacct_gather/linux ## Slurm记录每个作业消耗的资源，JobAcctGatherType值可为以下之一：
+    ## jobacct_gather/none: 不对作业记账
+    ## jobacct_gather/cgroup: 收集Linux cgroup信息
+    ## jobacct_gather/linux: 收集Linux进程表信息，建议
+ JobAcctGatherFrequency=30 ## 设定轮寻间隔，以秒为单位。若为-，则禁止周期性抽样
 
- # Job Accounting Storage：作业记账存储
- AccountingStorageType=accounting_storage/slurmdbd # 与作业记账收集一起，Slurm可以采用不同风格存储可以以许多不同的方式存储会计信息，可为以下值之一：
-     # accounting_storage/none: 不记录记账信息
-     # accounting_storage/slurmdbd: 将作业记账信息写入Slurm DBD数据库
- # AccountingStorageLoc: 设定文件位置或数据库名，为完整绝对路径或为数据库的数据库名，当采用slurmdb时默认为slurm_acct_db
+ ## Job Accounting Storage：作业记账存储
+ AccountingStorageType=accounting_storage/slurmdbd ## 与作业记账收集一起，Slurm可以采用不同风格存储可以以许多不同的方式存储会计信息，可为以下值之一：
+     ## accounting_storage/none: 不记录记账信息
+     ## accounting_storage/slurmdbd: 将作业记账信息写入Slurm DBD数据库
+ ## AccountingStorageLoc: 设定文件位置或数据库名，为完整绝对路径或为数据库的数据库名，当采用slurmdb时默认为slurm_acct_db
 
- # 设定记账数据库信息，及如何连接
- AccountingStorageHost=localhost # 记账数据库主机名
- # AccountingStoragePort= # 记账数据库服务监听端口
- # AccountingStorageUser=slurm # 记账数据库用户名
- # AccountingStoragePass=SomePassWD # 记账数据库用户密码。对于SlurmDBD，提供企业范围的身份验证，如采用于Munge守护进程，则这是应该用munge套接字socket名（/var/run/munge/global.socket.2）代替。默认不设置
- # AccountingStoreFlags= # 以逗号（,）分割的列表。选项是：
-     # job_comment：在数据库中存储作业说明域
-     # job_script：在数据库中存储脚本
-     # job_env：存储批处理作业的环境变量
- # AccountingStorageTRES=gres/gpu # 设置GPU时需要
- # GresTypes=gpu # 设置GPU时需要
+ ## 设定记账数据库信息，及如何连接
+ AccountingStorageHost=localhost ## 记账数据库主机名
+ ## AccountingStoragePort= ## 记账数据库服务监听端口
+ ## AccountingStorageUser=slurm ## 记账数据库用户名
+ ## AccountingStoragePass=SomePassWD ## 记账数据库用户密码。对于SlurmDBD，提供企业范围的身份验证，如采用于Munge守护进程，则这是应该用munge套接字socket名（/var/run/munge/global.socket.2）代替。默认不设置
+ ## AccountingStoreFlags= ## 以逗号（,）分割的列表。选项是：
+     ## job_comment：在数据库中存储作业说明域
+     ## job_script：在数据库中存储脚本
+     ## job_env：存储批处理作业的环境变量
+ ## AccountingStorageTRES=gres/gpu ## 设置GPU时需要
+ ## GresTypes=gpu ## 设置GPU时需要
 
- # Process ID Logging：进程ID记录，定义记录守护进程的进程ID的位置
- SlurmctldPidFile=/var/run/slurmctld.pid # 存储slurmctld进程号PID的文件
- SlurmdPidFile=/var/run/slurmd.pid # 存储slurmd进程号PID的文件
+ ## Process ID Logging：进程ID记录，定义记录守护进程的进程ID的位置
+ SlurmctldPidFile=/var/run/slurmctld.pid ## 存储slurmctld进程号PID的文件
+ SlurmdPidFile=/var/run/slurmd.pid ## 存储slurmd进程号PID的文件
 
- # Timers：定时器
- SlurmctldTimeout=120 # 设定备份控制器在主控制器等待多少秒后成为激活的控制器
- SlurmdTimeout=300 # Slurm控制器等待slurmd未响应请求多少秒后将该节点状态设置为DOWN
- InactiveLimit=0 # 潜伏期控制器等待srun命令响应多少秒后，将在考虑作业或作业步骤不活动并终止它之前。0表示无限长等待
- MinJobAge=300 # Slurm控制器在等待作业结束多少秒后清理其记录
- KillWait=30 # 在作业到达其时间限制前等待多少秒后在发送SIGKILLL信号之前发送TERM信号以优雅地终止
- WaitTime=0 # 在一个作业步的第一个任务结束后等待多少秒后结束所有其它任务，0表示无限长等待
+ ## Timers：定时器
+ SlurmctldTimeout=120 ## 设定备份控制器在主控制器等待多少秒后成为激活的控制器
+ SlurmdTimeout=300 ## Slurm控制器等待slurmd未响应请求多少秒后将该节点状态设置为DOWN
+ InactiveLimit=0 ## 潜伏期控制器等待srun命令响应多少秒后，将在考虑作业或作业步骤不活动并终止它之前。0表示无限长等待
+ MinJobAge=300 ## Slurm控制器在等待作业结束多少秒后清理其记录
+ KillWait=30 ## 在作业到达其时间限制前等待多少秒后在发送SIGKILLL信号之前发送TERM信号以优雅地终止
+ WaitTime=0 ## 在一个作业步的第一个任务结束后等待多少秒后结束所有其它任务，0表示无限长等待
 
- # Compute Machines：计算节点
+ ## Compute Machines：计算节点
  NodeName=slurm2 NodeAddr=192.168.32.227 CPUs=4 RealMemory=7800 Sockets=4 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
  NodeName=slurm1 NodeAddr=192.168.32.210 CPUs=4 RealMemory=7800 Sockets=4 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
- # NodeName=gnode[01-10] Gres=gpu:v100:2 CPUs=40 RealMemory=385560 Sockets=2 CoresPerSocket=20 ThreadsPerCore=1 State=UNKNOWN #GPU节点例子，主要为Gres=gpu:v100:2
-     # NodeName=node[1-10] # 计算节点名，node[1-10]表示为从node1、node2连续编号到node10，其余类似
-     # NodeAddr=192.168.1.[1-10] # 计算节点IP
-     # CPUs=48 # 节点内CPU核数，如开着超线程，则按照2倍核数计算，其值为：Sockets*CoresPerSocket*ThreadsPerCore
-     # RealMemory=192000 # 节点内作业可用内存数(MB)，一般不大于free -m的输出，当启用select/cons_res插件限制内存时使用
-     # Sockets=2 # 节点内CPU颗数
-     # CoresPerSocket=24 # 每颗CPU核数
-     # ThreadsPerCore=1 # 每核逻辑线程数，如开了超线程，则为2
-     # State=UNKNOWN # 状态，是否启用，State可以为以下之一：
-         # CLOUD   # 在云上存在
-         # DOWN    # 节点失效，不能分配给在作业
-         # DRAIN   # 节点不能分配给作业
-         # FAIL    # 节点即将失效，不能接受分配新作业
-         # FAILING # 节点即将失效，但上面有作业未完成，不能接收新作业
-         # FUTURE  # 节点为了将来使用，当Slurm守护进程启动时设置为不存在，可以之后采用scontrol命令简单地改变其状态，而不是需要重启slurmctld守护进程。当这些节点有效后，修改slurm.conf中它们的State。在它们被设置为有效前，采用Slurm看不到它们，也尝试与其联系。
-               # 动态未来节点(Dynamic Future Nodes)：
-                  # slurmd启动时如有-F[<feature>]参数，将关联到一个与slurmd -C命令显示配置(sockets、cores、threads)相同的配置的FUTURE节点。节点的NodeAddr和NodeHostname从slurmd守护进程自动获取，并且当被设置为FUTURE状态后自动清除。动态未来节点在重启时保持non-FUTURE状态。利用scontrol可以将其设置为FUTURE状态。
-                  # 若NodeName与slurmd的HostName映射未通过DNS更新，动态未来节点不知道在之间如何进行通信，其原因在于NodeAddr和NodeHostName未在slurm.conf被定义，而且扇出通信(fanout communication)需要通过将TreeWidth设置为一个较高的数字（如65533）来使其无效。若做了DNS映射，则可以使用cloud_dns SlurmctldParameter。
-          # UNKNOWN # 节点状态未被定义，但将在节点上启动slurmd进程后设置为BUSY或IDLE，该为默认值。
+ ## NodeName=gnode[01-10] Gres=gpu:v100:2 CPUs=40 RealMemory=385560 Sockets=2 CoresPerSocket=20 ThreadsPerCore=1 State=UNKNOWN ##GPU节点例子，主要为Gres=gpu:v100:2
+     ## NodeName=node[1-10] ## 计算节点名，node[1-10]表示为从node1、node2连续编号到node10，其余类似
+     ## NodeAddr=192.168.1.[1-10] ## 计算节点IP
+     ## CPUs=48 ## 节点内CPU核数，如开着超线程，则按照2倍核数计算，其值为：Sockets*CoresPerSocket*ThreadsPerCore
+     ## RealMemory=192000 ## 节点内作业可用内存数(MB)，一般不大于free -m的输出，当启用select/cons_res插件限制内存时使用
+     ## Sockets=2 ## 节点内CPU颗数
+     ## CoresPerSocket=24 ## 每颗CPU核数
+     ## ThreadsPerCore=1 ## 每核逻辑线程数，如开了超线程，则为2
+     ## State=UNKNOWN ## 状态，是否启用，State可以为以下之一：
+         ## CLOUD   ## 在云上存在
+         ## DOWN    ## 节点失效，不能分配给在作业
+         ## DRAIN   ## 节点不能分配给作业
+         ## FAIL    ## 节点即将失效，不能接受分配新作业
+         ## FAILING ## 节点即将失效，但上面有作业未完成，不能接收新作业
+         ## FUTURE  ## 节点为了将来使用，当Slurm守护进程启动时设置为不存在，可以之后采用scontrol命令简单地改变其状态，而不是需要重启slurmctld守护进程。当这些节点有效后，修改slurm.conf中它们的State。在它们被设置为有效前，采用Slurm看不到它们，也尝试与其联系。
+               ## 动态未来节点(Dynamic Future Nodes)：
+                  ## slurmd启动时如有-F[<feature>]参数，将关联到一个与slurmd -C命令显示配置(sockets、cores、threads)相同的配置的FUTURE节点。节点的NodeAddr和NodeHostname从slurmd守护进程自动获取，并且当被设置为FUTURE状态后自动清除。动态未来节点在重启时保持non-FUTURE状态。利用scontrol可以将其设置为FUTURE状态。
+                  ## 若NodeName与slurmd的HostName映射未通过DNS更新，动态未来节点不知道在之间如何进行通信，其原因在于NodeAddr和NodeHostName未在slurm.conf被定义，而且扇出通信(fanout communication)需要通过将TreeWidth设置为一个较高的数字（如65533）来使其无效。若做了DNS映射，则可以使用cloud_dns SlurmctldParameter。
+          ## UNKNOWN ## 节点状态未被定义，但将在节点上启动slurmd进程后设置为BUSY或IDLE，该为默认值。
 
  PartitionName=batch Nodes=slurm[1-2] Default=YES MaxTime=INFINITE State=UP
-     # PartitionName=batch # 队列分区名
-     # Nodes=node[1-10] # 节点名
-     # Default=Yes # 作为默认队列，运行作业不知明队列名时采用的队列
-     # MaxTime=INFINITE # 作业最大运行时间，以分钟为单位，INFINITE表示为无限制
-     # State=UP # 状态，是否启用
-     # Gres=gpu:v100:2 # 设置节点有两块v100 GPU卡，需要在GPU节点 /etc/slum/gres.conf 文件中有类似下面配置：
-         #AutoDetect=nvml
-         #Name=gpu Type=v100 File=/dev/nvidia[0-1] #设置资源的名称Name是gpu，类型Type为v100，名称与类型可以任意取，但需要与其它方面配置对应，File=/dev/nvidia[0-1]指明了使用的GPU设备。
-         #Name=mps Count=100
+     ## PartitionName=batch ## 队列分区名
+     ## Nodes=node[1-10] ## 节点名
+     ## Default=Yes ## 作为默认队列，运行作业不知明队列名时采用的队列
+     ## MaxTime=INFINITE ## 作业最大运行时间，以分钟为单位，INFINITE表示为无限制
+     ## State=UP ## 状态，是否启用
+     ## Gres=gpu:v100:2 ## 设置节点有两块v100 GPU卡，需要在GPU节点 /etc/slum/gres.conf 文件中有类似下面配置：
+         ##AutoDetect=nvml
+         ##Name=gpu Type=v100 File=/dev/nvidia[0-1] ##设置资源的名称Name是gpu，类型Type为v100，名称与类型可以任意取，但需要与其它方面配置对应，File=/dev/nvidia[0-1]指明了使用的GPU设备。
+         ##Name=mps Count=100
 ```
 4. 配置slurm
 ```shell
@@ -970,20 +971,20 @@ slurmdbd进程仅仅运行在管理节点上，但修改了两个文件之后，
 cd ~/slurm-20.11.9/ && cp etc/slurmrestd.service /etc/systemd/system
 systemctl daemon-reload && systemctl restart slurmrestd
 
-7. 其余步骤参考 https://hmli.ustc.edu.cn/doc/linux/slurm-install/slurm-install.html#id1
+7. 其余步骤参考 https://hmli.ustc.edu.cn/doc/linux/slurm-install/slurm-install.html##id1
 
 
 
 
-# terraform
+## <a name='terraform'></a>terraform
 
-## <a name='terraform'></a>terraform安装
+#### <a name='terraform-1'></a>terraform安装
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 sudo yum -y install terraform
 
 
-## <a name='terraformopenstack'></a>通过terraform编排openstack
+#### <a name='terraformopenstack'></a>通过terraform编排openstack
 1. 获得脚本到本地https://github.com/tf-openstack-modules/terraform-openstack-instances；
 2. 增加provider.tf；
 ```shell
@@ -997,7 +998,7 @@ provider "openstack" {
 ```
 3. 设置变量
 ```shell
-[root@openstack--1 terraform-openstack-instances-main]# cat 000-input-variables.tf
+[root@openstack--1 terraform-openstack-instances-main]## cat 000-input-variables.tf
 variable "key_pair_name" {
   type = string
   description = <<EOF
@@ -1093,10 +1094,10 @@ EOF
 
 4. 设置资源参数
 ```shell
-[root@openstack--1 terraform-openstack-instances-main]# cat 010-computes.tf
-#
-# Create instance
-#
+[root@openstack--1 terraform-openstack-instances-main]## cat 010-computes.tf
+##
+## Create instance
+##
 resource "openstack_compute_instance_v2" "instance" {
   name        = var.name
   flavor_name = var.flavor_name
@@ -1128,7 +1129,7 @@ resource "openstack_compute_instance_v2" "instance" {
   }
 }
 
-# Create network port
+## Create network port
 
 resource "openstack_networking_port_v2" "port" {
   count = length(var.ports)
@@ -1143,14 +1144,14 @@ resource "openstack_networking_port_v2" "port" {
   }
 }
 
-# Create floating ip
+## Create floating ip
 resource "openstack_networking_floatingip_v2" "ip" {
   count = var.is_public ? 1 : 0
 
   pool = var.public_ip_network
 }
 
-# Attach floating ip to instance
+## Attach floating ip to instance
 resource "openstack_compute_floatingip_associate_v2" "ipa" {
   count = var.is_public ? 1: 0
 
@@ -1161,7 +1162,7 @@ resource "openstack_compute_floatingip_associate_v2" "ipa" {
 
 6. 设置输出形式
 ```shell
-[root@openstack--1 terraform-openstack-instances-main]# cat 999-outputs.tf
+[root@openstack--1 terraform-openstack-instances-main]## cat 999-outputs.tf
 output "instance" {
   value = openstack_compute_instance_v2.instance
   sensitive = true
@@ -1181,31 +1182,31 @@ output "ip" {
 
 
 
-# 概念
-## <a name='kubeflow'></a>kubeflow
+## <a name='-1'></a>概念
+#### <a name='kubeflow'></a>kubeflow
 它提供了一套工具和组件，用于构建、训练、部署和管理机器学习模型的端到端工作流程。
 
-## <a name='rancher'></a>rancher
+#### <a name='rancher'></a>rancher
 Rancher提供了在生产环境中使用的管理Docker和Kubernetes的全栈化容器部署与管理平台。
 也就是提供可视化web界面进行k8s部署；
 
-## <a name='CRD'></a>CRD
+#### <a name='CRD'></a>CRD
 它代表自定义资源定义（Custom Resource Definition）。CRD 允许用户扩展 Kubernetes API，以添加自定义资源和自定义控制器。
 Kubernetes 中的资源（Resource）是 API 对象的实例，例如 Pod、Service、Deployment 等。这些资源都有相应的 API 定义和控制器，用于管理它们的生命周期和状态。
 CRD 允许用户定义自己的资源类型，这些资源类型可以扩展 Kubernetes 的功能，以满足特定的需求。用户可以创建自定义资源定义，定义自己的资源结构和行为，并编写自定义控制器来管理这些资源。
 
-## <a name='HPC'></a>HPC
+#### <a name='HPC'></a>HPC
 高性能计算（High Performance Computing，缩写HPC）指利用聚集起来的计算能力来处理标准工作站无法完成的数据密集型的计算任务。
 
-## <a name='tensorflow'></a>tensorflow
+#### <a name='tensorflow'></a>tensorflow
 TensorFlow是一个基于数据流编程的符号数学系统，被广泛应用于各类机器学习算法的编程实现。
 PS-worker模型：Parameter Server执行模型相关业务，Work Server训练相关业务，推理计算、梯度计算等。
 
-## <a name='NPU'></a>NPU
+#### <a name='NPU'></a>NPU
 神经处理单元（Neural Processing Unit）的缩写，它是一种专门设计用于进行人工神经网络计算的处理器。NPU 的设计旨在加速深度学习任务，包括图像识别、语音识别、自然语言处理等
 
 
-# volcano
+## <a name='volcano'></a>volcano
 基础设施调度引擎，基于Kubernetes的容器批量计算平台，主要用于高性能计算场景。
 作为一个通用批处理平台，Volcano与几乎所有的主流计算框架无缝对接，如Spark 、TensorFlow 、PyTorch 、 Flink 、Argo 、MindSpore、 PaddlePaddle等。
 
@@ -1214,7 +1215,7 @@ kubectl get configmap -n volcano-system
 kubectl get configmap volcano-scheduler-configmap -n volcano-system -oyaml
 
 
-## <a name='queue'></a>queue
+#### <a name='queue'></a>queue
 Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。而 VolcanoJob 则是一个 K8s Job 升级版，对应的下一级资源是 PodGroup。换言之，就好比 ReplicaSet 的下一级资源是 Pod 一样。
 1. queue名称不能重复；
 2. 名称限制：a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
@@ -1226,7 +1227,7 @@ Queue 是一个 PodGroup 队列，PodGroup 是一组强关联的 Pod 集合。�
 
 
 
-## <a name='podgroup'></a>podgroup
+#### <a name='podgroup'></a>podgroup
 互相关联的一组pod集合。
 1. 当queue设置Capability为2时，创建vcjob设置tasks.template.spec.containers.resources.requests大于2时，则不能调度；
 podgroup和job都是PENDING状态，podgroup事件信息queue resource quota insufficient，vcjob事件信息是pod group is not ready；
@@ -1242,7 +1243,7 @@ podgroup和job都是PENDING状态，podgroup事件信息queue resource quota ins
 
 
 
-## <a name='vcjob'></a>vcjob
+#### <a name='vcjob'></a>vcjob
 1. 当vcjob删除时，跟着vcjob创建的podgroup一同删除了；
 2. svc插件实现同一vcjob中各pod之间的通信；
 3. sla插件，作业最长等待时间sla-waiting-time，表示作业停留在pending状态不被调度的最长等待时间；既可以配置在configmap中，作为sla插件的参数，对经由volcano调度的全部作业生效；也可以单独配置在作业的annotation中，只对改作业生效；
@@ -1304,9 +1305,9 @@ tensorflow: 为job中的所有container开放指定端口；开启svc插件；
 
 
 
-# 调度GPU
+## <a name='GPU'></a>调度GPU
 
-## <a name='k8sGPU'></a>k8s中使用GPU
+#### <a name='k8sGPU'></a>k8s中使用GPU
 GPUs 只能设置在 limits 部分，这意味着：
 不可以仅指定 requests 而不指定 limits
 可以同时指定 limits 和 requests，不过这两个值必须相等
@@ -1324,10 +1325,10 @@ Docker 的默认运行时必须设置为 nvidia-container-runtime，而不是 ru
 NVIDIA 驱动版本大于或者等于 384.81 版本
 
 
-nvidia-smi -L         # 确认pod使用了GPU卡
+nvidia-smi -L         ## 确认pod使用了GPU卡
 
 
-# jenkins
+## <a name='jenkins'></a>jenkins
 持续集成----频繁将代码集成到主干；
 持续交付----频繁将软件的新版本交付该质量团队或者用户，以供审批；
 持续部署----代码评审或者测试通过后，将其自动部署到生产环境； 

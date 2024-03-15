@@ -1,4 +1,94 @@
-云计算
+<!-- vscode-markdown-toc -->
+* [云计算](#)
+* [openstack 通用设计思路](#openstack)
+* [openstack CLI](#openstackCLI)
+* [openstack 开发基础](#openstack-1)
+* [openstack集群](#openstack-1)
+* [nova](#nova)
+		* [裸金属Ironic](#Ironic)
+		* [虚机filter](#filter)
+		* [虚机创建](#-1)
+		* [虚机重建](#-1)
+		* [主机疏散](#-1)
+		* [虚机创建快照](#-1)
+		* [挂载网卡](#-1)
+		* [卸载网卡](#-1)
+		* [GPU设备](#GPU)
+		* [nova attach volume](#novaattachvolume)
+		* [vnc console原理](#vncconsole)
+		* [给实例注入一个密钥对并通过密钥对来访问实例](#-1)
+		* [nova_ssh免密ssh互访](#nova_sshssh)
+		* [冷迁移](#-1)
+		* [热迁移](#-1)
+		* [软重启](#-1)
+		* [硬重启](#-1)
+		* [kvm](#kvm)
+		* [169.254.169.254](#-1)
+		* [cloud-init](#cloud-init)
+		* [nova-api-metadata](#nova-api-metadata)
+* [neutron](#neutron)
+		* [ip route](#iproute)
+		* [网络设备](#-1)
+		* [neutron组件](#neutron-1)
+		* [vlan](#vlan)
+		* [vxlan](#vxlan)
+		* [ml2](#ml2)
+		* [l2 population原理](#l2population)
+		* [iptables](#iptables)
+		* [router](#router)
+		* [floatingip](#floatingip)
+		* [fwaas v1](#fwaasv1)
+		* [fwaas v2](#fwaasv2)
+		* [sg](#sg)
+		* [dhcp](#dhcp)
+		* [rbac policy](#rbacpolicy)
+		* [quota](#quota)
+		* [Vmware 提供了三种网络工作模式](#Vmware)
+		* [octavia](#octavia)
+* [cinder](#cinder)
+		* [volume-type](#volume-type)
+		* [创建volume](#volume)
+		* [删除volume](#volume-1)
+		* [挂载volume](#volume-1)
+		* [卸载volume](#volume-1)
+		* [os-force_detach](#os-force_detach)
+		* [创建snapshot](#snapshot)
+		* [删除snapshot](#snapshot-1)
+		* [volume类型更改](#volume-1)
+		* [配置文件支持多个后端](#-1)
+		* [cinder备份实现rdb和s3共存](#cinderrdbs3)
+		* [cinder qos限速](#cinderqos)
+		* [快照恢复成卷](#-1)
+		* [lvm卷的备份](#lvm)
+		* [ceph osd](#cephosd)
+* [glance](#glance)
+		* [创建镜像](#-1)
+		* [tips](#tips)
+		* [四种镜像导入方法](#-1)
+		* [支持s3后端配置文件说明](#s3)
+		* [镜像共享](#-1)
+* [普罗米修斯(Prometheus)](#Prometheus)
+* [部署](#-1)
+		* [kolla-ansible](#kolla-ansible)
+		* [部署过程](#-1)
+		* [扩容计算节点](#-1)
+* [notification机制](#notification)
+* [keystone](#keystone)
+		* [user](#user)
+		* [LDAP](#LDAP)
+* [Please report any problems to https://shibboleth.atlassian.net/jira](#Pleasereportanyproblemstohttps:shibboleth.atlassian.netjira)
+* [状态机nonick-notifier-service](#nonick-notifier-service)
+		* [dev环境构建](#dev)
+* [SDN](#SDN)
+* [issue](#issue)
+
+<!-- vscode-markdown-toc-config
+	numbering=false
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+## <a name=''></a>云计算
 云计算是一种资源的服务模式，该模式可以实现随时随地、便捷按需地从可配置
 计算资源共享池中获取所需的资源（如网络、服务器、存储、应用及服务），资
 源可以快速供应并释放，大大减少了资源管理工作开销。
@@ -23,7 +113,7 @@ openstack 对数据中心的计算、存储和网络资源进行统一管理。
  
 
 
-# openstack 通用设计思路 
+## <a name='openstack'></a>openstack 通用设计思路 
 1. 每个 openstack 组件包含若干个服务，其中必有一个 API 服务负责接收客户请
 求；对外提供统一接口，隐藏实现细节；运行多个 API 服务实例实现 API 的高可用；
 
@@ -42,17 +132,17 @@ rpc.cast----api 通过 messaging 调用 scheduler 就是异步调用。API 发�
 行调用操作，完成后将结果也通过 messaging 发送给 API。rpc.cast 就是请求响应类型，一个请求发出去后，不需要等待响应。
 
 
-# openstack CLI
-neutron l3-agent-list-hosting-router <router_id>     # 查看router所在的namespace节点
+## <a name='openstackCLI'></a>openstack CLI
+neutron l3-agent-list-hosting-router <router_id>     ## 查看router所在的namespace节点
 namespace里中qg和qr没有ip时，通过neutron router-update --admin-state-up False，再者neutron router-update --admin-state-up True恢复；
 
-neutron l3-agent-list-hosting-router 1658595a-ee11-4a53-bd6f-34a49ce86b61    # 查看router关联的l3-agent所在的host
-nova get-vnc-console <server> novnc      # 获取vnc地址
+neutron l3-agent-list-hosting-router 1658595a-ee11-4a53-bd6f-34a49ce86b61    ## 查看router关联的l3-agent所在的host
+nova get-vnc-console <server> novnc      ## 获取vnc地址
 nova rescue <server> --password <password>
 nova unrescue <server>
 rescue用指定的image作为系统启动盘引导instance，而把instance原先的系统作为第二个磁盘挂载到系统上，
 相当于把故障电脑磁盘拿出，插到另一台正在运行的电脑上，进而再进行一些拯救工作。
-openstack server restore <server>    # 将软删除的虚机进行恢复
+openstack server restore <server>    ## 将软删除的虚机进行恢复
 nova hypervisor-list  查看计算节点 
 nova hypervisor-servers 《》  
 nova keypair-list    查看创建虚机的密钥对 
@@ -68,24 +158,24 @@ cinder upload-to-image <volume_id> <image_name> --force --visibility private
 
 openstack server create --host SCDA0052.uat.local --network ae468023-489f-49e1-856e-4aa3d5692aa7 --image mysql8028-uat-v0702 --flavor fc98f1ef-7c74-47db-a431-1cea0f2cc78a dx_vm1 --os-compute-api-version 2.74
 
-openstack baremetal node list   # 查看裸金属的节点
-openstack baremetal node console show <node>   # 查看裸金属控制台信息
-nova interface-list dx_vm1     # 查看虚机的接口，包含port_id，ip
+openstack baremetal node list   ## 查看裸金属的节点
+openstack baremetal node console show <node>   ## 查看裸金属控制台信息
+nova interface-list dx_vm1     ## 查看虚机的接口，包含port_id，ip
 
-openstack network create net1             # 创建网络
-openstack subnet create subnet1 --subnet-range 10.0.0.0/24 --network net1           # 在 net1 中创建子网 subnet1
-openstack port create port1 --network net1                                          # 在 net1 中创建一个端口 port1
-openstack server create --image IMAGE --flavor FLAVOR --nic net-id=NET_ID vm1       # 启动虚机时指定网卡所在的网络
-openstack security group rule create --protocol icmp default                        # 添加安全组
-openstack network create public_net --external                                      # 创建外部网络和子网 
+openstack network create net1             ## 创建网络
+openstack subnet create subnet1 --subnet-range 10.0.0.0/24 --network net1           ## 在 net1 中创建子网 subnet1
+openstack port create port1 --network net1                                          ## 在 net1 中创建一个端口 port1
+openstack server create --image IMAGE --flavor FLAVOR --nic net-id=NET_ID vm1       ## 启动虚机时指定网卡所在的网络
+openstack security group rule create --protocol icmp default                        ## 添加安全组
+openstack network create public_net --external                                      ## 创建外部网络和子网 
 openstack subnet create --network public_net --subnet-range 172.16.1.0/24 public_subnet
-openstack router create router1                                                     # 创建 router
-openstack router add subnet router1 subnet1                                         # 将 router 连接到子网
-openstack router set --external-gateway public_net router1                         # 将 router 添加到外部网络
-openstack router set --route destination=172.16.2.0/24,gateway=172.16.2.1 router1    # router 添加静态路由
-openstack port list -router router1                                                  # 查看 router 上的 port
-openstack floating ip create public_net                                             # 创建 floatingip
-openstack floating ip add port floatingip_id --port-id internal_vm_port_id          # 将 floatingip 和 port 关联 
+openstack router create router1                                                     ## 创建 router
+openstack router add subnet router1 subnet1                                         ## 将 router 连接到子网
+openstack router set --external-gateway public_net router1                         ## 将 router 添加到外部网络
+openstack router set --route destination=172.16.2.0/24,gateway=172.16.2.1 router1    ## router 添加静态路由
+openstack port list -router router1                                                  ## 查看 router 上的 port
+openstack floating ip create public_net                                             ## 创建 floatingip
+openstack floating ip add port floatingip_id --port-id internal_vm_port_id          ## 将 floatingip 和 port 关联 
 
 openstack volume create  dx_v1 --size 1
 cinder service-list
@@ -96,7 +186,7 @@ openstack volume backup list
 openstack volume type list
 
 
-# openstack 开发基础 
+## <a name='openstack-1'></a>openstack 开发基础 
 setup.cfg 
 setup.py 就是调用 setuptools.setup()，setup()函数有大量的参数需要设置，包括项目的名
 称，作者，版本等。setup.cfg 文件的出现就是将 setup()函数解脱出来，它使用 pbr 工具
@@ -128,7 +218,7 @@ Key 属性与消费者 routing_key 属性一致时，此消息才会被此消费
 这样的 Routing Key; 
 
 
-# openstack集群
+## <a name='openstack-1'></a>openstack集群
 控制节点一般需要一个网络端口用于通信/管理各个节点； 
 网络节点包含三个网络端口， 
 eth0 用于与控制节点进行通信； 
@@ -145,7 +235,7 @@ eth1 与计算节点/网络节点进行通信，完成控制节点下发的各�
  
 
 
-# nova
+## <a name='nova'></a>nova
 
 1. nova的反亲和机制指的是创建一组虚拟机实例，确保他们不会被调度到同一物理主机上；
 
@@ -153,7 +243,7 @@ eth1 与计算节点/网络节点进行通信，完成控制节点下发的各�
 
 
 
-## 裸金属Ironic
+#### <a name='Ironic'></a>裸金属Ironic
 所谓裸机，就是指没有配置操作系统的计算机。从裸机到应用还需要进行以下操作：
 （1）硬盘RAID、分区和格式化；
 （2）安装操作系统、驱动程序；
@@ -178,7 +268,7 @@ ompute节点日志： Instance xxx has allocations against this compute host but
 su -s /bin/sh -c "nova-manage cell_v2 discover_hosts --verbose" nova
 
 
-### ironic部署三阶段
+###### ironic部署三阶段
 1. 入云阶段（Inspection）：裸金属服务器接入网络后，通过PXE启动加载启动镜像，将自身的主机信息汇报给裸金属管理节点，使其进入可调度状态。
 Inspector阶段完成了OpenStack对接入的物理服务器硬件信息的收集，控制节点可以根据收集到的配置信息创建对应的“实例类型”，
 便于根据用户申请资源要求调度指定物理服务器创建裸金属实例。
@@ -197,7 +287,7 @@ openstack server create
 
 
 从PXE或者UEFI启动裸机需要在ironic-conductor节点配置TFTP服务器;
-### provision network
+###### provision network
 1. 通过DHCP获得tftp-server地址；
 2. 从tftp-server下载启动文件；
 3. 根据下载的文件进行启动；
@@ -205,7 +295,7 @@ openstack server create
 
 
 
-### 裸金属节点clean
+###### 裸金属节点clean
 openstack baremetal node clean <node>   --clean-steps '[{"interface": "deploy", "step": "erase_devices_metadata"}]'
 1. provision state先从active变成deleting；
 2. 解绑裸金属虚机的port；
@@ -213,7 +303,7 @@ openstack baremetal node clean <node>   --clean-steps '[{"interface": "deploy", 
 4. 最终clean完毕的状态是available；
 
 
-### 裸金属虚机创建流程
+###### 裸金属虚机创建流程
 PUT /v1/nodes/17d1f5b7-feca-44c2-bbb8-4977b026000e/states/provision
 {
     "target": "active",
@@ -257,7 +347,7 @@ POST /v1/heartbeat/17d1f5b7-feca-44c2-bbb8-4977b026000e
 
 
 
-## 虚机filter
+#### <a name='filter'></a>虚机filter
 AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主机分配虚拟机
 需要在HostAggregate打上flavor的对应标签，就是HostAggreagate和flavor要设置相同的metadata(key，value)，比如两个都增加ssd=true的key-value metadata，则表明只在存储为固态硬盘的主机分配虚拟机规格为flavor的虚拟机；
 1. 创建主机聚合nova aggregate-create agg nova；
@@ -266,7 +356,7 @@ AggregateInstanceExtraSpecsFilter----在指定的HostAggregate中选定一个主
 4. 主机flavor加入元数据nova flavor-key m1.nano set ssd=true；
 
 
-## 虚机创建
+#### <a name='-1'></a>虚机创建
 1. 虚机创建报错Port 0d1f4c34-2dc8-43e6-a769-9569cb68902f not usable for instance，由于虚机和port不属于同一个租户；
 2. nova_api.request_specs表---虚拟机调度需要的信息，如虚拟机个数,uuid,类型,安全组等;
 3. nova_api.build_requests表---初始化数据；
@@ -325,7 +415,7 @@ OpenStack 创建虚拟机的流程通常如下：
 6. 关闭和删除云主机实例：当用户不再需要虚拟机实例时，可以将其关闭并从 OpenStack 中删除。 
 
 
-## 虚机重建
+#### <a name='-1'></a>虚机重建
 1. 原系统盘volume先detach（带attachment in-use）;
 2. 数据盘detach;
 3. 创建新系统盘volume;
@@ -346,15 +436,15 @@ openstack server rebuild <server_uuid> --image <image>
 4. 重建过程中修改密码时传参是adminPass和user_data；
 
 
-## 主机疏散
+#### <a name='-1'></a>主机疏散
 nova host-evacuate <host> --target_host <target_host>
 
 
-## 虚机创建快照
+#### <a name='-1'></a>虚机创建快照
 1. 如果根据虚机生成的镜像快照创建虚机时报错Volume is smaller than the minimum size specified in image，则将镜像快照的min_disk设置成0，即无限制；
 
 
-## 挂载网卡
+#### <a name='-1'></a>挂载网卡
 /v2.1/servers/f8ff90f2-ea91-4364-b6ea-23deebcb05cb/os-interface/3086a848-b523-45fc-9845-c3bbf18da9b4
 1. 先创建port；
 2. 更新port进行bound;
@@ -365,14 +455,14 @@ nova host-evacuate <host> --target_host <target_host>
 
 
 
-## 卸载网卡
+#### <a name='-1'></a>卸载网卡
 DELETE /v2.1/servers/f8ff90f2-ea91-4364-b6ea-23deebcb05cb/os-interface/084dbf71-9beb-4955-9d0e-480d68b7f220
 先unplug，然后delete port；
 虚机在删除中再调用卸载网卡接口，报错cannot detach_interface instance <instance_uuid> while it is in task_state deleting
 
 
 
-## GPU设备
+#### <a name='GPU'></a>GPU设备
 1. 计算节点执行：lspci -nn | grep -i nvidia，获取到显卡的vendorid和product_id，并将其相应的写到nova的配置文件里面；
 2. 在gpu计算节点的nova-compute和控制节点的nova-api，nova-schedule,nova-conductor配置文件下添加：
 [pci]
@@ -384,7 +474,7 @@ openstack flavor create 4c4g16g.3090 --ram 4096 --disk 16 --vcpus 4 --public --p
 
 
 
-## nova attach volume
+#### <a name='novaattachvolume'></a>nova attach volume
 1. _prep_block_device-->attach_block_devices;
 2. 调用nova virt block_device的attach；
 3. 通过cinderclient调用cinder volume api的attach；
@@ -393,7 +483,7 @@ openstack flavor create 4c4g16g.3090 --ram 4096 --disk 16 --vcpus 4 --public --p
 
 
 
-## vnc console原理
+#### <a name='vncconsole'></a>vnc console原理
 1. 先通过/servers/{server_id}/remote-consoles创建一个console；
 2. 然后拿着这个console通过浏览器访问；
 3. 实际通信过程通过websocket---ws://10.50.1.251:6080/?token=<token>。
@@ -402,7 +492,7 @@ xml路径/var/lib/docker/volumes/nova_libvirt_qemu/_data
 
 
 
-## 给实例注入一个密钥对并通过密钥对来访问实例
+#### <a name='-1'></a>给实例注入一个密钥对并通过密钥对来访问实例
 1. 创建秘钥对
 $ openstack keypair create test > test.pem
 $ chmod 600 test.pem
@@ -413,32 +503,32 @@ $ openstack server create --image cirros-0.3.5-x86_64 --flavor m1.small \
 ip netns exec qdhcp-98f09f1e-64c4-4301-a897-5067ee6d544f ssh -i test.pem cirros@10.0.0.4
 
 
-## nova_ssh免密ssh互访
+#### <a name='nova_sshssh'></a>nova_ssh免密ssh互访
 在hypervisor节点之间进行resize或者迁移实例时，确保每个计算节点配置SSH key认证，以能使计算服务使用ssh进行disk移动；
 主要流程就是生成公钥和私钥，将私钥拷贝到/var/lib/nova/.ssh/id_rsa，公钥拷贝到远端节点，切换nova账户即可不需密码登录到远端节点
 https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 
 
-## 冷迁移
+#### <a name='-1'></a>冷迁移
 1. 基于ssh；
 2. 迁移过程：首先把实例先关机，然后重命名实例文件夹为instanceid_resize, ssh把实例文件给拷贝过去，数据库更改，
     在新计算节点上启动实例，此时可以revert实例，即复原迁移。确认后删除原实例文件，删除老节点qemu下xml文件并在新节点上新建；
 3. 
 
-## 热迁移
+#### <a name='-1'></a>热迁移
 1. --block-migrate=False不需要共享存储，如NFS存储后端，也可以设置共享存储置成True；
 2. 基于qemu+tcp；
 3. 计算节点16509端口用于libvirtd的tcp连接监听；
 
 
-## 软重启
+#### <a name='-1'></a>软重启
 软重启是通过向虚拟机发送重启指令实现的，类似于操作系统的正常重启。
 在软重启期间，虚拟机的虚拟硬件设备不会被关闭或重置。
 软重启尝试保留虚拟机的网络连接和内存状态，以便恢复到重启前的状态。
 软重启通常比硬重启快速，因为它只涉及到虚拟机的操作系统层面并避免了关机和启动的过程。
 
 
-## 硬重启
+#### <a name='-1'></a>硬重启
 硬重启是通过直接重启虚拟机的底层实例实现的，类似于物理计算机的冷启动。
 在硬重启期间，虚拟机的虚拟硬件设备会被关闭，并从头开始引导启动。
 硬重启会中断虚拟机的所有网络连接和内存状态，相当于完全关闭和重新启动虚拟机。
@@ -446,7 +536,7 @@ https://docs.openstack.org/nova/pike/admin/ssh-configuration.html
 
 
 
-## kvm
+#### <a name='kvm'></a>kvm
 1. 虚机支持kvm虚拟化  nova_compute/nova.conf中
 [DEFAULT]
 cpu_mode = host-passthrough
@@ -472,7 +562,7 @@ virsh 是常用的 KVM 命令行工具；
 
 
 
-## 169.254.169.254
+#### <a name='-1'></a>169.254.169.254
 1. 虚机内部执行curl -i http://169.254.169.254/openstack/latest；
 包括meta_data.json/user_data/password/network_data.json
 2. curl -i http://169.254.169.254/latest/meta-data 包括instance-id/instance-type/local-hostname/security-groups
@@ -486,7 +576,7 @@ netwoek-id，然后转发给 neutron-metadata-agent，获取 port 信息，最�
 
 
 
-## cloud-init
+#### <a name='cloud-init'></a>cloud-init
 自动配置虚拟机初始配置的工具；
 虚拟机通过两种方式获得用户传递的配置信息；一种是config driver；一种是metadata restful服务；
 有两种方法可以启用config drive：
@@ -510,7 +600,7 @@ cloud-init init --local
 cloud-init init
 cloud-init modules --mode config
 
-### config driver
+###### config driver
 查看虚机中config driver配置：mount /dev/sr0 <某个目录>    即可在目录中看到配置
 
 关于user_data
@@ -536,7 +626,7 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename="passwd-script.txt"
 
-#!/bin/sh
+##!/bin/sh
 echo 'root:Wang.123' | chpasswd
 
 --===============2309984059743762475==
@@ -545,10 +635,10 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename="enable-fs-collector.txt"
 
-#!/bin/sh
+##!/bin/sh
 qemu_file="/etc/sysconfig/qemu-ga"
 if [ -f ${qemu_file} ]; then
-    sed -i -r "s/^#?BLACKLIST_RPC=/#BLACKLIST_RPC=/" "${qemu_file}"
+    sed -i -r "s/^##?BLACKLIST_RPC=/##BLACKLIST_RPC=/" "${qemu_file}"
     has_gqa=$(systemctl list-units --full -all -t service --plain | grep -o qemu-guest-agent.service)
     if [[ -n ${has_gqa} ]]; then
         systemctl restart qemu-guest-agent.service
@@ -558,25 +648,25 @@ fi
 --===============2309984059743762475==--
 ```
 
-## nova-api-metadata
+#### <a name='nova-api-metadata'></a>nova-api-metadata
 nova-api的子服务，metadata的提供者，instance可以通过其restful接口获取metadata信息；
 服务端口为8775；
 
 
 
-# neutron
+## <a name='neutron'></a>neutron
 
 
 
 tracepath ip ---查看链路
-## ip route
-default via 172.16.0.1 dev ens192 proto static metric 100 # 表示去任何地方，都发送给网卡ens192，并经过网关172.16.0.1发出；
-172.16.0.0/16 dev ens192 proto kernel scope link src 172.16.1.11 metric 100 # 表示发往172.16.0.0/26网段的包都由网卡ens192发出，src表示ens192的网卡ip是172.16.1.11，metric表示路由距离，到达指定网络所需的中转数；
+#### <a name='iproute'></a>ip route
+default via 172.16.0.1 dev ens192 proto static metric 100 ## 表示去任何地方，都发送给网卡ens192，并经过网关172.16.0.1发出；
+172.16.0.0/16 dev ens192 proto kernel scope link src 172.16.1.11 metric 100 ## 表示发往172.16.0.0/26网段的包都由网卡ens192发出，src表示ens192的网卡ip是172.16.1.11，metric表示路由距离，到达指定网络所需的中转数；
 默认路由（Default route），是对IP数据包中的目的地址找不到存在的其他路由时，路由器所选择的路由。
 添加默认路由 ip route add default via <网关IP地址> dev <网络接口>
 
 
-## 网络设备
+#### <a name='-1'></a>网络设备
 TAP/TUN 是 linux 内核实现的一对虚拟网络设备，TAP 工作在二层，TUN 工作
 在三层，linux 内核通过 TAP/TUN 设备向绑定该设备的用户空间程序发送数据。 
 
@@ -586,7 +676,7 @@ br-ex   连接网卡，发送外网，在网络节点
 br-tun  隧道端点，vxlan 和 gre 进行通信
 
 
-## neutron组件
+#### <a name='neutron-1'></a>neutron组件
 neutron 核心组件提供了云平台中软件定义网络的功能，它负责管理虚拟网络组
 件，包括networks，subnets，switchs和routers，同时提供网络服务，如loadbalancer，Firewall 和 VPN。
 
@@ -627,7 +717,7 @@ create_resources 的返回值列表中。
 
 
 
-## vlan
+#### <a name='vlan'></a>vlan
 virtual local area network 
 每个 vlan 对应一个广播域，不同 vlan 间的设备不能互通，只能通过路由器等三
 层设备而互通。vlan tag 由交换机端口在数据帧进入交换机时添加，数据帧出交
@@ -640,7 +730,7 @@ vlan id 取值范围是 1-4094
 
 
 
-## vxlan 
+#### <a name='vxlan'></a>vxlan 
 virtual extensible local area network  
 采用 L2 over L4(Mac in UDP)的报文封装模式，将二层报文用三层协议进行封装
 可以实现二层网络在三层网络扩展，同时满足数据中心大二层虚拟迁移和多租户的需求。 
@@ -648,7 +738,7 @@ virtual extensible local area network
 2. vlan 数量只有 4000 个左右，无法满足更多虚拟云计算服务租户隔离。 
 3. 虚机迁移 IP 和 Mac 参数不变，导致虚机只能限制在一个二层域中； 
 
-### vtep     
+###### vtep     
 vxlan tunnel endpoints  vxlan 隧道端点 
 VTEP 会将 VM 发出的原始报文封装成一个新的 UDP 报文，并使用物理网络的
 IP 和 MAC 地址作为外层头，对网络中的其他设备只表现为封装后的参数。也就
@@ -660,19 +750,19 @@ IP 和 MAC 地址作为外层头，对网络中的其他设备只表现为封装
 如果网络设备作为 VTEP，它还是需要学习 VM 的 MAC 地址。但是，从对报文
 进行封装的角度来说，网络设备的性能还是要比服务器强很多。 
  
-### vni 
+###### vni 
 vxlan network identifier   vxlan 网络标识 
 一个 vni 代表一个租户，属于不同 vni 的虚拟机时间不能进行二层通信。 
 VTEP 在对报文进行 VXLAN 封装时，给 VNI 分配了 24 比特的空间，这就意味
 着 VXLAN 网络理论上支持多达 1600 万（即：224-1）的租户隔离。 
 
-### vxlan 隧道 
+###### vxlan 隧道 
 是用来传输经过 vxlan 封装的报文，它是建立在 vtep 之间的一条虚拟通道。 
 在 IP 网络中，“明”里传输的是跨越三层网络的 UDP 报文，“暗”里却已经悄悄将
 源 VM 的原始报文送达目的 VM。就好像在三层的网络之上，构建出了一个虚拟
 的二层网络，而且只要 IP 网络路由可达，这个虚拟的二层网络想做多大就做多大。 
 
-### VXLAN 部署方法 
+###### VXLAN 部署方法 
 VXLAN 网络设备主要有三种角色，分别是 VTEP(VXLAN Tunnel End Point)、
 VXLAN 网关、VXLAN IP 网关，对于应用系统来说，只与这三种设备相关，而与底层传统三层 IP 网络无关。 
 
@@ -712,17 +802,17 @@ VXLAN 报文先通过 VXLAN 内部转发模式对报文进行封装，目的 IP 
 
 
 
-## ml2
+#### <a name='ml2'></a>ml2
 链路层，一个可靠的点对点的数据对接，常见：网卡，二层交换机，网桥等； 
 
-### port
+###### port
 port 是虚拟交换机上一个端口，port 上定义 mac 和 ip 地址，instance 的虚拟网卡
 VIF(virtual interface)绑定到 port 上时，port 会将 mac 和分配给 VIF。 
 nova 中的 instance 是通过虚拟交换机连接到虚拟二层网络的。
 
 
 
-### 层次化端口绑定的流程:
+###### 层次化端口绑定的流程:
 1. 用户创建了一个虚拟机，并且将虚拟机创建在VxLAN A网络中。
 2. Neutron需要创建一个VxLAN A的网络接口，请求被发送到了ML2。
 3. Neutron ML2先调用到物理交换机对应的Mechanism driver进行端口绑定（port binding），将VxLAN A与网络接口进行绑定。
@@ -733,9 +823,9 @@ nova 中的 instance 是通过虚拟交换机连接到虚拟二层网络的。
 
 网络数据送到OpenVSwitch，OVS会打上VLAN B的Tag，带VLAN B Tag的网络数据送到物理交换机。 
 物理交换机根据自己的VLAN To VxLAN ID MAP，将VLAN Tag去掉，再封装成相应的VxLAN数据。经过这样的处理，VxLAN的封装解封装被offload到了物理交换机。
-ml2_port_bindings    # 绑定属性集
-ml2_port_binding_levels   # 绑定层级
-networksegments    # 每层的segment
+ml2_port_bindings    ## 绑定属性集
+ml2_port_binding_levels   ## 绑定层级
+networksegments    ## 每层的segment
 
 
 bind_port 
@@ -821,11 +911,11 @@ driver 里面。物理交换机属于各个厂商，相应的 Mechanism Driver �
 
 
 
-### vpc互通
+###### vpc互通
 1. 同租户两个vpc通过vpc connection打通；
 2. 
 
-### ovs
+###### ovs
 1. 创建子网时会在br-int下建立一个tap口(tap-<dhcp port id前11位>)，会在dhcp命名空间中建立这个tap口；
 2. 创建虚机时，会在br-int下建立一个qvoxxx，linux-bridge下会建立一个qbrxxx网桥，qbr网桥下有个qvbxxx接口和tapxxx，
     也就整个连接是br-int-->qvo-->qvb-->linux bridge qbr-->tap。         --xxx为port id的前11位；
@@ -837,7 +927,7 @@ driver 里面。物理交换机属于各个厂商，相应的 Mechanism Driver �
 8. 删除网桥下的接口ovs-vsctl del-port br-ex eth0
 
 
-### ovs+vxlan网络流程
+###### ovs+vxlan网络流程
 1. 同一host上同一子网内的虚机通信；只是经过br-int，不经过br-tun；
 
 2. 不同host上同一子网内的虚机通信；
@@ -854,7 +944,7 @@ vm1发出的packet经过br-int打上vlan tag,到达br-tun将vlan tag转成隧道
 a. 虚机的packet -> br-int -> br-tun -> vxlan Tunnel -> eth2 ------>eth2->br-tun->br-int->qDHCP
 b. qDHCP返回其fixed IP地址，原路返回；
 
-#### 南北向流量
+######## 南北向流量
 虚拟机连通外网； ovs 架构下，虚拟机网卡 tap 连接 Linux-bridge
 网桥(qbr)，Linux- bridge 通过 qvb 和 qvo 连接集成网桥 br-int，每个 vxlan 网络下
 会有对应的 dhcp 端口连接到 br-int 上，qvo 和 vxlan 网络是一对一关系，虚拟
@@ -862,14 +952,14 @@ router 有端口 qr 连接到 br-int 上，这样流量经过 br-int 到 router�
 的端口 qg，br-ex 连接到宿主机网卡和互联网通信。router 的内部接口就是 br-int
 上的 qr 口，外部网关就是 br-ex 上的 qg 口。  
  
-#### 东西向流量
+######## 东西向流量
 虚拟机与虚拟机时间连通； br-int 下连接一样，这时候 br-int 通过
 patch-tun 和 patch-int 连接 br-tun，br-tun 连接到宿主机租户网卡，br-tun 上 vxlan
 口和对端 vxlan 口经过隧道连通，之后通过 br-tun 和 br-int 连接到对端虚拟机。 
 br-tun 使用 Openflow 规则来处理 Van ID 和 Tunnel Id 的转换； 
 
 
-## l2 population原理
+#### <a name='l2population'></a>l2 population原理
 L2 population 的原理如下：
 首先，创建一个 Overlay 网络（通常是 VXLAN），用于在不同计算节点之间传输虚拟机的二层数据帧。
 当虚拟机发送一个二层数据帧到网络中，该数据帧会通过虚拟交换机（例如 Open vSwitch）被送往连接到虚拟机所在计算节点的虚拟交换机。
@@ -908,16 +998,16 @@ MAC 地址，这样就能直接与之通信，从而避免了不必要的隧道�
 
 
 
-## iptables
+#### <a name='iptables'></a>iptables
 iptables -t filter -I INPUT -s 192.168.1.2 -p tcp --dport 22 -j DROP ---拒绝192.168.1.2访问目标22端口
 iptables -nL |grep 'policy' ----查看filter表各个链的默认策略
-ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables -t nat -S   # 命名空间内查看nat规则
-ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables-save  # 命名空间内将iptables规则打印
+ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables -t nat -S   ## 命名空间内查看nat规则
+ip netns exec qrouter-1658595a-ee11-4a53-bd6f-34a49ce86b61 iptables-save  ## 命名空间内将iptables规则打印
 iptables -t nat -nvL
 iptables-save
 
 
-## router
+#### <a name='router'></a>router
 网络层，在网络的各个节点之间进行地址分配、路由和分发报文，常见：路由器，多层交换机，防火墙等； 
 
  
@@ -932,19 +1022,19 @@ iptables-save
 
 
 
-### 在命名空间内抓包tcpdump -i qr-xxx/qg-xxx -n icmp
-[root@SCDA0052 scadmin]# ip netns exec qrouter-3feea37e-5a67-4396-90af-56ab85698e4d tcpdump -i qg-564ac24f-e7 -n icmp
+###### 在命名空间内抓包tcpdump -i qr-xxx/qg-xxx -n icmp
+[root@SCDA0052 scadmin]## ip netns exec qrouter-3feea37e-5a67-4396-90af-56ab85698e4d tcpdump -i qg-564ac24f-e7 -n icmp
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on qg-564ac24f-e7, link-type EN10MB (Ethernet), capture size 262144 bytes
 16:42:25.409226 IP 10.250.51.123 > 10.250.48.1: ICMP echo request, id 18494, seq 1, length 64
 16:42:25.409879 IP 10.250.48.1 > 10.250.51.123: ICMP echo reply, id 18494, seq 1, length 64
 
 
-### 缺少默认路由，导致外部ping不通外部网关，而命名空间是可以ping通的
+###### 缺少默认路由，导致外部ping不通外部网关，而命名空间是可以ping通的
 切换一下router的主备，会让配置在备的router上刷过去。
 ip link set ha-5dfc67f4-07 down
 常用的办法是把主router的ha口down掉，等一段时间规则会切换到备节点的router上去，中间出口网络会有几秒的中断；
-[root@SCDA0052 scadmin]# ip netns exec qrouter-3feea37e-5a67-4396-90af-56ab85698e4d ip r
+[root@SCDA0052 scadmin]## ip netns exec qrouter-3feea37e-5a67-4396-90af-56ab85698e4d ip r
 default via 10.250.48.1 dev qg-564ac24f-e7 proto static 
 10.250.33.0/24 dev qg-564ac24f-e7 proto static scope link 
 10.250.48.0/22 dev qg-564ac24f-e7 proto kernel scope link src 10.250.51.123 
@@ -957,7 +1047,7 @@ default via 10.250.48.1 dev qg-564ac24f-e7 proto static
 或者openstack  router set <router> --disable + openstack  router set <router> --enable
 
 
-### NAT
+###### NAT
 Network Address Translation 
 NAT 是一个在 IP 数据包传输的过程，动态修改其头部的源 IP 地址或者目的 IP地址的程序。
 Linux 中实现 NAT 的工具是 iptables。 
@@ -971,7 +1061,7 @@ One-to-One NAT，NAT 路由器维护一张私有 IP 地址到公共 IP 地址的
 Router 的 NAT 功能通过 iptables 实现： 
  
 
-## floatingip
+#### <a name='floatingip'></a>floatingip
 1. 创建floatingip可以指定subnet，是指定的network下的subnet，内部逻辑是将传的subnet_id放到port中，去创建port；如果不传subnet_id返回时不带subnet_id；
 2. 限速测试：服务端iperf3 -s -i 10 -p 5201--设置监控时间10s，端口为5201，防火墙端口要放行；客户端iperf3 -c x.x.x.x -p 5201 -t 5 -P 10 -R---指定-c测速服务器IPx.x.x.x，-p指定端口为5201，-t测速时间5s，-P指定发送连接数10，-R表示下载测速
     iperf3 -c 192.168.3.250 -i 1 -t 10          测试上行
@@ -980,7 +1070,7 @@ Router 的 NAT 功能通过 iptables 实现：
 3. 限速可以限速floatingip出外网和端口转发；
 
 
-### EIP
+###### EIP
 弹性公网IP（Elastic IP，简称EIP），提供独立的公网IP资源，包括公网IP地址与公网出口带宽服务。
 可以与弹性云服务器、裸金属服务器、虚拟IP、弹性负载均衡、NAT网关等资源灵活地绑定及解绑。
 一个弹性公网IP只能绑定一个云资源使用，且弹性公网IP和云资源必须在同一个区域，不支持跨区域使用弹性公网IP。
@@ -997,38 +1087,38 @@ neutron meter-label-create --tenant-id  e4a97e45239340b090fcebde8edcbfe5 dx_mete
 neutron meter-label-rule-create dx_meter1 44.44.44.184/32 --direction ingress --tenant-id e4a97e45239340b090fcebde8edcbfe5
 neutron meter-label-rule-create dx_meter1 44.44.44.184/32 --direction egress --tenant-id e4a97e45239340b090fcebde8edcbfe5
 iptables规则
-[root@con01 dongxiang]# ip netns exec qrouter-0e9775f3-755a-4b10-9fa0-b65ca1601f89 iptables -t filter -nvxL neutron-meter-r-ecca93c6-8d1
+[root@con01 dongxiang]## ip netns exec qrouter-0e9775f3-755a-4b10-9fa0-b65ca1601f89 iptables -t filter -nvxL neutron-meter-r-ecca93c6-8d1
 Chain neutron-meter-r-ecca93c6-8d1 (1 references)
     pkts      bytes target     prot opt in     out     source               destination
       89    16839 neutron-meter-l-ecca93c6-8d1  all  --  qg-3a26535b-91 *       0.0.0.0/0            44.44.44.184
     1094    80015 neutron-meter-l-ecca93c6-8d1  all  --  *      qg-3a26535b-91  44.44.44.184         0.0.0.0/0
 
-#### 端口转发
+######## 端口转发
 当进行端口转发时，虚机要放开指定端口（也就是目标端口）的安全组规则；
 openstack floating ip port forwarding list 10.50.98.165
 openstack floating ip port forwarding delete 10.50.98.165 <id>
 
 
 
-## fwaas v1
+#### <a name='fwaasv1'></a>fwaas v1
 接入SDN后，fwaas v1即huawei的huawei_ac_fwaas service_plugin；
-### 创建firewall
+###### 创建firewall
 1. 首先判断router_ids字段中的是否有任何的router关联了其它的firewall，如何关联了即报错in-use error;
 2. 调用firewall_db将数据进行存库,firewall状态为PENDING_CREATE；
 3. 如果传参带router_ids，fw_id和router_id存入库firewall_router_associations中；
 4. 下发到AC控制器上；
 
 
-### 创建firewall policy
+###### 创建firewall policy
 1. 首先写库；
 2. 
 
 
 
 
-## fwaas v2
+#### <a name='fwaasv2'></a>fwaas v2
 
-### create_fw
+###### create_fw
 1. firewall rule/firewall group/firewall policy均不支持批量创建； 
 2. firewall group可以分别有一个出向和入向policy；
 3. 创建firewall policy中可以添加多个rule(无序)；通过insert_rule接口(指定顺序)只能单次操作；
@@ -1047,7 +1137,7 @@ quota_firewall_rule=100
 [default_fwg_rules]
 ingress_action=allow
 
-### update_fw
+###### update_fw
 1. 如果关联的port是内网网关端口，则最后firewall group会变成ACTIVE；
 2. 如果更新时如果已有policy并且带port更新或者policy和port一起更新，则最后firewall group会变成ACTIVE；
 3. 如果状态是PENDING，则不允许更新；
@@ -1078,25 +1168,25 @@ neutron-l3-agent-ov4a24248cf - [0:0]
 
 
 
-### delete_fw
+###### delete_fw
 1. 如果firewall_group是ACTIVE，则不允许删除；
 2. 在管理状态置成down时，再remove rule，此时fw状态变成DOWN，fw就可以删除了；
 
 
-### insert rule
+###### insert rule
 1. insert rule/remove rule最后会触发FWaaSL3AgentExtension中的update_firewall_group，（如果本租户内有router port）从而导致fw进入ACTIVE状态;
 
 
-### update policy
+###### update policy
 1. update policy会触发FWaaSL3AgentExtension中的update_firewall_group,（如果本租户内有router port）从而导致fw进入ACTIVE状态;
 
-### update rule
+###### update rule
 1. update rule会触发FWaaSL3AgentExtension中的update_firewall_group,（如果本租户内有router port）从而导致fw进入ACTIVE状态;
 
 
 
 
-## sg
+#### <a name='sg'></a>sg
 1. 安全组是针对每个port做网络访问控制，防火墙是针对一个VPC网络，通常是在路由做策略；
 因此security group在计算节点的tap设备上做，而firewall在网络节点的router上做。
 2. 安全组定义的是允许通过的规则集合，规则的动作是ACCEPT；
@@ -1115,32 +1205,32 @@ linuxbridge + iptables + connection track
 
 
 
-### ovs + openflow实现安全组
+###### ovs + openflow实现安全组
 查看port的接口id  ovs-ofctl show br-int |grep 789dc709- -A 3
 查看目的端口22并且接口id为502的安全组规则      ovs-ofctl dump-flows br-int |grep output:502|grep tp_dst=22
 
 表示源地址为12.12.12.0/24报文送到接口502
-[root@sdn-1 ~]# ovs-ofctl dump-flows br-int |grep 12.12.12.0
+[root@sdn-1 ~]## ovs-ofctl dump-flows br-int |grep 12.12.12.0
  cookie=0x151f0564881e5c71, duration=12.497s, table=82, n_packets=0, n_bytes=0, idle_age=14, priority=77,ct_state=+est-rel-rpl,tcp,reg5=0x1f6,nw_src=12.12.12.0/24,tp_dst=22 actions=output:502
  cookie=0x151f0564881e5c71, duration=12.497s, table=82, n_packets=0, n_bytes=0, idle_age=14, priority=77,ct_state=+new-est,tcp,reg5=0x1f6,nw_src=12.12.12.0/24,tp_dst=22 actions=ct(commit,zone=NXM_NX_REG6[0..15]),output:502,resubmit(,92)
 
 表示目的地址33.33.33.0/24的报文，从接口502正常转发
-[root@sdn-1 ~]# ovs-ofctl dump-flows br-int |grep 33.33.33.0
+[root@sdn-1 ~]## ovs-ofctl dump-flows br-int |grep 33.33.33.0
  cookie=0x151f0564881e5c71, duration=18.246s, table=72, n_packets=0, n_bytes=0, idle_age=19, priority=77,ct_state=+est-rel-rpl,tcp,reg5=0x1f6,nw_dst=33.33.33.0/24,tp_dst=22 actions=resubmit(,73)
  cookie=0x151f0564881e5c71, duration=18.246s, table=72, n_packets=0, n_bytes=0, idle_age=19, priority=77,ct_state=+new-est,tcp,reg5=0x1f6,nw_dst=33.33.33.0/24,tp_dst=22 actions=resubmit(,73)
 
 
-## dhcp
+#### <a name='dhcp'></a>dhcp
 Dynamic Host Configuration Protocol
 
 虚机内部指定dhclient可向dhcp agent请求IP地址；
 
-### Nova 虚机获取固定IP （Fixed IP）
+###### Nova 虚机获取固定IP （Fixed IP）
 （1）在创建虚机过程中，Neutron 随机生成 MAC 和 从配置数据中分配一个固定IP 地址，并保存到 Dnsmasq 的 hosts 文件中，让 Dnsmasq 做好准备；
 （2）虚机在启动时向 Dnsmasq 获取 IP 地址。
 
 
-### port 创建成功后的 dhcp 相关操作
+###### port 创建成功后的 dhcp 相关操作
 创建 VM 时，nova-compute 与 neutron 的 plugin 交互，在 neutron 的数据库中创建 VM 所需的 port 信息。
 neutron 数据库中的 port 信息创建完成后，通知 neutron-dhcp-agent去将数据库中的 port 中的 ip 和 mac 信息加载到 dnsmasq 所需的配置文件中(包括 host 和 addn_hosts 文件)。 
 在 VM 启动时，广播 dhcp discover 请求，当 dnsmasq 进程的监听接口 ns-xxx 监
@@ -1156,7 +1246,7 @@ neutron 数据库中的 port 信息创建完成后，通知 neutron-dhcp-agent�
 
 
 
-## rbac policy
+#### <a name='rbacpolicy'></a>rbac policy
 OpenStack RBAC（Role-Based Access Control）是一种基于角色的访问控制机制，用于管理OpenStack云平台中的资源和服务。
 它允许管理员为用户和组分配不同的角色，以控制他们对云平台中不同资源和服务的访问权限。
 OpenStack RBAC的核心是角色和权限。角色是一组权限的集合，而权限则是对特定资源或服务的访问控制。
@@ -1172,14 +1262,14 @@ target-project指的是要共享的项目id；action--access_as_shared表示可�
 
 
 
-## quota
+#### <a name='quota'></a>quota
 1. 获得租户的份额；首先初始化份额为默认值，然后根据Quota库中条目更新资源的份额；
 2. 删除份额，即重装份额，就是删除Quota表中的条目，份额都变成默认值；
 
 
 
 
-## Vmware 提供了三种网络工作模式 
+#### <a name='Vmware'></a>Vmware 提供了三种网络工作模式 
 bridged 桥接模式
 手工为虚机配置 IP 地址掩码并且和宿主机同一网段，使用桥接模式的虚机和宿主机的关系就像连接到同一 hub 上的两台电脑。
 
@@ -1192,28 +1282,28 @@ NAT 网络地址转化模式
 
 
 
-## octavia
-### 概念
+#### <a name='octavia'></a>octavia
+###### 概念
 1. LB management network，打通Openstack management和Amphora;
 2. VIP network，作为vip pool的网络，东侧接入Amphora有keepalived实现的VRRP协议支持具有高可用特性的虚拟IP地址；
 3. Tenant network,业务主机所处的网络，东侧接入amphora由haproxy为业务云主机提供负载均衡数据流量分发服务。普通租户可见。
 4. VIP network和Tenant network可以是同一网络，生产环境建议分开；
 5. Amphora云主机，作为负载均衡器软件Haproxy和高可用支持Keepalived的运行载体，同时也运行着amphora-agent service对外提供REST API。
 
-### 负载均衡算法
+###### 负载均衡算法
 轮询 (Round robin)：轮流分发到各个（活动）服务器 
 加权轮循 (Weighted round robin)：每个服务器有一定的加权（weight），轮询时考虑加权。 
 最少连接 (Least connections)：转发到有最少连接数的服务器
 最少响应时间 (Least response time)：转发到响应时间最短的服务器 
 
 
-### 资源操作
-#### 创建loadbalancer
+###### 资源操作
+######## 创建loadbalancer
 1. 数据库创建loadbalancer+vip记录；
 2. 调用amphora driver创建vip port；如果指定了vip_port_id则将port转成vip；否则就调neutronclient接口创建port转成vip；
 3. 发送消息到MQ,octavia_worker监听消息进行create_load_balancer；
 
-#### 创建listener
+######## 创建listener
 haproxy 只有在创建了 listener 之后才会启动。
 Lisenter 含有的协议及端口信息都需要被更新到 VIP 的安全组规则中
 1. 先生成haproxy配置文件，向amp发送消息，生成对应该 listener 的 haproxy 服务脚本。
@@ -1224,12 +1314,12 @@ Lisenter 含有的协议及端口信息都需要被更新到 VIP 的安全组规
 3. 启动haproxy服务，service haproxy-{listener_id} start
 
 
-#### 创建pool
+######## 创建pool
 在haproxy的配置文件中增加backend配置；
 
 
 
-### devstack打通本地网络的指令
+###### devstack打通本地网络的指令
 Devstack 打通本地网络的指令：
 $ neutron port-create --name octavia-health-manager-standalone-listen-port \
   --security-group <lb-health-mgr-sec-grp> \
@@ -1243,7 +1333,7 @@ $ ovs-vsctl --may-exist add-port br-int o-hm0 \
   -- set Interface o-hm0 external-ids:attached-mac=<Health Manager Listen Port MAC> \
   -- set Interface o-hm0 external-ids:iface-id=<Health Manager Listen Port ID>
   
-$ # /etc/octavia/dhcp/dhclient.conf
+$ ## /etc/octavia/dhcp/dhclient.conf
 request subnet-mask,broadcast-address,interface-mtu;
 do-forward-updates false;
 
@@ -1272,10 +1362,10 @@ o-hm0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
 
 
 
-# cinder
+## <a name='cinder'></a>cinder
 
 
-## volume-type
+#### <a name='volume-type'></a>volume-type
 对于每个ceph后端，创建一个volume type，并将volume type关联配置文件中的volume_backend_name：
 cinder type-create ceph
 cinder type-key ceph set volume_backend_name=ceph
@@ -1291,12 +1381,12 @@ Cinder不仅支持本地volume的管理，还能把本地volume备份到远端�
 4. create from image: 基于Glance image创建一个volume。
 
 
-## 创建volume
+#### <a name='volume'></a>创建volume
 1. scheduler.create_volume-->error；
 2. 根据快照创建快照，如果更换硬盘类型有如下条件：硬盘类型的加密不变；硬盘类型的volume_backend_name相同，如果volume_backend_name为空还是不能创建；
 
 
-## 删除volume
+#### <a name='volume-1'></a>删除volume
 volume.delete.end--->deleted,
 1. 如果volume有snapshot，则不允许删除；
 2. 删除虚机时，如果创建虚机带的BDM中delete_on_termination=true，则会删除系统盘；如果delete_on_termination不带或是false,则不删除系统盘；
@@ -1304,7 +1394,7 @@ volume.delete.end--->deleted,
 
 
 
-## 挂载volume
+#### <a name='volume-1'></a>挂载volume
 volume.attach.end--->in-use
 1. 问题--比如说虚机挂载两个数据盘 vol1-->vdb，vol2-->vdc，把vol1卸载掉，重启云服务器，虚机fdisk -l显示的是vdb，和openstack目前存在的挂载情况vdc不一致；
 2. 虚机挂载数据盘时，盘符按序vdb，vdc...进行自动分配；
@@ -1312,12 +1402,12 @@ volume.attach.end--->in-use
 
 
 
-## 卸载volume
+#### <a name='volume-1'></a>卸载volume
 volume.detach.end--->available
 1. 卸载有条件判断，volume的status必须为in-use和attach_status必须为attached；
 
 
-## os-force_detach
+#### <a name='os-force_detach'></a>os-force_detach
 {
     "os-force_detach": {
         "attachment_id": "d8777f54-84cf-4809-a679-468ffed56cf1",
@@ -1335,18 +1425,18 @@ volume.detach.end--->available
 
 
 
-## 创建snapshot
+#### <a name='snapshot'></a>创建snapshot
 snapshot.create.end--->available
 1. 创建快照，volume状态必须是available，error_deleting不行；
 
 
-## 删除snapshot
+#### <a name='snapshot-1'></a>删除snapshot
 snapshot.delete.end--->deleted
 1. snapshot状态必须是available和error,且不属于group的一部分才能删除；
 2. 快照如果有根据其创建的硬盘，则此快照不允许删除；
 
 
-## volume类型更改
+#### <a name='volume-1'></a>volume类型更改
 volume.retype--->available/in-use
 
 1. Retype needs volume to be in available or in-use state, not be part of an active migration or a consistency group, 
@@ -1355,7 +1445,7 @@ requested type has to be different that the one from the volume, and for in-use 
 
 
 
-## 配置文件支持多个后端
+#### <a name='-1'></a>配置文件支持多个后端
 cinder.conf
 enabled_backends = lvmdriver-b21,lvmdriver-b22
 storage_availability_zone=az1
@@ -1376,7 +1466,7 @@ cinder backup支持将元数据序列化导出（export record)，这样即使�
 
 
 
-## cinder备份实现rdb和s3共存
+#### <a name='cinderrdbs3'></a>cinder备份实现rdb和s3共存
 S3 Simple Storage Service 简单存储服务
 Amazon
 通过 S3 存储和检索的资产被称为对象。对象存储在存储段（bucket）中。您可以用硬盘进行类比：对象就像是文件，存储段就像是文件夹（或目录）。
@@ -1427,11 +1517,11 @@ cinder_backup,如果需要备份的卷正在被使用，则先根据该卷创建
 9. 修改代码，重启cinder_api和cinder_backup，查看s3落地配置ceph-rgw容器中radosgw-admin bucket stats以及s3 browser上看bucket是否上传；查看rbd落地配置ceph-mon，rbd snap list volumes/volume-7bc60bb1-f640-4605-b5cb-28fdf2d4b35f/rbd snap ls volumes_ssd/volume-a96ff34e-a820-4f00-9b38-69508261b01e；
 
 
-rbd snap list volumes/volume-uuid        # volume下有快照的情况
-rbd snap list images/<image_uuid>        # volume下有快照的情况
-rbd info volumes/volume-b45b18e6-9996-4a16-8504-5368881934f0    # 查看volume详情
-rbd info  images/b45b18e6-9996-4a16-8504-5368881934f0    # 查看image详情
-rbd ls -p volumes       # 查看所有volume
+rbd snap list volumes/volume-uuid        ## volume下有快照的情况
+rbd snap list images/<image_uuid>        ## volume下有快照的情况
+rbd info volumes/volume-b45b18e6-9996-4a16-8504-5368881934f0    ## 查看volume详情
+rbd info  images/b45b18e6-9996-4a16-8504-5368881934f0    ## 查看image详情
+rbd ls -p volumes       ## 查看所有volume
 
 
 backup做得事：
@@ -1463,7 +1553,7 @@ backup做得事：
 openstack的备份对接对象存储，主要的点就是怎么优化成支持多个对象存储集群，再怎么从备份转成对应的硬盘或镜像
 
 
-## cinder qos限速
+#### <a name='cinderqos'></a>cinder qos限速
 IOPS，每秒的输入输出量；单位事件内系统能处理的IO请求数量；
 
 Cinder 支持 front-end 端和back-end 端设置QoS，front-end指的是在宿主机上设置虚机的qos，back-end指的是在存储设备上设置qos，ceph rbd不支持qos；
@@ -1486,7 +1576,7 @@ virsh dumpxml 3|grep sec
 2. 硬盘的qos变更生效，系统盘重启，数据盘要重新挂载；
 
 
-## 快照恢复成卷
+#### <a name='-1'></a>快照恢复成卷
 ISCSI：基于TCP/IP的共享块设备的协议，通过它能够把本地的块设备共享给其它服务器；ISCSI服务端Target可以认为一个物理存储池，
 包含多个backstores,backstore实际就是要共享出去的设备，backstore需要添加到指定的target中，target会把这些物理设备映射成逻辑设备，
 并分配一个id，称为LUN(逻辑单元号)；
@@ -1564,7 +1654,7 @@ lvm--逻辑卷管理
 docker exec -i -u root cinder_volume bash -c 'tgtadm --lld iscsi --op show --mode target |grep 556c537e-27c1-4d55-83a8-f0eb706e03ad'
 
 
-## lvm卷的备份
+#### <a name='lvm'></a>lvm卷的备份
 ceph作为后端时，cinder_volume使用非RBD作为backend时，仅支持全量备份。
 create_backup
 1. 如果volume状态是in-use,则根据源卷创建一个临时卷，如果volume状态是available，则临时卷就是源卷；
@@ -1575,12 +1665,12 @@ create_backup
 5. 删除临时卷；
 
 
-## ceph osd
+#### <a name='cephosd'></a>ceph osd
 查看ceph集群---->ceph osd status/ceph -s/ceph -w
 设置副本数----ceph osd pool set vms size 1
 查看副本数----ceph osd pool get vms size
 
-# glance
+## <a name='glance'></a>glance
 image 的元数据 通过 glance-registry 存放在 db 中； image 的 chunk 数据 通过 glance-store 存放在各种 backend store 中，并从中获取。 
 
 
@@ -1588,24 +1678,24 @@ image 的元数据 通过 glance-registry 存放在 db 中； image 的 chunk �
 2. 如果镜像中还有虚拟机依赖，则不能删除该镜像，换句话说，删除镜像之前，必须删除基于该镜像创建的所有虚拟机。
 
 
-## 创建镜像
+#### <a name='-1'></a>创建镜像
 1. 创建空镜像，不指定--file,状态变成queued；
 2. 通过导入方式创建镜像，即指定导入方法import-method；
 3. 查看rbd存储的镜像文件   ceph_mon容器中执行rbd ls -p images；rbd -p images info <image_id>
 
-## tips
+#### <a name='tips'></a>tips
 1. disk_format属性只能对queued状态的image才能替换；
 2. 设置镜像裸机使用，openstack image set <image> --property usage_type=ironic；云主机--usage_type=common
 
 
-## 四种镜像导入方法
+#### <a name='-1'></a>四种镜像导入方法
 glance-direct，将镜像文件直接上传到后端存储系统；--file
 web-download，从官方网站或者其他可靠的镜像站点下载所需的镜像文件,之后创建镜像，--uri
 copy-image
 glance-download
 
 
-## 支持s3后端配置文件说明
+#### <a name='s3'></a>支持s3后端配置文件说明
 * s3_store_host
 s3服务地址(e.g. s3-region.amazonaws.com, http://s3-region.amazonaws.com, https://s3-region.amazonaws.com or my-object-storage.com, http://my-object-storage.com, https://my-object-storage.com)
 
@@ -1641,7 +1731,7 @@ s3存储区域名称
 
 
 
-## 镜像共享
+#### <a name='-1'></a>镜像共享
 1. 在sdn_test用户下，通过volume upload_to_image方式创建的镜像，默认私有的，并且不是受保护的，即visibility=private，unprotected；
 2. 当更新image protected时，则不允许删除，本用户以及admin用户均不能删除；
 3. 设置image community指的是此image可供所有其它用户共享，但是貌似不支持设置；
@@ -1655,13 +1745,13 @@ s3存储区域名称
 
 
 
-# 普罗米修斯(Prometheus)
+## <a name='Prometheus'></a>普罗米修斯(Prometheus)
 一款开源的监控和警报系统，使用节点监控模块(node_exporter)；
 
 
 
-# 部署
-## kolla-ansible
+## <a name='-1'></a>部署
+#### <a name='kolla-ansible'></a>kolla-ansible
 1. --tags neutron                                                      ---部署单独的组件；
 2. --skip-tags neutron nova                                            ---部署时跳过某些组件
 3. kolla-ansible post-deploy                                           ---生成admin-openrc.sh
@@ -1672,7 +1762,7 @@ s3存储区域名称
 8. kolla-ansible -i /etc/ansible/hosts/ deploy --tags nova --limit node2     ---限node2部署
 
 
-## 部署过程
+#### <a name='-1'></a>部署过程
 1.关闭 selinux，关闭防火墙，更改 hosts 并免密登陆 
 2.安装 docker-ce 
 3.安装 ansible，先 pip2.4.0 后 yum 
@@ -1685,7 +1775,7 @@ s3存储区域名称
 10.安装 openstack client 
 
 
-## 扩容计算节点
+#### <a name='-1'></a>扩容计算节点
 1. 将计算节点配置到00host文件中；
 2. 执行初始化ansible-playbook -i /etc/ansible/hosts/ /root/ict-ansible/config.yml；
 3. kolla-ansible -i /etc/ansible/hosts/ upgrade -t nova neutron
@@ -1694,7 +1784,7 @@ s3存储区域名称
 
 
 
-# notification机制
+## <a name='notification'></a>notification机制
 from neutron_lib import rpc as n_rpc
 notifier = n_rpc.get_notifier('network')
 notifier.info(context, "firewall_group.update_status",
@@ -1707,9 +1797,9 @@ notifier.info(context, "firewall_group.update_status",
 
 
 
-# keystone
+## <a name='keystone'></a>keystone
 
-## user 
+#### <a name='user'></a>user 
 指的任何使用 Openstack 的实体，可以是真正的用户，其它系统或者服务； 
 除了 admin、demo 外，openstack 也为 nova，cinder，glance，neutron 服务创建了相应的 user 
 credentials
@@ -1748,9 +1838,9 @@ keystone 借助 role 来进行鉴权，可以为 user 分配一个或多个 role
 个 role 能干什么，service 通过各自的 policy.json 文件对 role 进行访问控制。 
 
 
-## LDAP
+#### <a name='LDAP'></a>LDAP
 轻量目录访问协议
-### openstack集成ldap
+###### openstack集成ldap
 1. 开启openstack多域支持
 /etc/kolla/keystone/keystone.conf
 [identity]
@@ -1763,45 +1853,45 @@ chown -R keystone:keystone /etc/keystone/domains
 {DOMAIN_NAME}需要和真正的domain name保持一致，比如我们实验环境中的test.com,那么配置文件应该为keystone.test.conf
 配置内容如下：
 [identity]
-#认证使用ldap
+##认证使用ldap
 driver = ldap
 [assignment]
-#鉴权使用sql
+##鉴权使用sql
 driver = sql
 [ldap]
 url = ldap://10.50.7.108:389
-#这里绑定管理员信息（理论上其他用户也应该性）
+##这里绑定管理员信息（理论上其他用户也应该性）
 user = CN=Manager,DC=my-domain,DC=com
 password = 123123
 suffix = DC=my-domain,DC=com
-#use_dumb_member和allow_subtree_delete在新版配置中不存在
+##use_dumb_member和allow_subtree_delete在新版配置中不存在
 use_dumb_member = False
 allow_subtree_delete = False
 
 query_scope = sub
-#让openstack从ldap openstack的组织单位中同步用户
+##让openstack从ldap openstack的组织单位中同步用户
 user_tree_dn = ou=openstack,dc=my-domain,dc=com
 user_objectclass = organizationalPerson
 user_id_attribute = cn
-#user_name_attribute = sAMAccountName
+##user_name_attribute = sAMAccountName
 user_name_attribute = cn
 user_mail_attribute = mail
-#user_filter = (&(objectClass=user)(cn=*))
+##user_filter = (&(objectClass=user)(cn=*))
 
 user_enabled_attribute = userAccountControl
 user_enabled_default = 512
-#openstack的用户中有一个用户激活的属性，在AD中并没有对应的field与之对应，需要使用user_enabled_mask = 2来支持，并配置user_enabled_emulation。user_enabled_emulation是一个work round，当用户的LDAP system没有提供 enabled这个属性的时候，可以用这个做为work round，方法就是创建一个cn，专门用来放那些user是enabled。
+##openstack的用户中有一个用户激活的属性，在AD中并没有对应的field与之对应，需要使用user_enabled_mask = 2来支持，并配置user_enabled_emulation。user_enabled_emulation是一个work round，当用户的LDAP system没有提供 enabled这个属性的时候，可以用这个做为work round，方法就是创建一个cn，专门用来放那些user是enabled。
 user_enabled_mask = 2
 user_enabled_emulation = False
 
 group_tree_dn = ou=openstack,dc=my-domain,dc=com
 group_objectclass = groupOfNames
-#group_filter = (&(objectClass=group)(cn=*))
+##group_filter = (&(objectClass=group)(cn=*))
 group_id_attribute = cn
 group_name_attribute = ou
 group_member_attribute = member
 
-#open all debug log for ldap driver
+##open all debug log for ldap driver
 debug_level = -1
 
 3. 创建domain
@@ -1815,9 +1905,9 @@ openstack role add --project test_project --user 2039fc8d3fe5990db555b4ddeed8307
 此时即可使用此user。
 
 
-### keystone to keystone idp
+###### keystone to keystone idp
 
-#### 概念
+######## 概念
 1. identity provider(idp),断言方，用于认证用户身份；
 2. service provider(sp)，服务提供方，依赖idp认证用户身份；
 3. Assertion Protocol: 认证(断言)协议，Service Provider 和 Identity Provider 完成认证用户身份所用的协议，常用有 SAML, OpenID, Oauth 等
@@ -1833,7 +1923,7 @@ service-provider-url通过curl -s http://sp.keystone.demo181:5000/Shibboleth.sso
 在SAML ECP中，客户端或代理充当身份提供者（IdP）的角色，与服务提供者（SP）进行通信。它利用SAML协议中的断言（Assertion）来携带用户的身份和授权信息。断言是由身份提供者签名的XML文档，其中包含用户的身份信息、权限等。
 11. 
 
-#### 工作流
+######## 工作流
 ![](static/img_14.png)
 1. 用户根据账号密码在idp调POST /v3/auth/tokens生成token；
 2. 调用idp /v3/auth/OS-FEDERATION/saml2/ecp生成ECP包装的SAML断言信息；
@@ -1842,16 +1932,16 @@ service-provider-url通过curl -s http://sp.keystone.demo181:5000/Shibboleth.sso
 5. 取出token，并带project_id，向sp获取scoped token，然后拿此token进行资源的访问。
 
 
-#### 环境
+######## 环境
 192.168.32.181 sp.keystone.demo
 192.168.32.239 idp.keysonte.demo
 
-#### 配置sp节点
+######## 配置sp节点
 a. /etc/kolla/keystone/keystone.conf中配置支持的认证方法
 [auth]
-#methods = external,password,token,oauth1,mapped,openid,totp
+##methods = external,password,token,oauth1,mapped,openid,totp
 methods = password,token,oauth1,mapped,saml2
-#saml2 = keystone.auth.plugins.mapped.Mapped
+##saml2 = keystone.auth.plugins.mapped.Mapped
 
 [saml2]
 remote_id_attribute = Shib-Identity-Provider
@@ -1860,16 +1950,16 @@ remote_id_attribute = Shib-Identity-Provider
 trusted_dashboard = http://sp.keystone.demo/auth/websso/
 trusted_dashboard = http://idp.keystone.demo/auth/websso/
 sso_callback_template = /etc/keystone/sso_callback_template.html
-#driver = keystone.contrib.federation.backends.sql.Federation
+##driver = keystone.contrib.federation.backends.sql.Federation
 
 
 b. 在keystone容器中安装shibboleth rpm包；
 
 先配置yum源
-[root@openstack--1 ~]# cat /etc/yum.repos.d/shibbileth.repo
+[root@openstack--1 ~]## cat /etc/yum.repos.d/shibbileth.repo
 [shibboleth]
 name=Shibboleth (CentOS_7)
-# Please report any problems to https://shibboleth.atlassian.net/jira
+## <a name='Pleasereportanyproblemstohttps:shibboleth.atlassian.netjira'></a>Please report any problems to https://shibboleth.atlassian.net/jira
 type=rpm-md
 mirrorlist=https://shibboleth.net/cgi-bin/mirrorlist.cgi/CentOS_7
 gpgcheck=1
@@ -1937,7 +2027,7 @@ ShibRequestSetting requireSession 1
 ShibExportAssertion Off
 </Location>
 
-#### 配置idp节点
+######## 配置idp节点
 a. /etc/kolla/keystone/keystone.conf增加saml配置，为了生成idp metadata
 [saml]
 certfile=/etc/keystone/ssl/certs/signing_cert.pem
@@ -1958,12 +2048,12 @@ openstack service provider create keystonesp \
 --service-provider-url http://sp.keystone.demo:5000/Shibboleth.sso/SAML2/ECP
 
 service-provider-url通过查看sp的metadata来获取
-[root@openstack--2 ~]# curl -s http://sp.keystone.demo:5000/Shibboleth.sso/Metadata|grep urn:oasis:names:tc:SAML:2.0:bindings:PAOS
+[root@openstack--2 ~]## curl -s http://sp.keystone.demo:5000/Shibboleth.sso/Metadata|grep urn:oasis:names:tc:SAML:2.0:bindings:PAOS
 <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:PAOS" Location="http://sp.keystone.demo:5000/Shibboleth.sso/SAML2/ECP" index="4"/>
-[root@openstack--2 ~]#
-[root@openstack--2 ~]#
+[root@openstack--2 ~]##
+[root@openstack--2 ~]##
 
-#### 测试
+######## 测试
 1. 在idp节点sdn_test1用户下获取unscoped token;
 openstack --os-service-provider keystonesp token issue --debug
 此过程会在sp节点创建user，project，由mapping控制
@@ -1971,15 +2061,15 @@ openstack --os-service-provider keystonesp token issue --debug
 3. 再拿获取到token向sp请求资源，例如创建network；
 
 
-# 状态机nonick-notifier-service
-## dev环境构建
+## <a name='nonick-notifier-service'></a>状态机nonick-notifier-service
+#### <a name='dev'></a>dev环境构建
 docker build -t notifier:0921 .
 docker run -itd -u root -v /service/logs/dev/nonick/nonick-notifier-service:/service/logs/dev/nonick/nonick-notifier-service -v /etc/localtime:/etc/localtime -p 8081 notifier:0921 bash
 起在10.251.28.21:/home/dongxiang/openstack_notifier
 
 
 
-# SDN
+## <a name='SDN'></a>SDN
 背景
 手工配置和维护各种硬件设备，网络业务变复杂，多租户场景不能通过手工来保证。 
 SDN 是新型网络架构，设计理念是将网络的控制平面和数据转发平面进行分离，
@@ -1992,7 +2082,7 @@ SDN 是新型网络架构，设计理念是将网络的控制平面和数据转�
 
 
 
-# issue
+## <a name='issue'></a>issue
 1. 硬盘的备份恢复支持s3对象存储。过程：获取uid或AK/SK+备份类型s3+endpoint+bucket之后初始化s3 client进行备份、恢复操作（cinder）；
 2. openstack 虚机、硬盘、网络等资源状态同步推送到集成层；支持资源成功失败的场景（neutron/cinder/nova）；
 3. 支持lvm类型的系统盘根据快照恢复到硬盘；过程就是调用driver的create_export（cinder）；
