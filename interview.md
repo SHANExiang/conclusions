@@ -5340,3 +5340,1191 @@ bgp
 公司加班文化比较严重，1 2 4 6 加班，而且没有加班费，经常性被叫白嫖厂，考
 核时同样完成任务，会将加班时长作为考核项。 
  
+
+
+ 
+## python基础
+
+
+
+#### python 编码 
+文件以什么编码保存的，就以什么编码方式打开. 
+python2 中默认使用 ascii，python3 中默认使用 utf-8。 
+x="hello",其中的 x，等号，引号，地位都一样，都是普通字符而已，都是以 unicode
+编码的二进制形式存放与内存中的.但是程序在执行过程中，会申请内存（与程序
+代码所存在的内存是俩个空间），可以存放任意编码格式的数据。 比如 x="hello",
+会被 python 解释器识别为字符串，会申请内存空间来存放"hello"，然后让 x 指向
+该内存地址，此时新申请的该内存地址保存也是 unicode 编码的 hello； 如果代
+码换成 x="hello".encode('utf-8'),那么新申请的内存空间里存放的就是 utf-8 编码
+的字符串 hello 了。不同编码的字符串就是存放在不同的内存地址。 
+python2 中有两种字符串类型 str 和 unicode 
+str 类型 
+   当 python 解释器执行到产生字符串的代码时（例如 s='林'），会申请新的
+内存地址，然后将'林'编码成文件开头指定的编码格式，这已经是 encode 之后的
+结果了，所以 s 只能 decode。再次 encode 就会报错。 
+##_*_coding:gbk_*_ 
+ 
+x='林' 
+print x.encode('gbk') ##报错 
+print x.decode('gbk') ##结果：林 
+在 python2 中，str 就是编码后的结果 bytes，str=bytes,所以在 python2 中，unicode 字符
+编码的结果是 str/bytes 
+##coding:utf-8 
+s='林' ##在执行时,'林'会被以 conding:utf-8 的形式保存到新的内存空间中 
+ 
+print repr(s) ##'\xe6\x9e\x97' 三个 Bytes,证明确实是 utf-8 
+print type(s) ##<type 'str'> 
+ 
+s.decode('utf-8') 
+s.encode('utf-8') ##报错，s 为编码后的结果 bytes，所以只能 decode 
+  Unicode 类型 
+  当 python 解释器执行到产生字符串的代码时（例如 s=u'林'），会申请新的
+内存地址，然后将'林'以 unicode 的格式存放到新的内存空间中，所以 s 只能 encode，
+不能 decode. 
+s=u'林' 
+print repr(s) ##u'\u6797' 
+print type(s) ##<type 'unicode'> 
+ 
+ 
+s.decode('utf-8') ##报错，s 为 unicode，所以只能 encode 
+s.encode('utf-8')  
+  特别说明: 
+  当数据要打印到终端时，要注意一些问题。 
+  当程序执行时，比如:x='林';print(x) ##这一步是将 x 指向的那块新的内存空间
+（非代码所在的内存空间）中的内存，打印到终端，而终端仍然是运行于内存中
+的，所以这打印可以理解为从内存打印到内存，即内存->内存，unicode->unicode.
+对于 unicode 格式的数据来说，无论怎么打印，都不会乱码.python3 中的字符串
+与 python2 中的 u'字符串'，都是 unicode，所以无论如何打印都不会乱码.在
+windows 终端（终端编码为 gbk，文件编码为 utf-8，乱码产生） 
+##分别验证在 pycharm 中和 cmd 中下述的打印结果 
+s=u'林' ##当程序执行时，'林'会被以 unicode 形式保存新的内存空间中 
+ 
+ 
+2. 指向的是 unicode，因而可以编码成任意格式，都不会报 encode 错误 
+s1=s.encode('utf-8') 
+s2=s.encode('gbk') 
+print s1 ##打印正常否？ 
+print s2 ##打印正常否 
+ 
+ 
+print repr(s) ##u'\u6797' 
+print repr(s1) ##'\xe6\x9e\x97' 编码一个汉字 utf-8 用 3Bytes 
+print repr(s2) ##'\xc1\xd6' 编码一个汉字 gbk 用 2Bytes 
+ 
+print type(s) ##<type 'unicode'> 
+print type(s1) ##<type 'str'> 
+print type(s2) ##<type 'str'> 
+python3 中也有两种字符串类型 str 和 bytes 
+python2 中，str 类型和 bytes 类型是同一种类型。以下语句在 python2 中等效： 
+a = 'ab' 
+a = b'ab' 
+python3 中，str 类型和 unicode 类型是同一种类型。以下语句在 python3 中等效： 
+a = 'ab' 
+a = u'ab' 
+python2 unicode 类似于 python3 str; 
+python2 str 类似于 python3 bytes。 
+str 类型变为 unicode 类型 
+##coding:utf-8 
+s='林' ##当程序执行时，无需加 u，'林'也会被以 unicode 形式保存新的内存空间中, 
+ 
+3. 可以直接 encode 成任意码格式 
+s.encode('utf-8') 
+s.encode('gbk') 
+ 
+print(type(s)) ##<class 'str'> 
+ 
+bytes 类型 
+```python
+x = '春香' 
+print(x)  ## 春香 
+s = u'vdgfdghf 董' 
+print('type(s)==%s' % type(s), 'id(s)==%s' % id(s), s) 
+## type(s)==<class 'str'> id(s)==1782182021696 vdgfdghf 董 
+s1 = s.encode('gbk') 
+s2 = s.encode('utf-8') 
+s3 = s2.decode() 
+print('type(s1)==%s' % type(s1), 'id(s1)==%s' % id(s1), s1) 
+## type(s1)==<class 'bytes'> id(s1)==1782182900816 b'vdgfdghf \xb6\xad' 
+print('type(s2)==%s' % type(s2), 'id(s2)==%s' % id(s2), s2) 
+## type(s2)==<class 'bytes'> id(s2)==1782182903408 b'vdgfdghf \xe8\x91\xa3' 
+print('type(s3)==%s' % type(s3), 'id(s3)==%s' % id(s3), s3) 
+## type(s3)==<class 'str'> id(s3)==1993071642976 vdgfdghf 董 
+
+## 可以看到不同编码的字符串，存放在不同的内存地址，bytes 类型字符串在 python3 中，是什么就打印什么 
+## s encode()之后再 decode()已经不是之前的 s 了，重新放置再另一块内存 
+
+## python 进制 
+## python 中二进制用 0b 加相应数字表示，八进制用 0o 加相应数字表示，十六进制用 0x加相应数字表示；bin()方法可以将其他进制的数转换成二进制，oct()将其他进制的数转换成八进制，hex()将其他进制的数转换成十六进制；int()转换成十进制；  
+ 
+## 数字转换成二进制，并且指定位数，前面用 0 填充 
+print(format(10, '08b')) ## 00001010 
+print(format(10, '010b')) ## 0000001010 
+ 
+## 十进制数字转换成十六进制 
+print(format(30, '02x')) ## 1e 
+print(format(100, '02x')) ## 64 
+ 
+## python 运算 
+print(20 // 8)  ## 2   20 除以 8 的商 
+ 
+## 在 Python3 中，/操作符是做浮点除法，而//是做整除（即商没有余数，比如 10//3 其结果就为 3，余数会被截除掉，而(-7)//3 的结果却是-3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向 0 的方向取值。 
+## 在 Python2 中，/就是整除，即和 Python3 中的//操作符一样） 
+ 
+## python 中的正无穷或负无穷，使用 float("inf")或 float("-inf")来表示。 
+## 这里有点特殊，写成：float("inf")，float("INF")或者 float('Inf')都是可以的。 
+## 当涉及 > 和 < 比较时，所有数都比无穷小 float("-inf")大，所有数都比无穷大 float("inf")小。 
+## 相等比较时，float("+inf")与 float("+inf")、float("inf")三者相等。 
+ 
+
+## 特别地，0 * float('inf') 结果为：nan 
+float('inf') / float('inf')    ## 结果为：nan 
+float('inf') - float('inf')    ## 结果为：nan 
+float('-inf') - float('-inf')  ## 结果也为：nan 
+ 
+## nan 代表 Not A Number（不是一个数），它并不等于 0 因为 nan 不是一个数，所以相关计算都无法得到数字。 所有涉及 nan 的操作，返回的都是 nan。 
+
+``` 
+ 
+ 
+###### python 三元运算子 
+[on true] if [expression] else [on false] 
+
+###### python 支持一个表达式进行多种比较操作，其实这个表达式本质是由多个隐式的 and
+连接起来的多个表达式； 
+```python
+3<4<7  ## same as "(3<4) and (4<7)" 
+
+## 在不加括号时候, and 优先级大于 or 
+## x or y 的值只可能是 x 或 y. x 为真就是 x, x 为假就是 y 
+## x and y 的值只可能是 x 或 y. x 为真就是 y, x 为假就是 x
+```
+
+###### python 身份运算符 is 和 is not  
+类型注解 
+def add(x:int, y:int) -> int: 
+   return x + y 
+    
+用 : 类型 的形式指定函数的参数类型，用 -> 类型 的形式指定函数的返回值类型。 
+然后特别要强调的是，Python 解释器并不会因为这些注解而提供额外的校验，没有任何
+的类型检查工作。也就是说，这些类型注解加不加，对你的代码来说没有任何影响，只
+是类型检查，高亮显示； 
+ 
+变量类型进行注解的方法： 
+a: int = 123 
+b: str = 'hello' 
+python 比较 
+复数不支持比较大小 
+类似元组、字符串、列表这类格式，在进行两者之间的比较时，先从第一个元素
+开始比较 ASCII 码值大小，如果相等，则依次向后比较，如果全部相等，则比
+较数量大小。 
+ASCII 码值大小： 
+数字： 
+0-9: 48-57 
+字母： 
+A-Z：65-90. 
+a-z： 97-122 
+一串数字、字符的 ASCII 码值大小取决于最后一位的 ASCII 码值。 
+ 
+python 方法与函数 
+_foo----用来指定私有变量的一种方式.不能用 from module import * 导入； 
+__foo----这个有真正的意义:解析器用_classname__foo 来代替这个名字，以区别
+和其他类相同的命名，它无法直接像公有成员一样随便访问，通过对象名._类名
+__xxx 这样的方式可以访问. 
+
+
+###### 如何判断一个值是方法还是函数？ 
+1、 使用 type()来判断，如果是 method 为方法，如果是 function 则是函数。 
+2、 与类和实例无绑定关系的 function 都属于函数（function） 
+3、 与类和实例有绑定关系的 function 都属于方法 
+ 
+ 
+ 
+###### 文档字符串 
+在函数的第一个逻辑行的字符串是这个函数的文档字符串。
+文档字符串的惯例是一个多行字符串，它的首行以大写字母开始，句号结尾。第二行是空行，从第三行开始是详细的描述，在函数中使用文档字符串时尽量遵循这个惯例。 
+文档字符串是一个重要工具，用于解释文档程序 ，帮助你的程序文档更加简单易懂。 我们可以在函数体的第一行使用一对三个单引号 或者一对三个双引号来定义文档字符串。 你可以使用 __doc__调用函数中的文档字符串属性;
+
+
+###### 了解类型注解么？ 
+def list_to_str (param_list:list,connect_str: str = " ") - > str: 
+    paas 
+python3 中注解用来给参数， 返回值，变量的类型加上注解，对代码没影响 
+Python 提供了一个工具方便我们测试类型注解的正确性 
+pip install mypy mypy demo.py 若无错误则无输出 
+
+ 
+###### 猴子补丁 
+“猴子补丁”(monkey patching)就是指，在函数或对象已经定义之后，再去改变它们的行为。
+指在运行时动态修改类或模块。运行时动态修改模块、类或函数，通常是添加功能或修正缺陷。猴子补丁在代码运行时内存中）发挥作用，不会修改源码，因此只对当前运行的程序实例有效。因为猴子补丁破坏了封装，而且容易导致程序与补丁代码的实现细节紧密耦合，所以被视为临时的变通方案，不是集成代码的推荐方式。 
+举个例子： 
+import datetime 
+datetime.datetime.now = lambda: datetime.datetime(2012, 12, 12) 
+ 
+
+ 
+###### 介绍 Cython，Pypy Cpython Numba 各有什么缺点 
+CPython 是使用最广的 Python 解释器。 
+IPython 是基于 CPython 之上的一个交互式解释器，也就是说，IPython 只是在交互方式上有所增强 
+PyPy 是另一个 Python 解释器，它的目标是执行速度。PyPy 采用 JIT 技术，对 Python 代码进行动态编译（注意不是解释），所以可以显著提高 Python 代码的执行速度。 绝大部分 Python 代码都可以在 PyPy 下运行，但是 PyPy 和 CPython
+有一些是不同的，这就导致相同的 Python 代码在两种解释器下执行可能会有不同的结果。如果你的代码要放到 PyPy 下执行，就需要了解 PyPy 和 CPython 的。
+
+不同点 
+Jython Jython 是将 Python code 在 JVM 上面跑和调用 java code 的解释器。 
+
+ 
+提高 python 运行效率的方法 
+1、使用生成器，因为可以节约大量内存 
+2、循环代码优化，避免过多重复代码的执行 
+3、核心模块用 Cython PyPy 等，提高效率 
+4、多进程、多线程、协程 
+5、多个 if elif 条件判断，可以把最有可能先发生的条件放到前面写，这样可以减
+少程序判断的次数，提高效率 
+ 
+ 
+ 
+#### python 新式类和经典类的区别
+a. 在 python 里凡是继承了 object 的类，都是新式类 
+b. Python3 里只有新式类 
+c. Python2 里面继承 object 的是新式类，没有写父类的是经典类 
+d. 经典类目前在 Python 里基本没有应用 
+e. 保持 class 与 type 的统一对新式类的实例执行 a.__class__与 type(a)的结果是一致的，对于旧式类来说就不一样了。 
+f. 对于多重继承的属性搜索顺序不一样新式类是采用广度优先搜索(C3 算法)， 旧式类采用深度优先搜索; 
+g. 新式类多继承搜索顺序(广度优先)：先在水平方向查找，然后再向上查找；经典类多继承搜索顺序(深度优先)：先深入继承树左侧查找，然后再返回，开始查找右侧； 
+h. 新式类除了拥有经典类的全部特性之外，还有一些新的特性。比如__init__发生了变化，新增了静态方法__new__； 
+
+python 之禅 
+通过 import this 语句可以获取其具体的内容。它告诉大家如何写出高效整洁的代码。 
+如何给变量加注释？ 
+可以通过变量名：类型的方式如下 
+a： str = "this is string type" 
+例举几个规范 Python 代码风格的工具 
+pylint 和 flake8 
+列举 3 条以上 PEP8 编码规范 
+《Python Enhancement Proposal ##8》（8 号 Python 增强提案）又叫 PEP8 
+1、顶级定义之间空两行，比如函数或者类定义； 
+2、方法定义、类定义与第一个方法之间，都应该空一行； 
+3、三引号进行注释； 
+4、使用 Pycharm、Eclipse 一般使用 4 个空格来缩进代码。 
+ 
+ 
+ 
+容器类型 
+容器是一种把多个元素组织在一起的数据结构，容器中的元素可以逐个地迭代获
+取。简单来说，就好比一个盒子,我们可以往里面存放数据，也可以从里面一个一
+个地取出数据。 
+在 python 中，属于容器类型地有:list,dict,set,str,tuple.....，容器仅仅只是用来存放
+数据的，我们平常看到的 l = [1,2,3,4]等等，好像我们可以直接从列表这个容器
+中取出元素，但事实上容器并不提供这种能力，而是可迭代对象赋予了容器这种
+能力。 
+python 内置数据类型 
+a.数值类型： 
+整型 int、长整型 long(Python3 中没有 long，只有无限精度的 int)、浮点型 float、 
+复数 complex、布尔型 bool； 
+b.序列对象 
+字符串 str、列表 list、元祖 tuple； 
+c.键值对 
+字典 dict 、集合 set； 
+list 列表 
+有序可重复的元素集合，可嵌套、迭代、修改、分片、追加、删除，成员判断。 
+Python 的列表是一个可变长度的顺序存储结构，每一个位置存放的都是对象的
+指针。 
+ 
+del lis[0] 
+lis.pop()----pop 的是从后往前元素； 
+map(str, list)----将列表中的元素转为 str，生成新的 list； 
+list(dict)----使用 list()函数，一个字典作为参数，得到的是字典键值的列表； 
+original_list[-1:] = target_list----将最后一个元素替换成一个列表； 
+l=[1,2,3,4,5],执行 l[1:3]='abc'后，l 变成[1,'a','b','c',4,5]； 
+list = ['a', 'b', 'c', 'd', 'e'] 
+print list[10:] ## 打印[]  尝试获取 list[10]和之后的成员，会导致 IndexError. 然而，尝试
+获取列表的切片，开始的 index 超过了成员个数不会产生 IndexError,而是仅仅返回一个
+空列表。 
+列表中的元素可以根据位置传递给几个变量，这样使用必须变量数和元素数量一致： 
+x, y, z = [1, 2, 3] 
+print(x, y, z) 
+[[5 * x + res for res in range(1, 6)] for x in range(0, 5)]----再一个列表中产生 5 组 5 个元素
+的 list； 
+ast.literal_eval(str)----将一个 str(类似与这样的 str--"['Red', 'Green', 'White']")转换成 list; 
+all('target' == element for element in list)----判断 list 中是否有元素等于 target 
+list(set().union(*original_list))----[[10, 20], [40], [30, 56, 25], [10, 20], [33], [40]]-->[33, 40, 
+10, 20, 56, 25, 30] 
+list(itertools.chain(*original_list))----将[[2,4,3],[1,5,6], [9], [7,9,0]]-->[2, 4, 3, 1, 5, 6, 9, 7, 9, 
+0],也可以用如下方法： 
+从一个列表中随机选择 n 个元素作为新的 list----random.sample(original_list, n) 
+```python
+list = [ [ ] ] * 5 
+list  ## output? 
+list[0].append(10) 
+list  ## output? 
+list[1].append(20) 
+list  ## output? 
+list.append(30) 
+list  ## output? 
+ 
+## [[], [], [], [], []] 
+## [[10], [10], [10], [10], [10]] 
+## [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]] 
+## [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30] 
+```
+第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了 5 个空列
+表。然而，理解表达式 list=[ [ ] ] * 5 的关键一点是它不是创造一个包含五个独立列表的
+列表，而是它是一个创建了包含对同一个列表五次引用的列表。只有了解了这一点，我
+们才能更好的理解接下来的输出结果。 
+ 
+list[0].append(10) 将 10 附加在第一个列表上。 
+但由于所有 5 个列表是引用的同一个列表，所以这个结果将是： 
+[[10], [10], [10], [10], [10]] 
+ 
+同理，list[1].append(20)将 20 附加在第二个列表上。但同样由于 5 个列表是引用的同一
+个列表，所以输出结果现在是： 
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]] 
+ 
+作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是： [[10, 
+20], [10, 20], [10, 20], [10, 20], [10, 20], 30] 
+ 
+对 list 排序 foo = [-5,8,0,4,9,-4,-20,-2,8,2,-4],使用 lambda 函数从小到大排序 
+>>> foo =  [-5,8,0,4,9,-4,-20,-2,8,2,-4] 
+>>> res = sorted(foo, key=lambda x:x) 
+>>> res 
+[-20, -5, -4, -4, -2, 0, 2, 4, 8, 8, 9] 
+ 
+ 
+使用 lambda 函数对 list 排序 foo = [-5,8,0,4,9,-4,-20,-2,8,2,-4]，输出结果为
+[0,2,4,8,8,9,-2,-4,-4,-5,-20]，正数从小到大，负数从大到小 
+（传两个条件，x<0 和 abs(x) 
+ 
+>>> foo =  [-5,8,0,4,9,-4,-20,-2,8,2,-4] 
+>>> res = sorted(foo, key=lambda x:(x<0, abs(x))) 
+>>> res 
+[0, 2, 4, 8, 8, 9, -2, -4, -4, -5, -20] 
+ 
+python 实现列表去重的方法,先通过集合去重，再转列表
+>>> l = [10,23,12,10,24,10,34,12] 
+>>> s = set(l) 
+>>> s 
+{34, 10, 12, 23, 24} 
+>>> [x for x in s] 
+[34, 10, 12, 23, 24] 
+```python
+## 用 list 类的 sort 方法 
+l1 = ['b','c','d','c','a','a'] 
+l2 = list(set(l1)) 
+l2.sort(key=l1.index) 
+print(l2) 
+## 用 sorted()函数 
+l1 = ['b','c','d','c','a','a'] 
+l2 = sorted(set(l1),key=l1.index) 
+print(l2) 
+## 也可以遍历 
+l1 = ['b','c','d','c','a','a'] 
+l2 = [] 
+for i in l1: 
+    if not i in l2: 
+        l2.append(i) 
+print(l2) 
+
+```
+
+list.extend(iterable)----表示将一个可迭代对象中的元素追加到列表中； 
+itertools.combinations(list, num)----表示获取一个列表的元素个数为 num 的子 list; 
+itertools.tee(iterable, num)----表示从一个迭代器中对象返回 num 个独立的迭代器； 
+map(str, list)----将列表中的元素转为 str，生成新的 list； 
+itertools.groupby(list, key=)----groupby()把迭代器中相邻的，指定特征重复的元素挑出来
+放在一起; 
+operator.itemgetter()----使用 itemgetter()参数规定分组依据; 
+ 
+ 
+tuple 元组 
+元组也是序列结构，但是是一种不可变序列，你可以简单的理解为内容不可变的
+列表。 
+元组对象进行重新赋值或者更新时会导致运行时异常； 
+元组中不允许的操作，确切的说是元组没有的功能： 
+修改、新增元素、删除某个元素（但可以删除整个元组）、所有会对元组内部元
+素发生修改动作的方法。例如，元组没有 remove，append，pop 等方法。 
+元组只保证它的一级子元素不可变，对于嵌套的元素内部，不保证不可变！ 
+color1 = "Red", "Green", "Orange"   ## 可以这样定义，color1 表示的是一个 tuple； 
+x = () ## 创建一个空元组； 
+tuplex = 5 ## 创建一个元素的元组 (5,) 
+tuple.count(element) ## 得到元组中 element 元素出现的次数； 
+```python
+for vlan_min, vlan_max in [(200, 300)]: 
+      print(vlan_min, vlan_max)    
+## output:200 300 
+```
+ 
+str 字符串 
+字符串是不可变的序列数据类型，不能直接修改字符串本身，和数字类型一样！
+Python3 全面支持 Unicode 编码，所有的字符串都是 Unicode 字符串。 
+
+Python 的转义字符 
+字符串前加 u、r、b 
+u"中文字符组成的字符串" 
+作用：以 Unicode 格式 进行编码，一般用在中文字符串前面，防止因为源码储存格式
+问题，导致再次使用时出现乱码。 
+r"\n\n\n\n”  ## 表示一个普通生字符串 \n\n\n\n，而不表示换行 
+作用：去掉反斜杠的转义机制，常用于正则表达式，对应着 re 模块。 
+b’Hello World’   ## 表示这是一个 bytes 对象 
+作用：b" "前缀表示：后面字符串是 bytes 类型。在网络编程中，服务器和浏览器只认
+bytes 类型数据。在 Python3 中，bytes 和 str 的互相转换方式是 str.encode(‘utf-8’)和
+bytes.decode(‘utf-8’)。 
+ 
+str.translate({32: None})----去掉 str 中的空格； 
+s.translate(table)-----table 是字符映射转换表表，是通过 maketrans()方法转换而来的。 
+intab = "aeiou" 
+outtab = "12345" 
+trantab1 = str.maketrans(intab,outtab) ## 创建字符映射转换表,将 intab 映射成 outtab; 
+之后使用 s.translate(trantabl1),将 s 转换； 
+ 
+ 
+string.title()---所有单词的首字母大写，其余小写，非字母后的第一个字母将装换成大写字母； 
+ 
+ 
+字符串的 strip()方法是用，当 strip()有参数时，这个参数可以理解成要删除的字符序列，是否被删除的前提是字符串的开头和结尾是不是包含要删除的字符，如果有就继续处理，没有的话就不会删除中间的字符的； 
+ 
+
+a. count 使用 
+```python
+def test_count(): 
+   s = 'The quick brown fox jumps over the lazy dog.' 
+   print('the occurrence times of character %s is %s' % ('e', s.count('e'))) 
+ 
+ 
+test_count() 
+## the occurrence times of character e is 3 
+
+``` 
+ 
+b. 判断字符串是不是数字 
+def test_string_whether_numeric(): 
+   st = 'sd234' 
+   try: 
+       num = float(st) 
+   except (ValueError, TypeError): 
+       print('not numeric') 
+        
+        
+c. 字符装换成一个 int 列表 
+```python
+by = b'ABm' 
+print(list(by)) 
+## [65, 66, 109]
+``` 
+ 
+d. unicode 字符 
+print(u'\u0050\u0079\u0074\u0068\u006f\u006e')  ## Python   
+ 
+ 
+e. 两个相同的字符串指向同一内存地址 
+```python
+st1 = 'dong' 
+st2 = 'dong' 
+print('st1 的内存地址==%s\nst2 的内存地址==%s' % (hex(id(st1)), hex(id(st2)))) 
+## st1 的内存地址==0x21b3f5dc4f0 
+## st2 的内存地址==0x21b3f5dc4f0 
+
+``` 
+ 
+f. 字符串中添加尾随和前导零 
+```python
+def test_add_trailing_and_leading_zeroes_to_a_string(): 
+   st = 'dgfr45sfry4'
+   print('origin string---%s, len(st)---%s' % (st, len(st))) 
+   st1 = st.ljust(15, '0')
+   print('add trailing zeroes---', st1)
+   st2 = st.ljust(15, '*') 
+   print('add trailing *---', st2)
+   st3 = st.rjust(15, '0')
+   print('add leading zeroes---', st3)
+   st4 = st.rjust(15, '*') 
+   print('add leading zeroes---', st4) 
+
+
+test_add_trailing_and_leading_zeroes_to_a_string() 
+## origin string---dgfr45sfry4, len(st)---11 
+## add trailing zeroes--- dgfr45sfry40000 
+## add trailing *--- dgfr45sfry4**** 
+## add leading zeroes--- 0000dgfr45sfry4 
+## add leading zeroes--- ****dgfr45sfry4 
+```
+ 
+ 
+g. zfill 使用，接收一个数字，表示讲字符串前边填充 0.     
+```python
+def test_combination_3_digit(): 
+   nums = [] 
+   for x in range(15): 
+       num = str(x).zfill(3) 
+       nums.append(num) 
+   return nums 
+ 
+print(test_combination_3_digit()) 
+## ['000', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '012', '013', '014'] 
+```
+ 
+ 
+h. 字符串中的 replace 方法 
+st = string1.replace(old, new[, max])  ## 会生成一个新对象返回,原来的字符串 string1 还是原来的值 
+ 
+ 
+i. split 
+```python
+def get_last_part_string(st): 
+   print(st.split('/')) 
+   print(st.rsplit('/')) 
+   print(st.split('/', 1)) 
+   print(st.split('/', 2)) 
+   print(st.split('/', 3)) 
+   return st.rsplit('/', 1)[0], st.rsplit('-', 1)[0] 
+## split(" ")解决不了单词间多空格的问题，s.split()可以解决 
+## s = "a good   example" 
+## s.split(" ") 
+## ['a', 'good', '', '', 'example'] 
+## s.split() 
+## ['a', 'good', 'example'] 
+
+## print(get_last_part_string('https://www.w3resource.com/python-exercises/string')) 
+## output: 
+## ['https:', '', 'www.w3resource.com', 'python-exercises', 'string'] 
+## ['https:', '', 'www.w3resource.com', 'python-exercises', 'string'] 
+## ['https:', '/www.w3resource.com/python-exercises/string'] 
+## ['https:', '', 'www.w3resource.com/python-exercises/string'] 
+## ['https:', '', 'www.w3resource.com', 'python-exercises/string'] 
+## ('https://www.w3resource.com/python-exercises', 'https://www.w3resource.com/python') 
+```
+ 
+j. upper()与 lower() 
+st.upper()  ## 字符串全大写 
+st.lower()  ## 字符串全小写 
+ 
+ 
+k. startswith() 
+Python startswith() 方法用于检查字符串是否是以指定子字符串开头，如果是则返回 
+True，否则返回 False。如果参数 beg 和 end 指定值，则在指定范围内检查。 
+语法: 
+startswith()方法语法： 
+str.startswith(str, beg=0,end=len(string)); 
+参数: 
+str -- 检测的字符串。 
+strbeg -- 可选参数用于设置字符串检测的起始位置。 
+strend -- 可选参数用于设置字符串检测的结束位置。 
+str = "this is string example....wow!!!"; 
+print str.startswith( 'this' ); ## True 
+print str.startswith( 'is', 2, 4 );  ## True
+print str.startswith( 'this', 2, 4 );  ## False
+ 
+dic 字典 
+映射是一种关联式的容器类型，它存储了对象与对象之间的映射关系，字典是
+python 里唯一的映射类型，它存储了键值对的关联，是由键到键值的映射关系。 
+Python 的字典数据类型是基于 hash 散列算法实现的，采用键值对(key:value)的形
+式，根据 key 的值计算 value 的地址，具有非常快的查取和插入速度。 
+字典包含的元素个数不限，值的类型可以是任何数据类型！但是字典的 key 必须
+是不可变的对象，例如整数、字符串、bytes 和元组，最常见的还是将字符串作
+为 key。列表、字典、集合等就不可以作为 key。同时，同一个字典内的 key 必
+须是唯一的，但值则不必。 
+注意：从 Python3.6 开始，字典是有序的！它将保持元素插入时的先后顺序！请
+务必清楚！ 
+字典可精确描述为不定长、可变、散列的集合类型。 
+字典中的键映射多个值 
+如果你想要一个键映射多个值，那么你 就需要将这多个值放到另外的容器中，比如列
+表或者集合里面。 
+你可以很方便的使用 collections 模块中的 defaultdict 来构造这样的字典。 
+ 
+defaultdict 的一个特征是它会自动初始化每个 key 刚开始对应的值，所以你只需要 关注
+添加元素操作了。 
+>>> from collections import defaultdict 
+>>> d = defaultdict(list) 
+>>> d 
+defaultdict(<class 'list'>, {}) 
+>>> d['a'].append(1) 
+>>> d["a"].append(2) 
+>>> d 
+defaultdict(<class 'list'>, {'a': [1, 2]}) 
+ 
+defaultdict 会自动为将要访问的键（就算目前字典中并不存在 这样的键）创建映射实体。
+如果你并不需要这样的特性，你可以在一个普通的字典上使用 setdefault()方法来代替。 
+>>> d = {} 
+>>> d.setdefault("a", []).append(1) 
+>>> d.setdefault('a', []).append(2) 
+>>> d 
+{'a': [1, 2]} 
+ 
+ 
+###### 字典和集合解析 
+```python
+my_dict = {i: i * i for i in range(10)} 
+my_set = {i * i for i in range(10)} 
+print('dict==%s, set==%s' % (my_dict, my_set)) 
+## dict=={0: 0, 1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81},  
+## set=={0, 1, 64, 4, 36, 9, 16, 49, 81, 25}
+``` 
+ 
+###### 遍历字典两种方式 
+```python
+dic = {'name': 'dong', 'age': 20, 'gender': (0, 1)} 
+for k in dic: 
+    print('key==%s, value==%s' % (k, dic[k])) 
+ 
+## key==name, value==dong 
+## key==age, value==20 
+## key==gender, value==(0, 1) 
+ 
+for key, value in dic.items(): 
+    print('key==%s, value==%s' % (key, value)) 
+
+```     
+     
+###### 判断字典中是否有某一 key 
+print('name' in dic) ## True 
+print('ag' not in dic) ## True 
+ 
+ 
+ 
+###### 获得字典的最大深度： 
+def get_depth_dictionary(d): 
+    if isinstance(d, dict): 
+        return 1 + (max(map(get_depth_dictionary, d.values())) if d else 0) 
+    return 0 
+排序一个字典,根据值排序----sorted(original_dict.items(), key=itemgetter(1)) 
+几个字典合并到一块----迭代执行 dict().update(dict1), 或者此方式：{**dict1, **dict2}; 
+字典中删除一个 key----del dict[key] 
+两个字典值相加----collections.Counter(dict1) + collection.Counter(dict2) 
+itertools.product('ab', range(3)) --> ('a',0) ('a',1) ('a',2) ('b',0) ('b',1) ('b',2) 
+dict(collections.Counter(string))----将一个 string 中某个字符以及其出现的次数构造成字
+典:{'w': 1, '3': 1, 'r': 2}; 
+defaultdict()用法----定义一个普通的 dict 时，取值时，如果键不在 dict 中，会直接报
+keyError， 
+但是如果是 defaultdict(factory_function)定义的字典，就取工厂函数的默认值，此工厂函
+数值得是 set,int,list,str: 
+```python
+dict1 = defaultdict(set) 
+dict2 = defaultdict(int) 
+dict3 = defaultdict(str) 
+dict4 = defaultdict(list) 
+ 
+print(dict1[1]) 
+print(dict2[1]) 
+print(dict3[1]) 
+print(dict4[1]) 
+## set() 
+## 0 
+##  
+## []
+``` 
+dict1.pop(key)函数-----意思是将 key-value 对从 dict 移除，并且返回值未此 key 对应的
+value； 
+取两个字典的交集可以按此进行操作-----set(dict1.items()) & set(dict2.items())-得到的是
+类似于此形式的集合{('key1', 1)}； 
+dict(x=list(range(11, 20)), y=list(range(21, 30)), z=list(range(31, 40))----得到{x: [11,...19], y: 
+[21,...29], z: [30,...39]} 
+collections.defaultdict(list)----用来将同一键的值放在一个列表中； 
+collections.Counter(list1)  == collections.Counter(list2)---用来比较两个 list； 
+ 
+###### 字典如何删除键和合并两个字典 
+>>> d01 = {"name":"dx", "age":20} 
+>>> del d01['name'] 
+>>> d01 
+{'age': 20} 
+>>> d02 = {'name':'shane'} 
+>>> d01.update(d02) 
+>>> d01 
+{'age': 20, 'name': 'shane'} 
+      
+      
+###### 合并两个字典 
+## 第一种方式 
+```python
+import uuid
+x = {'name': 'dong', 'age': 10}  
+y = {'host': 'compute', 'id': uuid.uuid4()} 
+ 
+z = x.copy() 
+print('z==%s' % z, 'id(x)==%s' % id(x), 'id(z)==%s' % id(z)) 
+## z=={'name': 'dong', 'age': 10} id(x)==2342080434368 id(z)==2342110319872 
+z.update(y) 
+print('z==%s' % z, 'id(z)==%s' % id(z)) 
+## z=={'name': 'dong', 'age': 10, 'host': 'compute', 
+## 'id': UUID('e4379eb9-5d36-4018-baf6-b6d0b0572441')} id(z)==2689673090240 
+## update()是就地和并字典，z 还是同样的内存地址 
+```
+ 
+## 第二种方式，python3.5 以上版本 
+```python
+import uuid
+x = {'name': 'dong', 'age': 10}  
+y = {'host': 'compute', 'id': uuid.uuid4()} 
+z = {**x, **y} 
+print('z==%s' % z, 'id(z)==%s' % id(z)) 
+## z=={'name': 'dong', 'age': 10, 'host': 'compute', 
+## 'id': UUID('2f06eb3b-b1f2-4b4b-9321-4a42f5b5f2d5')} id(z)==1376163448128 
+## z 又存储到另一块内存 
+```
+ 
+## 第三种方式 
+python3.9 可以使用 "|" 操作符合并两个字典 
+>>> z3 = z|y 
+{'a': 1, 'b': 2, 'c': 3, 'd': 4} 
+      
+      
+###### 列表嵌套字典的排序，分别根据年龄和姓名排序** 
+ 
+foo = [{"name":"zs","age":19},{"name":"ll","age":54}, 
+{"name":"wa","age":17},{"name":"df","age":23}] 
+ 
+>>> foo = [{"name":"zs","age":19},{"name":"ll","age":54}] 
+>>> res = sorted(foo, key=lambda x:x['age'], reverse=False) 
+>>> res 
+[{'name': 'zs', 'age': 19}, {'name': 'll', 'age': 54}] 
+ 
+>>> res = sorted(foo, key=lambda x:x['name'], reverse=False) 
+>>> res 
+[{'name': 'll', 'age': 54}, {'name': 'zs', 'age': 19}] 
+ 
+ 
+ 
+###### 根据键对字典排序 
+ 
+**方法一，zip 函数** 
+ 
+>>> d = {'name': 'dx', 'age': 20, 'address': 'nj'} 
+>>> z = zip(d.keys(), d.values()) 
+>>> foo = [i for i in z] 
+>>> res = sorted(foo, key=lambda x:x[0], reverse=False) 
+>>> res 
+[('address', 'nj'), ('age', 20), ('name', 'dx')] 
+ 
+**方法二,不用 zip** 
+ 
+dic.items 和 zip(dic.keys(),dic.values())都是为了构造列表嵌套字典的结构，方便后面用
+sorted()构造排序规则 
+
+
+>>> res = sorted(d.items(), key=lambda x:x[0], reverse=False) 
+>>> res 
+[('address', 'nj'), ('age', 20), ('name', 'dx')] 
+
+
+#### bytes 字节
+在 Python3 以后，字符串和 bytes 类型彻底分开了。字符串是以字符为单位进行处理的，bytes 类型是以字节为单位处理的。 
+bytes 数据类型在所有的操作和使用甚至内置方法上和字符串数据类型基本一样，也是不可变的序列对象。 
+bytes 对象只负责以二进制字节序列的形式记录所需记录的对象，至于该对象到底表示什么（比如到底是什么字符）则由相应的编码格式解码所决定。
+Python3中，bytes 通常用于网络数据传输、二进制图片和文件的保存等等。可以通过调用 bytes()生成 bytes 实例，其值形式为 b'xxxxx'，其中 'xxxxx' 为一至多个转义的十六进制字符串（单个 x 的形式为：\x12，其中\x 为小写的十六进制转义字符，12 为二位十六进制数）组成的序列，每个十六进制数代表一个字节（八位二进制数，取值范围 0-255），对于同一个字符串如果采用不同的编码方式生成 bytes对象，就会形成不同的值. 
+b = b''          ## 创建一个空的 bytes 
+b = bytes()      ## 创建一个空的 bytes 
+
+#### set 集合 
+set 集合是一个无序不重复元素的集，基本功能包括关系测试和消除重复元素。
+集合使用大括号({})框定元素，并以逗号进行分隔。但是注意：如果要创建一个空集合，必须用set()而不是{}，因为后者创建的是一个空字典。集合除了在形式上最外层用的也是花括号外，其它的和字典没有一毛钱关系。 
+集合数据类型的核心在于自动去重。 
+###### 创建非空元素 
+set([1, 2, 3, 4, 5]) 
+
+###### 集合 set 不支持索引；也不支持元素删除，比如 del s[1]； 
+
+###### 取两个列表的交集 
+set(list1) & set(list2)  
+集合的交集 
+set1 & set2； 
+###### 集合并集 
+set1 | set2  
+color_list_2.union(color_list_1) 
+两集合并集-交集-----set1 ^ set2；
+set().union(*L)----L 为一个列表，其中包含元组元素，指的是获取一个列表中的独一无二的元素； 
+ 
+
+ 
+## 爬虫 
+常见的反爬虫和应对方法 
+1）.通过 Headers 反爬虫 
+从用户请求的 Headers 反爬虫是最常见的反爬虫策略。很多网站都会对 Headers
+的 User-Agent 进行检测，还有一部分网站会对 Referer 进行检测（一些资源网站
+的防盗链就是检测 Referer）。如果遇到了这类反爬虫机制，可以直接在爬虫中添
+加 Headers，将浏览器的 User-Agent 复制到爬虫的 Headers 中；或者将 Referer 值
+修改为目标网站域名。对于检测 Headers 的反爬虫，在爬虫中修改或者添加
+Headers 就能很好的绕过。 
+2）.基于用户行为反爬虫 
+还有一部分网站是通过检测用户行为，例如同一 IP 短时间内多次访问同一页面，
+或者同一账户短时间内多次进行相同操作。 
+大多数网站都是前一种情况，对于这种情况，使用 IP 代理就可以解决。可以专
+门写一个爬虫，爬取网上公开的代理 ip，检测后全部保存起来。这样的代理 ip 爬
+虫经常会用到，最好自己准备一个。有了大量代理 ip 后可以每请求几次更换一
+个 ip，这在 requests 或者 urllib2 中很容易做到，这样就能很容易的绕过第一种反爬虫。 
+对于第二种情况，可以在每次请求后随机间隔几秒再进行下一次请求。有些有逻
+辑漏洞的网站，可以通过请求几次，退出登录，重新登录，继续请求来绕过同一
+账号短时间内不能多次进行相同请求的限制。 
+3）.动态页面的反爬虫 
+上述的几种情况大多都是出现在静态页面，还有一部分网站，我们需要爬取的数
+据是通过 ajax 请求得到，或者通过 JavaScript 生成的。首先用 Fiddler 对网络请
+求进行分析。如果能够找到 ajax 请求，也能分析出具体的参数和响应的具体含
+义，我们就能采用上面的方法，直接利用 requests 或者 urllib2 模拟 ajax 请求，对
+响应的 json 进行分析得到需要的数据。 
+能够直接模拟 ajax 请求获取数据固然是极好的，但是有些网站把 ajax 请求的所
+有参数全部加密了。我们根本没办法构造自己所需要的数据的请求。这种情况下
+就用 selenium+phantomJS，调用浏览器内核，并利用 phantomJS 执行 js 来模拟人
+为操作以及触发页面中的 js 脚本。从填写表单到点击按钮再到滚动页面，全部都
+可以模拟，不考虑具体的请求和响应过程，只是完完整整的把人浏览页面获取数
+据的过程模拟一遍。 
+用这套框架几乎能绕过大多数的反爬虫，因为它不是在伪装成浏览器来获取数据
+（上述的通过添加 Headers 一定程度上就是为了伪装成浏览器），它本身就是浏
+览器，phantomJS 就是一个没有界面的浏览器，只是操控这个浏览器的不是人。
+利 selenium+phantomJS 能干很多事情，例如识别点触式（12306）或者滑动式的
+验证码，对页面表单进行暴力破解等。 
+分布式爬虫主要解决什么问题？ 
+1)ip 
+2)带宽 
+3）cpu 
+4）io 
+爬虫过程中验证码怎么处理？ 
+1.scrapy 自带 
+2.付费接口 
+写爬虫是用多进程好？还是多线程好？ 为什么？ 
+IO 密集型代码(文件处理、网络爬虫等)，多线程能够有效提升效率(单线程下有
+IO 操作会进行 IO 等待，造成不必要的时间浪费，而开启多线程能在线程 A 等待
+时，自动切换到线程 B，可以不浪费 CPU 的资源，从而能提升程序执行效率)。
+在实际的数据采集过程中，既考虑网速和响应的问题，也需要考虑自身机器的硬
+件情况，来设置多进程或多线程 
+ 
+ 
+ 
+抓取网站中有两个基本的任务： 
+1. 加载网页到一个 string 里。 
+2. 从网页中解析 HTML 来定位感兴趣的位置。 
+Python 为上面两个任务提供了两个超棒的工具。用 requests 去加载网页，用 
+BeautifulSoup 去做解析。 
+伪装成浏览器访问，直接访问的话 csdn 会拒绝 
+user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)' 
+headers = {'User-Agent': user_agent} 
+
+构造请求 
+req = urllib.request.Request(blog_url, headers=headers) 
+
+访问页面 
+response = urllib.request.urlopen(req) 
+page = response.read().decode('utf-8') 
+
+利用正则表达式来获取博客的内容 
+blog_content = re.findall('<div id=\"topics\">(.*?)<script src=', page, re.S) 
+title = re.findall('<span>(.*?)</span>', blog_content[0]) 
+with open('%s.txt' % title[0].lstrip().rstrip(), 'w+', encoding='utf-8') as f: 
+    ## 把这些 html 标签去掉 
+    dr = re.compile(r'<[^>]+>', re.S)    
+    blog_content = dr.sub('', blog_content[0]) 
+     
+     
+
+http.client 访问 url，获取 content 
+from http.client import HTTPConnection 
+ 
+ 
+conn = HTTPConnection('www.baidu.com') 
+conn.request('GET', "/") 
+result = conn.getresponse() 
+content = result.read() 
+print(content) 
+ 
+ 
+bs4.BeautifulSoup 
+soup_page = BeautifulSoup(xml_page, 'xml') 
+news_list = soup_page.findAll('item') 
+ 
+soup = BeautifulSoup(html, features='html.parser') 
+all_blogs = soup.main.find_all('li') 
+scrapy 
+制作 Scrapy 爬虫 一共需要 4 步： 
+1. 新建项目 (scrapy startproject xxx)：新建一个新的爬虫项目 
+2. 明确目标 （编写 items.py）：明确你想要抓取的目标 
+3. 制作爬虫 （spiders/xxspider.py）：制作爬虫开始爬取网页 
+4. 存储内容 （pipelines.py）：设计管道存储爬取内容 
+新建项目 scrapy startproject 
+其中， mySpider 为项目名称，可以看到将会创建一个 mySpider 文件夹，目录
+结构大致如下： 
+下面来简单介绍一下各个主要文件的作用： 
+mySpider/ 
+    scrapy.cfg 
+    mySpider/ 
+        __init__.py 
+        items.py 
+        pipelines.py 
+        settings.py 
+        spiders/ 
+            __init__.py 
+            ... 
+这些文件分别是: 
+ 
+scrapy.cfg: 项目的配置文件。 
+ 
+mySpider/: 项目的 Python 模块，将会从这里引用代码。 
+ 
+mySpider/items.py: 项目的目标文件。 
+ 
+mySpider/pipelines.py: 项目的管道文件。 
+ 
+mySpider/settings.py: 项目的设置文件。 
+ 
+mySpider/spiders/: 存储爬虫代码目录。 
+ 
+ 
+ 
+明确目标(mySpider/items.py) 
+我们打算抓取 http://www.itcast.cn/channel/teacher.shtml 网站里的所有讲师的
+姓名、职称和个人信息。 
+1. 打开 mySpider 目录下的 items.py。 
+2. Item 定义结构化数据字段，用来保存爬取到的数据，有点像 Python 中的 dict，
+但是提供了一些额外的保护减少错误。 
+3. 可以通过创建一个 scrapy.Item 类， 并且定义类型为 scrapy.Field 的类属性来定
+义一个 Item（可以理解成类似于 ORM 的映射关系）。 
+4. 接下来，创建一个 ItcastItem 类，和构建 item 模型（model）。 
+5. import scrapy 
+6.  
+7. class ItcastItem(scrapy.Item): 
+8.    name = scrapy.Field() 
+9.    title = scrapy.Field() 
+10.    info = scrapy.Field() 
+11.  
+ 
+ 
+ 
+制作爬虫 （spiders/itcastSpider.py） 
+爬虫功能要分两步： 
+1. 爬数据 
+在当前目录下输入命令，将在 mySpider/spider 目录下创建一个名为 itcast 的爬虫，
+并指定爬取域的范围： 
+scrapy genspider itcast "itcast.cn" 
+打开 mySpider/spider 目录里的 itcast.py，默认增加了下列代码: 
+import scrapy 
+ 
+class ItcastSpider(scrapy.Spider): 
+    name = "itcast" 
+    allowed_domains = ["itcast.cn"] 
+    start_urls = ( 
+        'http://www.itcast.cn/', 
+    ) 
+ 
+    def parse(self, response): 
+        pass 
+其实也可以由我们自行创建 itcast.py 并编写上面的代码，只不过使用命令可以免
+去编写固定代码的麻烦 
+要建立一个 Spider， 你必须用 scrapy.Spider 类创建一个子类，并确定了三个强
+制的属性 和 一个方法。 
+name = "" ：这个爬虫的识别名称，必须是唯一的，在不同的爬虫必须定义不同
+的名字。 
+allow_domains = [] 是搜索的域名范围，也就是爬虫的约束区域，规定爬虫只爬
+取这个域名下的网页，不存在的 URL 会被忽略。 
+start_urls = () ：爬取的 URL 元祖/列表。爬虫从这里开始抓取数据，所以，第一
+次下载的数据将会从这些 urls 开始。其他子 URL 将会从这些起始 URL 中继承性
+生成。 
+parse(self, response) ：解析的方法，每个初始 URL 完成下载后将被调用，调用的
+时候传入从每一个 URL 传回的 Response 对象来作为唯一参数，主要作用如下： 
+负责解析返回的网页数据(response.body)，提取结构化数据(生成 item) 生成需要
+下一页的 URL 请求。 将 start_urls 的值修改为需要爬取的第一个 url 
+start_urls = ("http://www.itcast.cn/channel/teacher.shtml",) 
+修改 parse()方法 
+def parse(self, response): 
+    filename = "teacher.html" 
+    open(filename, 'w').write(response.body) 
+然后运行一下看看，在 mySpider 目录下执行： 
+scrapy crawl itcast 
+是的，就是 itcast，看上面代码，它是 ItcastSpider 类的 name 属性，也就是使
+用 scrapy genspider 命令的唯一爬虫名。 
+运行之后，如果打印的日志出现 [scrapy] INFO: Spider closed (finished)，代表执
+行完成。 之后当前文件夹中就出现了一个 teacher.html 文件，里面就是我们刚
+刚要爬取的网页的全部源代码信息。 
+注意: Python2.x 默认编码环境是 ASCII，当和取回的数据编码格式不一致时，可
+能会造成乱码；我们可以指定保存内容的编码格式，一般情况下，我们可以在代
+码最上方添加 
+import sys 
+reload(sys) 
+sys.setdefaultencoding("utf-8") 
+这三行代码是 Python2.x 里解决中文编码的万能钥匙，经过这么多年的吐槽后 
+Python3 学乖了，默认编码是 Unicode 了...(祝大家早日拥抱 Python3) 
+2. 取数据 
+爬取整个网页完毕，接下来的就是的取过程了，首先观察页面源码： 
+<div class="li_txt"> 
+    <h3>  xxx  </h3> 
+    <h4> xxxxx </h4> 
+    <p> xxxxxxxx </p> 
+是不是一目了然？直接上 XPath 开始提取数据吧。 
+这里给出一些 XPath 表达式的例子及对应的含义: 
+ 
+/html/head/title: 选择 HTML 文档中 标签内的 元素 
+ 
+/html/head/title/text(): 选择上面提到的 `` 元素的文字 
+ 
+//td: 选择所有的 ` 元素 
+ 
+//div[@class="mine"]: 选择所有具有 class="mine" 属性的 div 元素 
+举例我们读取网站 http://www.itcast.cn/ 的网站标题，修改 itcast.py 文件代码
+如下：： 
+## -*- coding: utf-8 -*- 
+import scrapy 
+ 
+## 以下三行是在 Python2.x 版本中解决乱码问题，Python3.x 版本的可以去掉 
+import sys 
+reload(sys) 
+sys.setdefaultencoding("utf-8") 
+ 
+class Opp2Spider(scrapy.Spider): 
+    name = 'itcast' ## 定义爬虫名 
+   
+    allowed_domains = ['itcast.com'] ##搜索的域名范围，也就是爬虫的约束区域，规定爬
+虫只爬取这个域名下的网页 
+    start_urls = ['http://www.itcast.cn/'] 
+ 
+    def parse(self, response): 
+        ## 获取网站标题 
+        context = response.xpath('/html/head/title/text()')    
+        
+        ## 提取网站标题 
+        title = context.extract_first()   
+        print(title)  
+        pass 
+执行以下命令： 
+$ scrapy crawl itcast 
+... 
+... 
+传智播客官网-好口碑 IT 培训机构,一样的教育,不一样的品质 
+... 
+... 
+我们之前在 mySpider/items.py 里定义了一个 ItcastItem 类。 这里引入进来: 
+from mySpider.items import ItcastItem 
+然后将我们得到的数据封装到一个 ItcastItem 对象中，可以保存每个老师的属性： 
+from mySpider.items import ItcastItem 
+ 
+def parse(self, response): 
+    ##open("teacher.html","wb").write(response.body).close() 
+ 
+    ## 存放老师信息的集合 
+    items = [] 
+ 
+    for each in response.xpath("//div[@class='li_txt']"): 
+        ## 将我们得到的数据封装到一个 `ItcastItem` 对象 
+        item = ItcastItem() 
+        ##extract()方法返回的都是 unicode 字符串 
+        name = each.xpath("h3/text()").extract() 
+        title = each.xpath("h4/text()").extract() 
+        info = each.xpath("p/text()").extract() 
+ 
+        ##xpath 返回的是包含一个元素的列表 
+        item['name'] = name[0] 
+        item['title'] = title[0] 
+        item['info'] = info[0] 
+ 
+        items.append(item) 
+ 
+    ## 直接返回最后数据 
+    return items 
+我们暂时先不处理管道，后面会详细介绍。 
+保存数据 
+scrapy 保存信息的最简单的方法主要有四种，-o 输出指定格式的文件，命令如
+下： 
+scrapy crawl itcast -o teachers.json 
+json lines 格式，默认为 Unicode 编码 
+scrapy crawl itcast -o teachers.jsonl 
+csv 逗号表达式，可用 Excel 打开 
+scrapy crawl itcast -o teachers.csv 
+xml 格式 
+scrapy crawl itcast -o teachers.xml 
+Xpath 
+路径表达式 
+结果 
+body 
+选取 body 元素的所有子节点。 
+/head 
+选取根元素下 head。假如路径起始于正斜杠( / )，则此路径始终代表到某元素的
+div/a 
+选取属于 div 的子元素的所有 a 元素。 
+//a 
+选取所有 a 子元素，而不管它们在文档中的位置。 
+路径表达式 
+结果 
+div//a 
+选择属于 div 元素的后代的所有 a 元素，而不管它们位于 bookstore 之下的什
+//@class 
+选取名为 claa 的所有属性。 
+./a 
+选取当前元素下的 a 
+…/a 
+选取父元素下的 a 
+a/@href 
+选取 a 标签的 href 属性 
+a/text() 
+选取 a 标签下的文本 
+response.follow 直接支持相对 URL-无需调用 URLJOIN。注意 response.follow 只
+返回一个请求实例；您仍然需要生成这个请求。 
+response.url---爬取时请求的 url 
+scrapy 提高速率 
+scrapy 在单机跑大量数据的时候，在对 settings 文件不进行设置的时候，scrapy
+的爬取速度很慢，再加上多个页面层级解析，往往导致上万的数据可能爬取要半
+个小时之久，这还不包括插入数据到数据库的操作。下面是我在实验中测试并且
+验证爬取速度大幅度提升，不过前提你要注意到你爬取的目标网站有没有反 IP
+的可能。 
+settings 文件设置以下参数 
+DOWNLOAD_DELAY = 0 
+ 
+CONCURRENT_REQUESTS = 100 
+ 
+CONCURRENT_REQUESTS_PER_DOMAIN = 100 
+ 
+CONCURRENT_REQUESTS_PER_IP = 100 
+ 
+COOKIES_ENABLED = False 
+123456789 
+1. 降低下载延迟 DOWNLOAD_DELAY = 0 将下载延迟设置为 0，同时加入随机
+User-Agent 是所必要的，这个是一开始就要进行设置的 
+2. 多线程 
+3. CONCURRENT_REQUESTS = 100 
+4. CONCURRENT_REQUESTS_PER_DOMAIN = 100 
+5. CONCURRENT_REQUESTS_PER_IP = 100 
+6. 123 
+scrapy 框架是基于多线程 Twisted，当然 scrapy 也是通过多线程进行数据请求的，
+并且支持多核 CPU 的并发，我们就可以通过设置并发请求数来提高爬取速度。 
+7. 禁止使用 Cookies COOKIES_ENABLED = False 大部分情况下静止使用 Cookies 可
+以防止被 ban。 --------------------------------------- 下面是个人信息 -------------------
+----------------------------- 
+ 
+ 
+ 
+描述下 scrapy 框架运行的机制？ 
+从 start_urls 里获取第一批 url 并发送请求，请求由引擎交给调度器入请求队列，
+获取完毕后，调度器将请求队列里的请求交给下载器去获取请求对应的响应资源，
+并将响应交给自己编写的解析方法做提取处理：1. 如果提取出需要的数据，则交
+给管道文件处理；2. 如果提取出 url，则继续执行之前的步骤（发送 url 请求，并
+由引擎将请求交给调度器入队列…)，直到请求队列里没有请求，程序结束。 
+ 
+ 
+ 
+scrapy 和 scrapy-redis 有什么区别？为什么选择 redis 数据库？ 
+（1）scrapy 是一个 Python 爬虫框架，爬取效率极高，具有高度定制性，但是不
+支持分布式。而 scrapy-redis 一套基于 redis 数据库、运行在 scrapy 框架之上的组
+件，可以让 scrapy 支持分布式策略，Slaver 端共享 Master 端 redis 数据库里的
+item 队列、请求队列和请求指纹集合。 
+（2）为什么选择 redis 数据库，因为 redis 支持主从同步，而且数据都是缓存在
+内存中的，所以基于 redis 的分布式爬虫，对请求和数据的高频读取效率非常高。 
+ 
+ 
+ 
+你用过的爬虫框架或者模块有哪些？谈谈他们的区别或者优缺
+点？ 
+Python 自带：urllib，urllib2 第 三 方：requests 框 架：Scrapy urllib 和 urllib2 模
+块都做与请求 URL 相关的操作，但他们提供不同的功能。 urllib2.：urllib2.urlopen
+可以接受一个 Request 对象或者 url，（在接受 Request 对象时候，并以此可以来
+设置一个URL 的 headers），urllib.urlopen 只接收一个 url urllib 有urlencode,urllib2
+没有，因此总是 urllib，urllib2 常会一起使用的原因 scrapy 是封装起来的框架，
+他包含了下载器，解析器，日志及异常处理，基于多线程， twisted 的方式处理，
+对于固定单个网站的爬取开发，有优势，但是对于多网站爬取 100 个网站，并发
+及分布式处理方面，不够灵活，不便调整与括展。 
+request 是一个 HTTP 库， 它只是用来，进行请求，对于 HTTP 请求，他是一个
+强大的库，下载，解析全部自己处理，灵活性更高，高并发与分布式部署也非常
+灵活，对于功能可以更好实现. 
+Scrapy 优缺点： 
+优点：scrapy 是异步的 
+采取可读性更强的 xpath 代替正则 
+强大的统计和 log 系统 
+同时在不同的 url 上爬行 
+支持 shell 方式，方便独立调试 
+写 middleware,方便写一些统一的过滤器 
+通过管道的方式存入数据库 
+缺点：基于 python 的爬虫框架，扩展性比较差 
+基于 twisted 框架，运行中的 exception 是不会干掉 reactor，并且异步框架出错后
+是不会停掉其他任务的，数据出错后难以察觉。 
+ 
+

@@ -4094,7 +4094,8 @@ kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:
     进程间通信IPC；
     容器间的网络通信；通过localhost通信；需要为在pod中的接收连接的容器分配不通的端口；
 13. pod之间的通信------IP；
-
+14. 查看pod的label kubectl get pod <pod-name> --show-labels
+15. 
 
 
 
@@ -4155,6 +4156,8 @@ kubernetes运行容器和访问容器，两项任务分别由controller和servic
 4. nodePort是节点上监视的端口；
 5. port是ClusterIp上监听的端口；
 6. targetPort是Pod监听的端口；
+
+
 
 ###### Namespace
 如果有多个用户或项目组使用同一个Kubernetes Cluster，如何将他们创建的Controller、Pod等资源分开呢？
