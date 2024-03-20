@@ -5,340 +5,6 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-## 快捷键
-1. 从后往前删除   ctrl+w；
-2. 从前往后删除   ctrl+k；
-3. 光标从前调到末尾  ctrl+e;  vim内部为删除光标所在行；
-
-
-## curl
-curl "http://localhost:9999/hello?name=geektutu"
-
-curl "http://localhost:9999/login" -X POST -d 'username=geektutu&password=1234' -H ""
-
-curl -e ssl_cacert.pem -k 'https://192.168.11.1:18002/controller/v2/tokens' --header 'Content-Type: application/json' --header 'Cookie:bspsession=deleted' -d '{"userName": "ops@huawei.com", "password": "Xsy@2023"}'
-
-curl 33.33.33.232:30000 --connect-timeout 5    设置5s超时
-
-curl -g -i --insecure -X PUT https://10.50.90.2:18002/restconf/data/huawei-ac-neutron:neutron-cfg/routers/router/e4bffe3a-24cb-4257-aab6-48cd95499aeb -H "Content-Type:application/json" -H "X-ACCESS-TOKEN:$token" -H "Accept:application/json" -d $data
-
-
-
-## zip
-zip -q -r html.zip /home/html    ## 将/home/html/这个目录下所有文件和文件夹打包为当前目录下的 html.zip
-
-unzip html.zip -d /home/         ## 将html.zip解压到/home路径下；
-
-
-
-## awk
--F     指定输入行的字段分隔符，以便将数据切分成不同的段
-awk -F "\"" '{print $6}' 
-
-
-
-## git
-gitlab提交代码流程
-1. gitlab新建分支 hotfix/master/etcdconf/chron--- bug用hotfix，功能代码用feature，master指的是要合并的分支，etcdconf--功能路径，chron用户；feature/master/backupdriver/dongxiang
-2. 本地拉取分支git fetch origin feature/master/backupdriver/dongxiang；
-3. 根据远端分支新建本地分支git checkout -b feature/backup origin/feature/master/backupdriver/dongxiang；
-4. 将本地另一个分支上的修改cherry-pick到新建分支git cherry-pick 5e882fedd834c4e2a4c8d41a69d565324f98c56a；
-5. 提交到远端分支git push origin HEAD:feature/master/backupdriver/dongxiang；
-
-git恢复reset的代码
-首先git reflog查看提交记录；
-git rebase -i HEAD@{2}   进入vim直接:q！，解决冲突，提交，恢复之前reset掉的代码；
-
-git远程分支已经删除，本地如何更新
-直接执行git remote prune origin即可；
-
-git查看代码行
-git ls-files | xargs wc -l
-
-gitignore加./idea
-
-远端分支和master改动一致
-本地checkout -b新分支，然后git pull，之后git rebase master，最后git push origin HEAD:sbx即可，不需要merge request；
-
-
-## 网卡配置
-ip addr add 10.50.114.157/32 dev eth0        ## 增加网卡地址
-
-ip addr del 10.50.114.157/32 dev eth0        ## 删除网卡地址
-
-ip route add default via 10.50.114.157 dev eth0       ## 增加默认路由
-
-ip addr show dev eht0                        ## 查看网口的配置信息
-
-
-1. 可以直接修改配置文件/etc/sysconfig/network-scripts/中的ifcfg-eth0；
-如果一个网卡配置多个ip地址，则新增文件/etc/sysconfig/network-scripts/中的ifcfg-eth0:1；
-
-2. BOOTPROTO设置为 dhcp 后，系统会在引导过程中自动向 DHCP 服务器发送请求，以获取 IP 地址和其他相关配置。
-这样，你无需手动配置网络接口，系统会自动从 DHCP 服务器获取所需的网络配置信息，并将其应用于相应的网络接口。
-手动配置网络接口，可以将 BOOTPROTO 设置为其他值，比如 static（静态IP地址）或 none（禁用IP配置）。
- 
-
-
-## nginx
-反向代理和负载均衡
-
-Nginx 可以作为反向代理服务器，将客户端请求转发到后端服务器。
-通过配置反向代理规则，Nginx 可以根据请求的 URL、路径、头部等信息将请求分发到不同的后端服务器。
-Nginx 支持多种负载均衡算法，如轮询、最少连接、IP 哈希等，可以根据后端服务器的性能和负载情况进行请求分发。
-反向代理和负载均衡可以提高系统的可伸缩性、可用性和性能。
-
-server {
-    listen 80;
-    server_name yourdomain.com;
-
-    location /socket {
-        proxy_pass http://backend.example.com/socket;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "Upgrade";
-        proxy_set_header Host $host;
-    }
-
-    location /api {
-        proxy_pass http://backend.example.com/api;
-        proxy_set_header Host $host;
-    }
-}
-当客户端通过浏览器或其他方式发送请求到 yourdomain.com 这个域名时，Nginx 将监听 HTTP 请求的端口 80，将带有/socket前缀的WebSocket请求转发到ws://backend.example.com/socket，
-同时将带有/api前缀的HTTP请求转发到http://backend.example.com/api。
-
-proxy_set_header Host $host; 将客户端请求中的 Host 头部信息传递给目标服务器。这是正常的 HTTP 头部信息传递，不涉及客户端 IP 地址。
-proxy_set_header X-Real-IP $remote_addr;将客户端的真实 IP 地址作为 X-Real-IP 头部信息传递给目标服务器。这意味着目标服务器可以访问到客户端的真实 IP 地址。
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 将客户端的 IP 地址添加到 X-Forwarded-For 头部信息中，并传递给目标服务器。这是为了记录代理请求的前几个客户端的 IP 地址，通常包括客户端的真实 IP 地址。
-proxy_read_timeout: 用于设置从后端服务器接收响应的超时时间。默认值60s
-proxy_connect_timeout: 用于设置与后端服务器建立连接的超时时间。默认值60s
-proxy_send_timeout: 用于设置向后端服务器发送请求的超时时间。默认值60s
-
-
-#### Nginx有哪些负载均衡算法？
-Nginx支持的负载均衡算法包括：
-1. 轮询：按照顺序依次将请求分配给后端服务器。这种算法最简单，但是也无法处理某个节点变慢或者客户端操作有连续性的情况。
-2. IP哈希：根据客户端IP地址的哈希值来确定分配请求的后端服务器。
-适用于需要保持同一客户端的请求始终发送到同一台后端服务器的场景，如会话保持。
-3. URL哈希：按访问的URL的哈希结果来分配请求，使每个URL定向到一台后端服务器，可以进一步提高后端缓存服务器的效率。
-4. 最短响应时间：按照后端服务器的响应时间来分配请求，响应时间短的优先分配。
-适用于后端服务器性能不均的场景，能够将请求发送到响应时间快的服务器，实现负载均衡。
-5. 加权轮询：按照权重分配请求给后端服务器，权重越高的服务器获得更多的请求。
-适用于后端服务器性能不同的场景，可以根据服务器权重分配请求，提高高性能服务器的利用率。
-
-
-
-## tcpdump
-sudo tcpdump -n -t -S -i enp0s3  port 80
-第一次握手，标志位Flags=S
-IP 10.0.2.2.51323 > 10.0.2.15.80: Flags [S], seq 84689409, win 65535, options [mss 1460], length 0
-第二次握手，标志位Flags=[S.]
-IP 10.0.2.15.80 > 10.0.2.2.51323: Flags [S.], seq 1893430205, ack 84689410, win 64240, options [mss 1460], length 0
-第三次握手，标志位Flags=[.]
-IP 10.0.2.2.51323 > 10.0.2.15.80: Flags [.], ack 1893430206, win 65535, length 0
-建立连接后，客户端发送http请求 
-IP 10.0.2.2.51321 > 10.0.2.15.80: Flags [P.], seq 1:753, ack 1, win 65535, length 752: HTTP: GET / HTTP/1.1
-
-tcpdump命令解析一下：
--i : 指定抓包的网卡是enp0s3
--n: 把域名转成IP显示
--t: 不显示时间
--S: 序列号使用绝对数值，不指定-S的话，序列号会使用相对的数值
-port: 指定监听端口是80
-host:指定监听的主机名
-
-
-## 查看socket信息
-netstat -napt或ss -ntlp
--n表示不显示名字，而是以数字方式显示ip和端口
--l只显示LISTEN状态的socket
--p表示显示进程信息
--t表示只显示tcp连接
-
-ss -tunlp|grep 9696     查看端口打开情况
-
-网络性能指标
-带宽：链路的最大传输速率，b/s；
-吞吐量：单位事件内成功传输的数据量；b/s(比特/s)或B/s(字节/s)
-
-
-
-## 证书
-CA 证书文件（ssl_cacert.pem）---即根证书；
-客户端证书和私钥文件----cert.pem, key.pem
-
-
-## 用户及用户组
-添加用户---adduser dx
-设置用户密码---passwd dx
-添加用户组---groupadd docker
-将用户加到用户组中---usermod -aG docker dx
-激活对用户组的修改---newgrp docker
-
-
-
-## k8s部署
-1. 格式化数据盘并挂载
-sudo cat /etc/fstab |tail -n1
-UUID=36158b9f-f0cb-46e0-9e8c-f9f463be06db /                       xfs     defaults        0 0
-2. 生成ssh秘钥对；ssh-keygen -t rsa -b 2048；cat /root/.ssh/id_rsa.pub > /root/.pub；ssh免密设置；
-sudo ssh-copy-id 33.33.33.232;
-sudo ssh-copy-id 33.33.33.75
-sudo ssh-copy-id 33.33.33.95
-3. 安装集群
-export release=3.1.0
-sudo curl -C- -fLO --retry 3 https://github.com/easzlab/kubeasz/releases/download/${release}/ezdown
-sudo chmod +x ezdown
-sudo ./ezdown -D
-sudo ./ezdown -S
-4. 进去容器操作docker exec -it kubeasz bash
-```shell
-步骤一：创建集群：
-ezctl new gpu_dev
-步骤二：修改网络类型
-修改网络类型暂为calico，因为底层是openstack，vxlan本环境冲突，不能使用flannel。 工程目录为：/etc/kubeasz/clusters/gpu_dev/
-bash-5.1## grep -rw "calico" hosts 
-// Network plugins supported: calico, flannel, kube-router, cilium, kube-ovn
-CLUSTER_NETWORK="calico"
-步骤三：添加集群的ip地址
-添加master、worker节点ip地址，此处需要在hosts文本里添加即可
- 
-步骤四：修改数据目录
-bash-5.1## grep -rw "/mnt" config.yml
-ETCD_DATA_DIR: "/mnt/etcd"
-DOCKER_STORAGE_DIR: "/mnt/docker"
-KUBELET_ROOT_DIR: "/mnt/kubelet
-修改数据目录，此处需要在config.yaml文本里添加即可
-步骤五：部署
-ezctl setup gpu_dev all
-```
-
-5. 安装dashboard
-```shell
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
-会在kubernetes-dashboard namespace中创建Deployment和Service；
-kubectl --namespace=kubernetes-dashboard edit service kubernetes-dashboard
-修改成NodePort模式；
-##新建目录：
-mkdir key && cd key
-
-##生成证书
-openssl genrsa -out dashboard.key 2048 
-
-##我这里写的自己的node1节点，因为我是通过nodeport访问的；如果通过apiserver访问，可以写成自己的master节点ip
-openssl req -new -out dashboard.csr -key dashboard.key -subj '/CN=10.13.1.3'
-openssl x509 -req -in dashboard.csr -signkey dashboard.key -out dashboard.crt 
-
-##删除原有的证书secret
-kubectl delete secret kubernetes-dashboard-certs -n kubernetes-dashboard
-
-##创建新的证书secret
-kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.key --from-file=dashboard.crt -n kubernetes-dashboard
-
-##查看pod
-kubectl get pod -n kubernetes-dashboard
-
-##重启pod
-kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboard
-
-## 创建用户令牌
-创建ServiceAccount-->绑定关系ClusterRoleBinding-->获取令牌
-kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
-```
-
-## helm
-安装helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
-    && chmod 700 get_helm.sh \
-    && ./get_helm.sh
-
-
-## deepcopy-gen使用
-deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 -O zz_generated.deepcopy
--v 5 指定输出内容的详细程度
--h boilerplate.txt指定所有生成的文件的头部声明内容
---bounding-dirs .指定生成目录为当前路径
--i github.com/lt90s/deepcopy-gen-demo/types指定此package需要进行代码生成
--O zz_generated.deepcopy指定生成的文件名称为zz_generated.deepcopy.go
-
-
-
-## client-gen
-client-gen --clientset-name versioned -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 --output-package clientset --go-header-file hack/boilerplate.go.txt -v 5
-volcano.sh/apis增加资源client
-拉代码到本地直接执行./hack/update-codegen.sh即可在本地生成client
-
-
-
-
-
-
-## sar
-怀疑CPU存在瓶颈，可用 sar -u 和 sar -q 等来查看
-怀疑内存存在瓶颈，可用 sar -B、sar -r 和 sar -W 等来查看
-怀疑I/O存在瓶颈，可用 sar -b、sar -u 和 sar -d 等来查看
-
-sar -n DEV，显示网口的统计数据；
-sar -n EDEV，显示关于网络错误的统计数据；
-sar -n TCP，显示 TCP 的统计数据
-
-
-## keepalived
-/etc/keepalived/keepalived.conf中
-vrrp_instance VI_1 {
-    state BACKUP    ## 主服务器为MASTER，备服务器为BACKUP
-    interface eth0  ## 替换为备份服务器上的网络接口名称
-    virtual_router_id 51  ## 虚拟路由器 ID，与主服务器配置相同
-    priority 90  ## 备份服务器的优先级较低
-    advert_int 1  ## 广告间隔，单位为秒
-    authentication {
-        auth_type PASS
-        auth_pass your_password  ## 与主服务器配置相同的密码
-    }
-    virtual_ipaddress {
-        192.168.0.100  ## 虚拟 IP 地址，与主服务器配置相同
-    }
-}
-
-
-## 磁盘
-fdisk---磁盘分区的工具
-fdisk -l显示磁盘分区表
-fdisk /dev/sda -l显示磁盘设备sda的详情
-
-
-## 文件描述符
-1. 每个文件描述符都会与一个打开的文件相对应；
-2. 不同的文件描述符可能指向同一个文件；
-3. 相同的文件可以被不同的进程打开，也可以在一个进程中被打开多次；
-
-
-
-## ldap
-### ldap搭建
-https://blog.csdn.net/qq_37733540/article/details/123988481
-
-### ldap使用
-1. 服务为slapd；
-2. ldapsearch检查内容
-ldapsearch -x -D cn=Manager,dc=my-domain,dc=com -w admin -b "dc=my-domain,dc=com"
--x 启用认证
--D bind admin的dn
--w admin的密码
--b basedn, 查询的基础dn
-
-ldapsearch -x -LLL -H ldap:/// -b dc=my-domain,dc=com
-查看所有dn
-
-3. 关键字列表
-dn-----每个对象都有一个惟一的名称，如“uid= tom,ou=market,dc=example,dc=com”，在一个目录树中DN总是惟一的
-dc-----域名的部分，其格式是将完整的域名分成几部分，如域名为example.com变成dc=example,dc=com
-uid----用户id，如Tom；
-ou-----组织单元
-cn-----common name，公共名称；
-
-
 
 ## 内存
 
@@ -687,6 +353,987 @@ select和epoll是Linux中两种IO多路复用的实现方式,区别在于:
 因此,epoll相比select,具有更好的性能和可扩展性,是目前使用更广泛的IO多路复用技术。但select实现更简单,在监听事件数量不多时,性能差异并不明显。
 
 
+## nginx
+反向代理和负载均衡
+
+Nginx 可以作为反向代理服务器，将客户端请求转发到后端服务器。
+通过配置反向代理规则，Nginx 可以根据请求的 URL、路径、头部等信息将请求分发到不同的后端服务器。
+Nginx 支持多种负载均衡算法，如轮询、最少连接、IP 哈希等，可以根据后端服务器的性能和负载情况进行请求分发。
+反向代理和负载均衡可以提高系统的可伸缩性、可用性和性能。
+```shell
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    location /socket {
+        proxy_pass http://backend.example.com/socket;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+    }
+
+    location /api {
+        proxy_pass http://backend.example.com/api;
+        proxy_set_header Host $host;
+    }
+}
+
+```
+当客户端通过浏览器或其他方式发送请求到 yourdomain.com 这个域名时，Nginx 将监听 HTTP 请求的端口 80，将带有/socket前缀的WebSocket请求转发到ws://backend.example.com/socket，
+同时将带有/api前缀的HTTP请求转发到http://backend.example.com/api。
+
+proxy_set_header Host $host; 将客户端请求中的 Host 头部信息传递给目标服务器。这是正常的 HTTP 头部信息传递，不涉及客户端 IP 地址。
+
+proxy_set_header X-Real-IP $remote_addr;将客户端的真实 IP 地址作为 X-Real-IP 头部信息传递给目标服务器。这意味着目标服务器可以访问到客户端的真实 IP 地址。
+
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; 将客户端的 IP 地址添加到 X-Forwarded-For 头部信息中，并传递给目标服务器。这是为了记录代理请求的前几个客户端的 IP 地址，通常包括客户端的真实 IP 地址。
+
+proxy_read_timeout: 用于设置从后端服务器接收响应的超时时间。默认值60s
+
+proxy_connect_timeout: 用于设置与后端服务器建立连接的超时时间。默认值60s
+
+proxy_send_timeout: 用于设置向后端服务器发送请求的超时时间。默认值60s
+
+
+#### Nginx有哪些负载均衡算法？
+Nginx支持的负载均衡算法包括：
+1. 轮询：按照顺序依次将请求分配给后端服务器。这种算法最简单，但是也无法处理某个节点变慢或者客户端操作有连续性的情况。
+2. IP哈希：根据客户端IP地址的哈希值来确定分配请求的后端服务器。
+适用于需要保持同一客户端的请求始终发送到同一台后端服务器的场景，如会话保持。
+3. URL哈希：按访问的URL的哈希结果来分配请求，使每个URL定向到一台后端服务器，可以进一步提高后端缓存服务器的效率。
+4. 最短响应时间：按照后端服务器的响应时间来分配请求，响应时间短的优先分配。
+适用于后端服务器性能不均的场景，能够将请求发送到响应时间快的服务器，实现负载均衡。
+5. 加权轮询：按照权重分配请求给后端服务器，权重越高的服务器获得更多的请求。
+适用于后端服务器性能不同的场景，可以根据服务器权重分配请求，提高高性能服务器的利用率。
+
+
+
+## 快捷键
+1. 从后往前删除   ctrl+w；
+2. 从前往后删除   ctrl+k；
+3. 光标从前调到末尾  ctrl+e;  vim内部为删除光标所在行；
+
+
+## curl
+curl "http://localhost:9999/hello?name=geektutu"
+
+curl "http://localhost:9999/login" -X POST -d 'username=geektutu&password=1234' -H ""
+
+curl -e ssl_cacert.pem -k 'https://192.168.11.1:18002/controller/v2/tokens' --header 'Content-Type: application/json' --header 'Cookie:bspsession=deleted' -d '{"userName": "ops@huawei.com", "password": "Xsy@2023"}'
+
+curl 33.33.33.232:30000 --connect-timeout 5    设置5s超时
+
+curl -g -i --insecure -X PUT https://10.50.90.2:18002/restconf/data/huawei-ac-neutron:neutron-cfg/routers/router/e4bffe3a-24cb-4257-aab6-48cd95499aeb -H "Content-Type:application/json" -H "X-ACCESS-TOKEN:$token" -H "Accept:application/json" -d $data
+
+
+
+## df –h
+列出文件系统的磁盘使用状况。
+
+## free 命令,它是用来查看系统内存的命令 
+free -h #查看内存使用情况,并且以合适的单位显示大小
+
+
+## 查看网络服务和端口 - netstat / ss。 
+[root ~]# netstat -nap | grep nginx 
+
+
+## pstree –aup 以树状图的方式展现进程之间的派生关系 
+-a：显示每个程序的完整指令，包含路径，参数或是常驻服务的标示；  
+-c：不使用精简标示法；  
+-G：使用 VT100 终端机的列绘图字符；  
+-h：列出树状图时，特别标明现在执行的程序；  
+-H<程序识别码>：此参数的效果和指定”-h”参数类似，但特别标明指定的程序；  
+-l：采用长列格式显示树状图；  
+-n：用程序识别码排序。预设是以程序名称来排序；  
+-p：显示程序识别码；  
+-u：显示用户名称；  
+ 
+## uptime 
+查看系统的负载情况。 
+
+
+## mount 
+将 /dev/hda1 挂在 /mnt 之下 
+
+
+## ldd 
+list dynamic dependencies，列出动态库依赖关系 
+
+ldd 本身不是一个程序，而仅是一个 shell 脚本：ldd 可以列出一个程序所需要得动态链接库（so） 
+
+ldd 命令通常使用"-v"或"--verbose"选项来显示所依赖的动态连接库的尽可能的详细信息。 
+
+即可得到/bin/ls 命令的相关共享库文件列表： 
+root@xxhui:/home/hui# ldd /bin/ls 
+linux-vdso.so.1 (0x00007ffeeffc3000) 
+libselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 
+(0x00007f8e631c7000) 
+libacl.so.1 => /lib/x86_64-linux-gnu/libacl.so.1 
+(0x00007f8e62fbe000) 
+libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 
+(0x00007f8e62c19000) 
+libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 
+(0x00007f8e629a9000) 
+libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 
+(0x00007f8e627a5000) 
+/lib64/ld-linux-x86-64.so.2 (0x00005599a18e8000) 
+libattr.so.1 => /lib/x86_64-linux-gnu/libattr.so.1 
+(0x00007f8e6259f000) 
+libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 
+(0x00007f8e62382000) 
+注意： 在 ldd 命令打印的结果中，“=>”左边的表示该程序需要连
+接的共享库之 so 名称，右边表示由 Linux 的共享库系统找到的对应
+的共享库在文件系统中的具体位置。默认情况下， /etc/ld.so.conf 
+文件中包含有默认的共享库搜索路径。 
+
+
+## ss 
+ss 是 Socket Statistics 的缩写。ss 命令可以用来获取 socket 统计信息
+
+-h, –help 帮助  
+-V, –version 显示版本号  
+-t, –tcp 显示 TCP 协议的 sockets  
+-u, –udp 显示 UDP 协议的 sockets  
+-x, –unix 显示 unix domain sockets，与 -f 选项相同  
+-n, –numeric 不解析服务的名称，如 “22” 端口不会显示成 “ssh”  
+-l, –listening 只显示处于监听状态的端口  
+-p, –processes 显示监听端口的进程(Ubuntu 上需要 sudo)  
+-a, –all 对 TCP 协议来说，既包含监听的端口，也包含建立的连接  
+-r, –resolve 把 IP 解释为域名，把端口号解释为协议名称 
+ 
+
+## chmod 
+修改/test 下的 aaa.txt 的权限为文件所有者有全部权限，文件所有者所在的组有读写权限，其他用户只有读的权限。 
+chmod u=rwx,g=rw,o=r aaa.txt 或者 chmod 764 aaa.txt 
+ 
+
+## shell 单引号和双引号 
+在单引号中所有的特殊符号，如$和反引号都没有特殊含义。在双引号
+中，除了"$",""和反引号，其他的字符没有特殊含义。 
+
+
+## shell 数组 
+array=(1 2 3 4 5); 
+获取数组长度 length=${#array[@]}    # 或者length2=${#array[*]}
+
+输出数组第三个元素 echo ${array[2]} #输出：3
+
+unset array[1]# 删除下标为 1 的元素也就是删除第二个元素
+
+for i in ${array[@]};do echo $i ;done # 遍历数组，输出： 1 3 4 5
+
+unset array; # 删除数组中的所有元素
+
+for i in ${array[@]};do echo $i ;done # 遍历数组，数组元素为空，没有任何输出内容 
+ 
+
+ 
+## VIM 使用
+删除：在命令模式下可以用 dd 来删除整行；可以在 dd 前加数字来指定删除的行数；
+可以用 d$ 来实现删除从光标处删到行尾的操作，也可以通过 d0 来实现从光标处删到行首的操作；如果想删除一个单词，
+可以使用 dw ；如果要删除全文，可以在输入 :%d （其中 : 用来从命令模式进入末行模式）。 
+撤销和恢复：在命令模式下输入 u 可以撤销之前的操作；通过 Ctrl+r 可以恢复被撤销的操作。
+
+对内容进行排序：在命令模式下输入 %!sort 。 
+
+查找操作需要输入 / 进入末行模式并提供正则表达式来匹配与之对应的内容，例如： 
+/doc.*\. ，输入 n 来向前搜索，也可以输入 N 来向后搜索。
+
+在输入 : 进入末行模式后可以对 vim 进行设定。 
+
+设置 Tab 键的空格数： set ts=4 
+
+设置显示/不显示行号： set nu /  set nonu 
+
+设置启用/关闭高亮语法： syntax on /  syntax off 
+
+设置显示标尺（光标所在的行和列）：  set ruler 
+
+设置启用/关闭搜索结果高亮： set hls /  set nohls 
+
+比较多个文件。[root ~]# vim -d foo.txt bar.txt
+ 
+
+vim 非编辑模式
+
+yy：复制光标当前行 
+
+p：粘贴 
+
+dd:删除光标当前行 
+
+$:光标跳到当前行的行尾 
+
+^:光标跳到当前行的行首 
+
+:s/原字符串/新字符串/:替换光标当前行内容 
+
+:%s/原字符串/新字符串/g:全文替换 #g 表示 global，i 表示 ignore 忽略大小写 /要查找的内容:从光标当前行向后查找内容 
+
+/d #在文件中查找 d 字母 
+
+?要查找的内容：从光标当前位置向前查找内容 
+
+?d #查找文件中的 d 字母 
+
+CTRL+F:向下翻 1 页 
+
+CTRL+B:向上翻 1 页 
+
+:set nu：显示文件的行号 
+
+:set nonu: 去掉行号显示 
+
+u:撤消 
+:set ff :显示文件的格式 #unix 表示在 unix 上的文件 dos 表示文件是 windows 上的文件
+
+:w ：表示保存文件
+
+:q :表示退出 vim 命令
+
+:wq:保存并退出
+
+:w!:强制保存
+
+:q!:强制退出但不保存
+
+:wq!:强制保存并退出
+
+i:表示进入编辑模式，并且光标在当前行
+
+o：表示进入编辑模式，并且光标出现的当前行的下一行(新行) 
+ 
+ 
+ 
+## tips
+获取登录信息 - w / who / last/ lastb。 
+查看命令的说明和位置 - whatis / which / whereis。 
+查看帮助文档 - man / info / help / apropos。 
+查看系统和主机名 - uname / hostname。 
+时间和日期 - date / cal。 
+重启和关机 - reboot / shutdown。 
+查看文件内容 - cat / tac / head / tail / more / less / rev / od。 
+文件重命名 - rename。 
+查找文件和查找内容 - find / grep。 
+创建链接和查看链接 - ln / readlink。 
+将标准输入转成命令行参数 - xargs。 
+显示文件或目录 - basename / dirname。 
+sort - 对内容排序 
+uniq - 去掉相邻重复内容 
+tr - 替换指定内容为新内容 
+cut/paste - 剪切/黏贴内容 
+split - 拆分文件 
+file - 判断文件类型 
+wc - 统计文件行数、单词数、字节数 
+wc -l linux 常用命令.txt #-l 表示 line 行数 计算文件的行数 
+wc -w linux 常用命令.txt #-w 表示 word 单词个数 计算文件的单词个数 
+iconv - 编码转换 
+输出重定向和错误重定向 - > / >> / 2>。 
+ 
+
+## 多重定向 - tee。 
+下面的命令除了在终端显示命令 ls 的结果之外，还会追加输出到 ls.txt 文件中 
+ls | tee -a ls.txt 
+ 
+## 别名 alias 
+alias ll='ls -l' 
+
+alias frm='rm -rf' 
+
+## 磁盘分区表操作 - fdisk。 
+
+## 磁盘分区工具 - parted。 
+
+## 格式化文件系统 - mkfs。 
+
+## 文件系统检查 - fsck。 
+
+## 转换或拷贝文件 - dd 
+ 
+# 创建/激活/关闭交换分区 - mkswap / swapon / swapoff。 
+ 
+## 文件同步工具 - rsync 
+说明：使用 rsync 可以实现文件的自动同步，这个对于文件服务器来说相当重要。 
+
+
+## 用一条命令强制终止正在运行的 Redis 进程。 
+ps -ef | grep redis | grep -v grep | awk '{print $2}' | xargs kill -9 
+ 
+
+
+## echo 命令 
+echo #输出命令，可以输入变量，字符串的值 
+echo Hello World #打印 Hello World 
+echo $PATH #打印环境变量 PATH 的值,其中$是取变量值的符号，用法：$变量名 或者 
+${变量名} 
+echo -n #打印内容但不换行 
+echo -n Hello World 
+
+ 
+## >和>>命令 
+和>>:输出符号，将内容输出到文件中，>表示覆盖(会删除原文件内容) >>表示追加
+
+echo Hello World > 1.txt #将 Hello World 输出到当前目录下的 1.txt 文件
+如果当前目录下没有 1.txt 文件会创建一个新文件， 
+如果当前目录下有 1.txt，则会删除原文件内容，写入 Hello World
+
+echo 1234 >> 1.txt #将 1234 追加到当前目录下的 1.txt 中，如果文件不存在会创建新文件通过>和>>都可以创建文件
+ 
+
+## export
+/etc/profile #linux 上的系统环境变量配置文件 
+source /etc/profile #将系统环境变量生效 
+
+export 导入全局变量(环境变量) 
+export 变量名=变量值 
+export 变量名 
+
+变量的赋值: 
+变量名=变量值 
+
+
+环境变量修改 
+通过 export 命令可以修改指定的环境变量。不过，这种方式修改环境
+变量仅仅对当前 shell 终端生效，关闭 shell 终端就会失效。修改完
+成之后，立即生效。
+export CLASSPATH=./JAVA_HOME/lib;$JAVA_HOME/jre/lib 
+
+通过 vim 命令修改环境变量配置文件。这种方式修改环境变量永久有效。vim ~/.bash_profile 
+如果修改的是系统级别环境变量则对所有用户生效，如果修改的是用
+户级别环境变量则仅对当前用户生效。修改完成之后，需要 source 
+命令让其生效或者关闭 shell 终端重新登录。source /etc/profile
+ 
+
+## <<EOF 
+<<EOF … EOF:将<<EOF 和 EOF 之间的多行内容传给前面的命令, 
+其中 EOF 可以是任意字符串,但约定都使用 EOF 
+ 
+ 
+## cut 
+-f 参数,指定列
+
+-d 参数指定列和列之间的分隔符,默认的分隔符是\t(行向制表符)
+
+cut -f 1 1.txt #取 1.txt 文件中的第 1 列内容(列分隔符默认为\t)
+
+cut -f 2 1.txt #取 1.txt 文件中的第 2 列内容
+
+cut -f 1 -d ',' 3.txt #取 3.txt 文件中的第 1 列(列分隔符为,)
+
+cut -f 2 -d ',' 3.txt #取 3.txt 第 2 列 
+
+ 
+## sudo 命令 
+sudo 命令,它在非 root 用户下,去调用一些 root 用户的命令,或者修改一些文件 
+
+sudo 命令是需要配置的,sudo 的配置文件是/etc/sudoers 
+用户配置 sudo 权限 
+vim /etc/sudoers
+Allow root to run any commands anywhere 
+root ALL=(ALL) ALL 
+
+bow 用户设置 sudo 命令权限 
+bow ALL=(ALL) ALL 
+
+[root@bow ~]# su - bow 
+上一次登录：四 3 月 26 07:30:53 CST 2020pts/0 上 
+[bow@bow ~]$ sudo vim /etc/profile 
+ 
+ 
+## ifconfig 
+ifconfig 命令属于 net-tools 软件包,使用前需要安装 net-tools 
+net-tools 的安装: 
+yum -y install net-tools 
+ifconfig 查看 ip 地址 
+ 
+## netstat 
+netstat 命令也属于 net-tools 软件包 
+netstat -tulp | grep 1521 #查看 oracle 监听器程序是否正常启动 
+ 
+## rpm 
+rpm -ivh .rpm 文件的路径 #表示安装软件包 
+rpm -qa #查看已安装的软件 
+rpm -qa | grep mysql #查看已经安装的 mysql 软件包 
+rpm -e --nodeps 安装包名 #卸载软件包 -e 表示卸载 --nodeps 表示不理会的依赖关系 
+ 
+
+
+## zip/unzip/tar/gzip
+zip -q -r html.zip /home/html    ## 将/home/html/这个目录下所有文件和文件夹打包为当前目录下的 html.zip
+
+unzip html.zip -d /home/         ## 将html.zip解压到/home路径下；
+
+zip 2.zip 2.txt #将 2.txt 压缩到 2.zip 中
+
+zip data.zip data #只会压缩文件夹,不会压缩文件夹下的内容
+
+zip da.zip da/* #压缩文件夹和文件夹内的文件(压缩文件夹和它的下一级文件)
+
+zip -r data.zip date #-r 表示递归地将文件夹及它的子目录文件全部压缩
+
+unzip 2.zip #将 2.zip 压缩包解压到当前目录下
+
+unzip -l 压缩文件名 #不解压文件,查看压缩包内的文件
+
+unzip -l da.zip #查看 da.zip 压缩文件中包含的文件
+
+unzip da.zip -d 目标目录 #将压缩文件解压到指定目录
+
+unzip da.zip -d tm/ #将压缩文件 da.zip 解压到 tm 目录下
+
+tar cvf 压缩文件名 要压缩的文件或目录
+
+tar cvf 2.tar 2.txt #将 2.txt 压缩为 2.tar 包
+
+tar cvf data.tar data #将 data 目录夸张到 data.tar 包中
+
+tar xvf 2.tar #将 2.tar 解压到当前目录
+
+tar xvf 2.tar -C a/ #将 2.tar 解压到 a 目录
+
+tar xvf data.tar #解压 data.tar 到当前目录
+
+tar zcvf 压缩文件名 要压缩的文件
+
+tar zcvf tm.tar.gz tm #将当前目录下的 tm 目录压缩为 tm.tar.gz
+
+tar zxvf 压缩文件名
+
+tar zxvf tm.tar.gz #将 tm.tar.gz 解压到当前目录
+
+gzip 命令,将文件压缩为.gz 包(可以用来压缩.tar 文件)
+
+gzip 要压缩的文件
+
+gzip 2.txt #将 2.txt 压缩为 2.txt.gz
+
+gzip data.tar #将 data.tar 压缩为 data.tar.gz 
+
+
+
+
+## awk
+模式匹配和处理语言。可以从文本中提取出指定的列、用正则表达式从文本中取出我们想要的内容、显示指定的行以及进行统计和运算。
+
+-F     指定输入行的字段分隔符，以便将数据切分成不同的段
+awk -F "\"" '{print $6}' 
+
+假设有一个名为 fruit2.txt 的文件，内容如下所示。 
+[root ~]# cat fruit2.txt 
+1 banana 120 
+2 grape 500 
+3 apple 1230 
+4 watermelon 80 
+5 orange 400 
+ 
+### 显示文件的第 3 行。 
+[root ~]# awk 'NR==3' fruit2.txt 
+3 apple 1230 
+ 
+### 显示文件的第 2 列。 
+[root ~]# awk '{print $2}' fruit2.txt 
+banana 
+grape 
+apple 
+watermelon 
+orange 
+ 
+### 显示文件的最后一列。 
+[root ~]# awk '{print $NF}' fruit2.txt 
+120 
+500 
+1230 
+80 
+400 
+ 
+### 输出末尾数字大于等于 300 的行。 
+[root ~]# awk '{if($3 >= 300) {print $0}}' fruit2.txt 
+2 grape 500 
+3 apple 1230 
+5 orange 400
+
+
+## sed
+字符流编辑器--sed，sed 是操作、过滤和转换文本内容的工具。 
+
+假设有一个名为 fruit.txt 的文件，内容如下所示。 
+[root ~]# cat -n fruit.txt 
+1 banana 
+2 grape 
+3 apple 
+4 watermelon 
+5 orange 
+
+### 第 2 行后面添加一个 pitaya
+[root ~]# sed '2a pitaya' fruit.txt 
+banana 
+grape 
+pitaya 
+apple 
+watermelon 
+orange 
+
+### 在第 2 行前面插入一个 waxberry
+[root ~]# sed '2i waxberry' fruit.txt 
+banana 
+waxberry 
+grape 
+apple 
+watermelon 
+orange 
+
+### 删除第 3 行 
+[root ~]# sed '3d' fruit.txt 
+banana 
+grape 
+watermelon 
+orange 
+
+### 删除第 2 行到第 4 行。 
+[root ~]# sed '2,4d' fruit.txt 
+banana 
+orange 
+
+### 将文本中的字符 a 替换为@。 
+[root ~]# sed 's#a#@#' fruit.txt 
+b@nana 
+gr@pe 
+@pple 
+w@termelon 
+or@nge 
+
+### 将文本中的字符 a 替换为@，使用全局模式 
+[root ~]# sed 's#a#@#g' fruit.txt 
+b@n@n@ 
+gr@pe 
+@pple 
+w@termelon 
+or@nge 
+
+### sed 可以查找日志文件特定的一段, 根据时间的一个范围查询，可以按照行号和时间范围查询 
+按照行号
+sed -n '5,10p' filename 这样你就可以只查看文件的第 5 行到第 10 行。 
+按照时间段 
+sed -n '/2014-12-17 16:17:20/,/2014-12-17 16:17:36/p' test.log 
+
+## find
+find 通常用来再特定的目录下搜索符合条件的文件，也可以用来搜索特定用户属主的文件。
+
+find /home -name test.txt    查找/home路径下文件名为test.txt的文件
+
+find /home -type d -name test    查找/home路径下文件夹为test的文件
+
+
+## grep 
+grep 命令是一种强大的文本搜索工具，grep 搜索内容串可以是正则表达式，允许对文本文件进行模式查找。如果找到匹配模式，grep 打印包含模式的所有行。 
+
+
+
+## git
+gitlab提交代码流程
+1. gitlab新建分支 hotfix/master/etcdconf/chron--- bug用hotfix，功能代码用feature，master指的是要合并的分支，etcdconf--功能路径，chron用户；feature/master/backupdriver/dongxiang
+2. 本地拉取分支git fetch origin feature/master/backupdriver/dongxiang；
+3. 根据远端分支新建本地分支git checkout -b feature/backup origin/feature/master/backupdriver/dongxiang；
+4. 将本地另一个分支上的修改cherry-pick到新建分支git cherry-pick 5e882fedd834c4e2a4c8d41a69d565324f98c56a；
+5. 提交到远端分支git push origin HEAD:feature/master/backupdriver/dongxiang；
+
+### git恢复reset的代码
+首先git reflog查看提交记录；
+git rebase -i HEAD@{2}   进入vim直接:q！，解决冲突，提交，恢复之前reset掉的代码；
+
+### git远程分支已经删除，本地如何更新
+直接执行git remote prune origin即可；
+
+### git查看代码行
+git ls-files | xargs wc -l
+
+gitignore加./idea
+
+### 远端分支和master改动一致
+本地checkout -b新分支，然后git pull，之后git rebase master，最后git push origin HEAD:sbx即可，不需要merge request；
+
+
+### 配置 user.name 以及 user.email 
+git 使用你的用户名将提交与身份相关联。 git config 命令可用来更改你的 git 配置，包括你的用户名。 
+ 
+----git config --global user.name dongxiang 
+
+----git config --global user.email dong.xiangxiang@zte.com.cn
+
+git config --list                  # 列出 Git 可以在该处找到的所有的设置
+
+
+### Git 终端的配置，生成公钥文件 
+1. ssh-keygen -t rsa -C (这里是你的邮箱地址) # 之后一路回车即可； 
+2. 执行完后，在指定路径生成公钥文件； 
+linux 路径：~/.ssh 
+windows 路径：c 盘>用户>自己的用户名>.ssh 
+3. 将公钥 id_rsa.pub 文本内容拷贝到远端 ssh keys 中。
+
+### git 修改上次提交 
+修改后执行 git add .； 
+然后 git commit --amend，把文件和上次提交合并（--amend 可以保持 change_Id 和上次
+一样，如果被删掉的话，这条命令会生成新的 chang_id,此时如果想合并到上次的修改
+中，必须复制上次的 Change_Id 作为本次的 Change_id）; 
+最后 git push origin HEAD:refs/for/master 
+ 
+git 本地只有在 add+commit 之后才能出现 master 分支； 
+ 
+ 
+### git 添加 github 远程仓库 
+----- git remote add -m master origin git@github.com:SHANExiang/blog.git
+
+### git 本地 master 分支与远程 master 分支关联 
+当在本地新建一个已经存在代码的本地仓库时，想将这个仓库与远端的仓库关联，即 
+----- git branch --set-upstream-to=origin/master master 
+
+Branch 'master' set up to track remote branch 'master' from 'origin'. 
+----- git push origin master 报错 
+To github.com:SHANExiang/blog.git 
+! [rejected] master -> master (non-fast-forward) 
+error: failed to push some refs to 'git@github.com:SHANExiang/blog.git' 
+----- git pull 
+fatal: refusing to merge unrelated historie 
+----- git pull --allow-unrelated-histories 
+Merge made by the 'recursive' strategy. 
+README.md | 1 + 
+1 file changed, 1 insertion(+) 
+create mode 100644 README.md 
+可以发现将两者合并起来了； 
+----- git push origin master 
+ 
+ 
+### git 版本回退 
+本地修改但未 add/commit
+git checkout .      # 撤销对所有已修改但未提交的文件的修改，但不包括新增的文件
+
+git checkout [filename]     # 撤销对指定文件的修改，[filename]为文件名
+
+
+已 add/commit 但未 push 
+git revert commitID # 其实，git revert 可以用来撤销任意一次的修改，不一定要是最近一次 
+或 git reset --hard commitID/git reset --hard HEAD^  
+HEAD 表示当前版本，几个^表示倒数第几个版本，倒数第 100 个版本可以用HEAD~100）； 
+参数--hard：强制将暂存区和工作区都同步到指定的版本 
+git reset 和 git revert 的区别是：reset 是用来回滚的，将 HEAD 的指针指向了想要回滚的
+版本，作为最新的版本，而后面的版本也都没有了；而 revert 只是用来撤销某一次更改，
+对之后的更改并没有影响，然后再用 git push -f 提交到远程仓库。 
+ 
+
+已 push 
+首先查询这个文件的 log 
+其次查找到这个文件的上次 commit id xxx，并对其进行 reset 操作 
+再撤销对此文件的修改 
+最后 amend 一下，再 push 上去 
+
+$ git log <fileName> 
+$ git reset <commit-id> <fileName> 
+$ git checkout <fileName> 
+$ git commit --amend 
+$ git push origin <remoteBranch>
+
+
+### 查看操作记录 
+----- git reflog
+
+
+### 工作区和暂存区 
+git 管理的问题的修改，它只会提交暂存区的修改来创建版本； 
+ 
+撤销工作区的修改----- git checkout -- 文件名 
+
+作了修改，但还没 git add，撤销到上一次提交：git checkout -f -- filename；git checkout -f -- . 
+
+把暂存区的修改撤销掉，重新放回工作区----- git reset HEAD file 
+作了修改，并且已经 git add，但还没 git commit： 
+先将暂存区的修改撤销：git reset HEAD filename/git reset HEAD；此时修改只存在于工
+作区，变为了 "unstaged changes"； 
+再利用上面的 checkout 命令从工作区撤销修改 
+
+### 对比工作区和某个版本中文件的不同 
+----- git diff HEAD -- file 
++表示工作区中的内容，-表示版本中的内容；
+
+### 对比两个版本间文件的不同 
+----- git diff HEAD HEAD^ -- file 
++表示 HEAD 版本文件内容，-表示 HEAD^版本文件的内容
+
+
+### 删除一个文件 
+----- git rm file 
+
+### 分支操作 
+----- git branch # 查看当前分支 
+
+----- git branch 分支名 # 创建分支
+
+----- git checkout -b dev # 创建分支 dev，并切换到它上面（也就是将 head 指向当前分支）
+
+----- git checkout 分支名 # 切换分支
+
+----- git merge 分支名 # 合并某分支到当前分支
+
+----- git branch -d 分支名 # 删除分支
+
+----- git log --graph --pretty=oneline   # 看到分支的合并情况 
+ 
+
+### fast-forward    快速合并--分支管理策略 
+1. checkout 一个分支 dev 上做了 commit，之后 checkout master 分支，对同一地方做了修
+改，之后再 master 上执行 merge 操作，由于默认执行的是快速合并，这这个快速合并只
+能试图把各自的修改合并起来，但是会有冲突，手动解决冲突后， 就是一次新的提交； 
+2. 通常，合并分支时，如果可能，git 会用 fast-forward 模式，但是有些快速合并不能成
+功而且合并时没有冲突，这个时候会合并之后并做一次新的提交； 
+3. 禁用 fast-forward，----- git merge --no-ff -m "禁用 fast-forward 模式" dev  由于本次合
+并要创建一个新的 commit,所以加上-m 参数； 
+
+### 工作现场保存 git stash 
+----- git stash # 暂时保存工作现场
+
+----- git stash pop # 回到工作现场
+
+git stash drop 命令用于删除隐藏的项目。默认情况下，它将删除最后添加的存储项，如果提供参数的话，它还可以删除特定项。
+
+下面举个例子。 
+如果要从隐藏项目列表中删除特定的存储项目，可以使用以下命令： 
+git stash list：它将显示隐藏项目列表，如： 
+stash@{0}: WIP on master: 049d078 added the index file stash@{1}: WIP on master: c264051 
+Revert “added file_size” stash@{2}: WIP on master: 21d80a5 added number to log 
+如果要删除名为 stash@{0} 的项目，请使用命令 git stash drop stash@{0}。 
+
+### git 标签操作 
+首先切换到需要打标签的分支上，然后使用 git tag v1.0 就可以在当前 commit 打上 v1.0 的标签 
+git tag v1.0 commitID 对特定 commit 打标签 
+打标签时加上 message：git tag -a <tagname> -m "message" 
+git tag 查看所有标签 
+
+git show [tagname] 查看标签详细信息
+
+git push origin <tagname>可以推送一个本地标签到远程仓库
+
+git push origin --tags 可以推送全部未推送过的本地标签
+
+git tag -d <tagname>可以删除一个本地标签
+
+git push origin :refs/tags/<tagname>可以删除一个远程标签（先从本地删除）
+
+
+### git pull 和 git fetch 有什么区别？ 
+git pull 命令从中央存储库中提取特定分支的新更改或提交，并更新本地存储库中的目标分支。
+
+git fetch 也用于相同的目的，但它的工作方式略有不同。当你执行 git fetch 时，它会从
+所需的分支中提取所有新提交，并将其存储在本地存储库中的新分支中。如果要在目标
+分支中反映这些更改，必须在 git fetch 之后执行 git merge 。只有在对目标分支和获取
+的分支进行合并后才会更新目标分支。为了方便起见，请记住以下等式： 
+git pull = git fetch + git merge
+
+### 如何找到特定提交中已更改的文件列表？ 
+要获取特定提交中已更改的列表文件，请使用以下命令：git diff-tree -r {hash}
+
+给定提交哈希，这将列出在该提交中更改或添加的所有文件。 -r 标志使命令列出单个文件，而不是仅将它们折叠到根目录名称中。
+
+你还可以包括下面提到的内容，虽然它是可选的，但有助于给面试官留下深刻印象。输
+出还将包含一些额外信息，可以通过包含两个标志把它们轻松的屏蔽掉： 
+git diff-tree –no-commit-id –name-only -r {hash} 
+这里 -no-commit-id 将禁止提交哈希值出现在输出中，而 -name-only 只会打印文件名
+而不是它们的路径。 
+
+### git merge 和 git rebase 之间有什么区别？ 
+简单的说，git merge 和 git rebase 都是合并分支的命令。  
+git merge branch 会把 branch 分支的差异内容 pull 到本地，然后与本地分支的内容一并
+形成一个 committer 对象提交到主分支上，合并后的分支与主分支一致；
+git rebase branch 会把 branch 分支优先合并到主分支，然后把本地分支的 commit 放到主
+分支后面，合并后的分支就好像从合并后主分支又拉了一个分支一样，本地分支本身不会保留提交历史。 
+
+
+
+
+
+## 网卡配置
+ip addr add 10.50.114.157/32 dev eth0        ## 增加网卡地址
+
+ip addr del 10.50.114.157/32 dev eth0        ## 删除网卡地址
+
+ip route add default via 10.50.114.157 dev eth0       ## 增加默认路由
+
+ip addr show dev eht0                        ## 查看网口的配置信息
+
+
+1. 可以直接修改配置文件/etc/sysconfig/network-scripts/中的ifcfg-eth0；
+如果一个网卡配置多个ip地址，则新增文件/etc/sysconfig/network-scripts/中的ifcfg-eth0:1；
+
+2. BOOTPROTO设置为 dhcp 后，系统会在引导过程中自动向 DHCP 服务器发送请求，以获取 IP 地址和其他相关配置。
+这样，你无需手动配置网络接口，系统会自动从 DHCP 服务器获取所需的网络配置信息，并将其应用于相应的网络接口。
+手动配置网络接口，可以将 BOOTPROTO 设置为其他值，比如 static（静态IP地址）或 none（禁用IP配置）。
+ 
+
+
+
+
+## tcpdump
+sudo tcpdump -n -t -S -i enp0s3  port 80
+第一次握手，标志位Flags=S
+IP 10.0.2.2.51323 > 10.0.2.15.80: Flags [S], seq 84689409, win 65535, options [mss 1460], length 0
+第二次握手，标志位Flags=[S.]
+IP 10.0.2.15.80 > 10.0.2.2.51323: Flags [S.], seq 1893430205, ack 84689410, win 64240, options [mss 1460], length 0
+第三次握手，标志位Flags=[.]
+IP 10.0.2.2.51323 > 10.0.2.15.80: Flags [.], ack 1893430206, win 65535, length 0
+建立连接后，客户端发送http请求 
+IP 10.0.2.2.51321 > 10.0.2.15.80: Flags [P.], seq 1:753, ack 1, win 65535, length 752: HTTP: GET / HTTP/1.1
+
+tcpdump命令解析一下：
+-i : 指定抓包的网卡是enp0s3
+-n: 把域名转成IP显示
+-t: 不显示时间
+-S: 序列号使用绝对数值，不指定-S的话，序列号会使用相对的数值
+port: 指定监听端口是80
+host:指定监听的主机名
+
+
+## 查看socket信息
+netstat -napt或ss -ntlp
+-n表示不显示名字，而是以数字方式显示ip和端口
+-l只显示LISTEN状态的socket
+-p表示显示进程信息
+-t表示只显示tcp连接
+
+ss -tunlp|grep 9696     查看端口打开情况
+
+网络性能指标
+带宽：链路的最大传输速率，b/s；
+吞吐量：单位事件内成功传输的数据量；b/s(比特/s)或B/s(字节/s)
+
+
+
+## 证书
+CA 证书文件（ssl_cacert.pem）---即根证书；
+客户端证书和私钥文件----cert.pem, key.pem
+
+
+## 用户及用户组
+添加用户---adduser dx
+
+设置用户密码---passwd dx
+
+添加用户组---groupadd docker
+
+将用户加到用户组中---usermod -aG docker dx
+
+激活对用户组的修改---newgrp docker
+
+创建和删除用户 - useradd / userdel 
+
+创建和删除用户组 - groupadd / groupdel。 
+
+说明：用户组主要是为了方便对一个组里面所有用户的管理。 
+-d - 创建用户时为用户指定用户主目录 
+-g - 创建用户时指定用户所属的用户组 
+
+
+修改密码 - passwd
+```shell
+[root ~]# passwd hellokitty 
+New password: 
+Retype new password: 
+passwd: all authentication tokens updated successfully. 
+```
+ 
+查看和修改密码有效期 - chage。 
+设置 hellokitty 用户 100 天后必须修改密码，过期前 15 天通知该用户，过期后 15 天禁用该用户。 
+chage -M 100 -W 15 -I 15 hellokitty 
+
+编辑 sudoers 文件 - visudo。 
+
+显示用户与用户组的信息 - id。 
+
+给其他用户发消息 -write / wall。 
+
+查看/设置是否接收其他用户发送的消息 - mesg。 
+
+chown - 改变文件所有者。 
+[root ~]# chown hellokitty readme.txt 
+
+
+
+## sar
+怀疑CPU存在瓶颈，可用 sar -u 和 sar -q 等来查看
+怀疑内存存在瓶颈，可用 sar -B、sar -r 和 sar -W 等来查看
+怀疑I/O存在瓶颈，可用 sar -b、sar -u 和 sar -d 等来查看
+
+sar -n DEV，显示网口的统计数据；
+sar -n EDEV，显示关于网络错误的统计数据；
+sar -n TCP，显示 TCP 的统计数据
+
+
+## keepalived
+/etc/keepalived/keepalived.conf中
+vrrp_instance VI_1 {
+    state BACKUP    ## 主服务器为MASTER，备服务器为BACKUP
+    interface eth0  ## 替换为备份服务器上的网络接口名称
+    virtual_router_id 51  ## 虚拟路由器 ID，与主服务器配置相同
+    priority 90  ## 备份服务器的优先级较低
+    advert_int 1  ## 广告间隔，单位为秒
+    authentication {
+        auth_type PASS
+        auth_pass your_password  ## 与主服务器配置相同的密码
+    }
+    virtual_ipaddress {
+        192.168.0.100  ## 虚拟 IP 地址，与主服务器配置相同
+    }
+}
+
+
+## 磁盘
+fdisk---磁盘分区的工具
+fdisk -l显示磁盘分区表
+fdisk /dev/sda -l显示磁盘设备sda的详情
+
+
+## 文件描述符
+1. 每个文件描述符都会与一个打开的文件相对应；
+2. 不同的文件描述符可能指向同一个文件；
+3. 相同的文件可以被不同的进程打开，也可以在一个进程中被打开多次；
+
+
+ 
+## 虚拟环境 virtualenv 
+virtualenv----虚拟环境，就是可以在一个主机上，自定义出多套的 python 环境，
+多套环境中使用不同的 python 解析器，环境变量设置，第三方依赖包，执行不
+同的测试命令，最重要的是各个环境之间互不影响，相互隔离； 
+virtualenv 使用 
+1. pip install virtualenv； 
+2. cd 到存放虚拟环境的目录，执行 virtualenv ENV----在当前目录下创建名为 ENV
+的虚拟环境（如果第三方包 virtualenv 安装在 python3 下面，此时创建的虚拟环
+境就是基于 python3 的）; virtualenv -p /usr/local/bin/python2.7 ENV2 参数 -p 指
+定 python 版本创建虚拟环境 virtualenv --system-site-packages ENV 参数 --
+system-site-packages 指定创建虚拟环境时继承系统三方库 
+3. source bin/activate 激活虚拟环境 pip list 查看当前虚拟环境下所安装的第三方
+库 deactivate 退出虚拟环境 
+4. 删除的话，直接删除虚拟环境所在目录即可。 
+ 
+
+## iptables 使用 
+iptables –I INPUT –s 192.168.11.12 –p –tcp m tcp –j DROP 
+iptables –D INPUT –s 192.168.11.12 –p –tcp m tcp –j DROP 
+iptables –nL |grep 192.168.11.12 
+
+linux 下的后台进程管理利器 supervisor 
+每次文件修改后再 linux 执行 service supervisord restart 
+
+
+## 用过 ping 命令么？简单介绍一下。TTL 是什么意思？ 
+ping : 查看与某台机器的连接情况。TTL：生存时间。数据报被路由器丢弃之前允许通过的网段数量。 
+
+
+## 怎么判断一个主机是不是开放某个端口？
+telnet IP 地址 端口 
+telnet 127.0.0.1 3389 
+
+
+
+
 ## 格式化json
 cat test.json |python -m json.tool；
 
@@ -705,6 +1352,214 @@ pdcp的常用选项包括：
 使用pdsh命令在多个远程主机上同时执行命令。需要在每个主机上安装pdsh包。
 使用实例：pdsh -w host1,host2,host3 systemctl restart httpd
 
+
+
+## k8s部署
+1. 格式化数据盘并挂载
+sudo cat /etc/fstab |tail -n1
+UUID=36158b9f-f0cb-46e0-9e8c-f9f463be06db /                       xfs     defaults        0 0
+2. 生成ssh秘钥对；ssh-keygen -t rsa -b 2048；cat /root/.ssh/id_rsa.pub > /root/.pub；ssh免密设置；
+sudo ssh-copy-id 33.33.33.232;
+sudo ssh-copy-id 33.33.33.75
+sudo ssh-copy-id 33.33.33.95
+3. 安装集群
+export release=3.1.0
+sudo curl -C- -fLO --retry 3 https://github.com/easzlab/kubeasz/releases/download/${release}/ezdown
+sudo chmod +x ezdown
+sudo ./ezdown -D
+sudo ./ezdown -S
+4. 进去容器操作docker exec -it kubeasz bash
+```shell
+步骤一：创建集群：
+ezctl new gpu_dev
+步骤二：修改网络类型
+修改网络类型暂为calico，因为底层是openstack，vxlan本环境冲突，不能使用flannel。 工程目录为：/etc/kubeasz/clusters/gpu_dev/
+bash-5.1## grep -rw "calico" hosts 
+// Network plugins supported: calico, flannel, kube-router, cilium, kube-ovn
+CLUSTER_NETWORK="calico"
+步骤三：添加集群的ip地址
+添加master、worker节点ip地址，此处需要在hosts文本里添加即可
+ 
+步骤四：修改数据目录
+bash-5.1## grep -rw "/mnt" config.yml
+ETCD_DATA_DIR: "/mnt/etcd"
+DOCKER_STORAGE_DIR: "/mnt/docker"
+KUBELET_ROOT_DIR: "/mnt/kubelet
+修改数据目录，此处需要在config.yaml文本里添加即可
+步骤五：部署
+ezctl setup gpu_dev all
+```
+
+5. 安装dashboard
+```shell
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+会在kubernetes-dashboard namespace中创建Deployment和Service；
+kubectl --namespace=kubernetes-dashboard edit service kubernetes-dashboard
+修改成NodePort模式；
+##新建目录：
+mkdir key && cd key
+
+##生成证书
+openssl genrsa -out dashboard.key 2048 
+
+##我这里写的自己的node1节点，因为我是通过nodeport访问的；如果通过apiserver访问，可以写成自己的master节点ip
+openssl req -new -out dashboard.csr -key dashboard.key -subj '/CN=10.13.1.3'
+openssl x509 -req -in dashboard.csr -signkey dashboard.key -out dashboard.crt 
+
+##删除原有的证书secret
+kubectl delete secret kubernetes-dashboard-certs -n kubernetes-dashboard
+
+##创建新的证书secret
+kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.key --from-file=dashboard.crt -n kubernetes-dashboard
+
+##查看pod
+kubectl get pod -n kubernetes-dashboard
+
+##重启pod
+kubectl delete pod kubernetes-dashboard-7b544877d5-2xqcr  -n kubernetes-dashboard
+
+## 创建用户令牌
+创建ServiceAccount-->绑定关系ClusterRoleBinding-->获取令牌
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+```
+
+## helm
+安装helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 \
+    && chmod 700 get_helm.sh \
+    && ./get_helm.sh
+
+
+## deepcopy-gen使用
+deepcopy-gen -v 5 -h hack/boilerplate.go.txt --bounding-dirs . -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 -O zz_generated.deepcopy
+-v 5 指定输出内容的详细程度
+-h boilerplate.txt指定所有生成的文件的头部声明内容
+--bounding-dirs .指定生成目录为当前路径
+-i github.com/lt90s/deepcopy-gen-demo/types指定此package需要进行代码生成
+-O zz_generated.deepcopy指定生成的文件名称为zz_generated.deepcopy.go
+
+
+
+## client-gen
+client-gen --clientset-name versioned -i volcano.sh/apis/pkg/apis/scheduling/v1beta1 --output-package clientset --go-header-file hack/boilerplate.go.txt -v 5
+volcano.sh/apis增加资源client
+拉代码到本地直接执行./hack/update-codegen.sh即可在本地生成client
+
+
+
+
+
+
+
+## ldap
+### ldap搭建
+https://blog.csdn.net/qq_37733540/article/details/123988481
+
+### ldap使用
+1. 服务为slapd；
+2. ldapsearch检查内容
+ldapsearch -x -D cn=Manager,dc=my-domain,dc=com -w admin -b "dc=my-domain,dc=com"
+-x 启用认证
+-D bind admin的dn
+-w admin的密码
+-b basedn, 查询的基础dn
+
+ldapsearch -x -LLL -H ldap:/// -b dc=my-domain,dc=com
+查看所有dn
+
+3. 关键字列表
+dn-----每个对象都有一个惟一的名称，如“uid= tom,ou=market,dc=example,dc=com”，在一个目录树中DN总是惟一的
+dc-----域名的部分，其格式是将完整的域名分成几部分，如域名为example.com变成dc=example,dc=com
+uid----用户id，如Tom；
+ou-----组织单元
+cn-----common name，公共名称；
+
+
+
+ 
+## 安装 Python 3.6 
+[root ~]# yum install gcc 
+[root ~]# wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz 
+[root ~]# gunzip Python-3.6.5.tgz 
+[root ~]# tar -xvf Python-3.6.5.tar 
+[root ~]# cd Python-3.6.5 
+[root ~]# ./configure --prefix=/usr/local/python36 --enable-optimizations 
+[root ~]# yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel 
+readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel 
+[root ~]# make && make install 
+... 
+[root ~]# ln -s /usr/local/python36/bin/python3.6 /usr/bin/python3 
+[root ~]# python3 --version 
+Python 3.6.5 
+[root ~]# python3 -m pip install -U pip 
+[root ~]# pip3 --version 
+说明：上面在安装好 Python 之后还需要注册 PATH 环境变量，将 Python 安装路
+径下 bin 文件夹的绝对路径注册到 PATH 环境变量中。注册环境变量可以修改用
+户主目录下的.bash_profile 或者/etc 目录下的 profile 文件，二者的区别在于前者
+相当于是用户环境变量，而后者相当于是系统环境变量 
+Linux 下的大多数服务都被设置为守护进程（驻留在系统后台运行，但不会因为
+服务还在运行而导致 Linux 无法停止运行），所以我们安装的服务通常名字后面
+都有一个字母 d ，它是英文单词 daemon 的缩写，例如：防火墙服务叫 firewalld，
+我们之前安装的 MySQL 服务叫 mysqld，Apache 服务器叫 httpd 等。在安装好服
+务之后，可以使用 systemctl 命令或 service 命令来完成对服务的启动、停止等
+操作 
+ 
+ 
+ 
+### centos7 下编译安装 python3 
+1. 必须解决编译所需的基础开发环境 
+yum install gcc patch libffi-devel python-devel zlib-devel bzip2-devel openssl-devel ncurses-
+devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel -y 
+2. 下载 python3 的编代码包,解压缩 
+wget https://www.python.org/ftp/python/3.7.4/Python-3.7.4.tar.xz 
+xz -d Python-3.7.4.tar.xz 
+tar -xf Python-3.7.4.tar 
+3. 进入解压缩生成的源码文件夹 
+cd Python-3.7.4 
+4. 执行编译三部曲的命令 
+第一曲：找到一个[配置的可执行文件，configure]，执行它，且指定软件安装位置 
+./configure --prefix=/opt/python374/ 
+第二曲：在上一步，会生成一个 makefile，编译安装，在 linux 下必须用 gcc 工具去编
+译，使用的命令时 
+make&&make 
+第三曲：这一步是执行安装，会生成一个/opt/python374 文件夹，可用的解释器都在这里了 
+make install 
+5. 配置环境变量，便于快捷使用 python3 
+1).先获取当前的 PATH 变量，然后把 python3 的 bin 目录加进去 
+echo $PATH 
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin 
+
+2).永久修改 PATH 的值 
+-直接修改/etc/profile ，系统全局的配置文件，每个用户在登陆系统的时候，都会加载这
+个文件 
+vim /etc/profile 
+-写入新的 PATH 变量 
+PATH="/opt/python367/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/root/bin"
+
+3).重新登陆，或者手动读取这个/etc/profile 
+source /etc/profile # 让这个文件中的变量生效 
+ 
+ 
+ 
+## Linux 下安装 openJDK 
+1. 卸载旧版本 
+rpm -qa|grep gcj 
+如果有 gcj 文件，yum remove 即可； 
+2. 安装 OpenJDK，只是 1.8 以上 
+注意：安装 java-1.8.0-openjdk 后只有 jre，必须继续安装 yum install java-1.8.0-openjdk-
+devel 
+安装完后的路径为：/usr/lib/jvm 
+yum install java-1.8.0-openjdk 
+yum install java-1.8.0-openjdk-devel 
+3. 配置环境变量 
+vi /etc/profile 
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0 
+export JRE_HOME=$JAVA_HOME/jre 
+export 
+CLASS_PATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JRE_HOME/lib 
+export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin 
+ 
+ 
 
 
 ## 搭建本地yum源供其它主机rpm包安装

@@ -721,6 +721,8 @@ ALTER TABLE new_table RENAME TO old_table;                        ## 重命名 n
 
 #### gorm 加上 logger 
 go get –u gorm.io/gorm/logger 
+
+```Go
 newLogger := logger.New( 
    log.New(os.Stdout, "\r\n", log.LstdFlags), 
    logger.Config{ 
@@ -730,6 +732,7 @@ newLogger := logger.New(
    }) 
  
 DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dsn")), &gorm.Config{Logger: newLogger}) 
+```
 访问接口，终端会有 sql 语句打印；
 
  
@@ -738,6 +741,7 @@ DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dsn")), &gorm.Config{Logger:
 如果要批量插入某个字段，可以先构造一个包含该字段的结构体切片，然后使用CreateInBatches 方法进行批量插入。 
 
 下面是一个示例代码： 
+```Go
 type User struct { 
     ID   uint 
     Name string 
@@ -761,10 +765,13 @@ if result.Error != nil {
  
 // 输出插入的记录数 
 fmt.Printf("Inserted %d records\n", result.RowsAffected) 
+
+```
 在上面的代码中，我们先构造了一个包含 City 字段的结构体切片，然后使用 
 CreateInBatches 方法进行批量插入。在调用 CreateInBatches 方法时，我们指定
 了要插入的记录数和要选择的字段（即只插入 City 字段）。最后，我们可以通
 过 result.RowsAffected 获取插入的记录数。 
+
  
 #### gorm 里面更新有几种方式？ 
 1. 使用 Update 方法更新单条记录 
