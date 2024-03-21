@@ -6957,6 +6957,24 @@ MNIST 数据集的特点如下：
 易于使用：许多机器学习和深度学习框架，如 TensorFlow 和 PyTorch，都内置了 MNIST 数据集的加载器，使得加载和使用 MNIST 数据集变得非常方便。
 
 
+### 概念
+epoch
+当一个完整的数据集通过了神经网络一次并且返回了一次，这个过程称为一次>epoch。（也就是说，所有训练样本在神经网络中都 进行了一次正向传播 和一次反向传播 ）
+再通俗一点，一个Epoch就是将所有训练样本训练一次的过程。
+
+
+Batch
+将整个训练样本分成若干个Batch。
+batch_size，每批样本的大小。
+
+
+iteration
+iteration同样指的是次数，iteration = 10 指的是把整个数据集分成10次扔进神经网络。
+
+
+
+
+
 
 ### horovod
 高性能分布式训练框架。整合底层集合通信库Openmpi、Gloo，简化多节点分布式训练开发模型，支持Tensorflow、PyTorch、Keras、MXNet，使得上层应用不需关注底层通信。
@@ -6969,6 +6987,7 @@ horovodrun -np 16 -H server1:4,server2:4,server3:4,server4:4 python train.py
 
 注意无论是单机多卡，还是多机多卡，都只需在一个机子上执行一次命令即可，其他机 Horovod 会用 MPI 启动进程和传递数据。
 
+训练代码 train.py 需要手动拷贝到各个节点上，且目录相同。
 
 
 ### tensorflow
