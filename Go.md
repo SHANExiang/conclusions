@@ -445,7 +445,7 @@ func main() {
 
 需要注意的是，如果使用值调用接口方法，对接收者的修改只影响副本，而不会影响原始值。如果需要在接口方法中修改接收者的状态，应该使用指针接收者实现接口。
 
-总之，使用指针接收者实现接口提供了更大的灵活性，可以在接口方法中修改接收者的状态。而在调用接
+总之，使用指针接收者实现接口提供了更大的灵活性，可以在接口方法中修改接收者的状态。
 
 ## map
 
@@ -552,6 +552,7 @@ m.Delete("key")
 
 2. 使用读写锁进行保护 
 另一种方式是使用读写锁（sync.RWMutex）对 map 进行保护，实现并发安全。例如： 
+```Go
 var mu sync.RWMutex 
 var m map[string]string 
  
@@ -566,66 +567,66 @@ func write(key, value string) {
     defer mu.Unlock() 
     m[key] = value 
 } 
-上面的代码使用读写锁对 map 进行保护，read 函数使用读锁进行保护，write 函数使用写
-锁进行保护，可以在多个 goroutine 中对其进行并发读写操作。 
+``` 
+上面的代码使用读写锁对 map 进行保护，read 函数使用读锁进行保护，write 函数使用写锁进行保护，可以在多个 goroutine 中对其进行并发读写操作。 
  
-需要注意的是，使用读写锁进行保护时，需要根据实际情况选择读锁或写锁，以保证并发安
-全和性能的平衡。同时，也可以使用 sync.Map 类型来简化代码，避免使用锁时出现的一些
-问题，例如死锁等。 
- 
+需要注意的是，使用读写锁进行保护时，需要根据实际情况选择读锁或写锁，以保证并发安全和性能的平衡。同时，也可以使用 sync.Map 类型来简化代码，避免使用锁时出现的一些问题，例如死锁等。 
+
 #### 解决 hash 碰撞的方法 
 1、开放寻址法； 
-这种方法的核心思想是依次探测和比较数组中的元素以判断目标键值对是否存
-在于哈希表中。实现哈希表的底层数据接口是数组。 
+
+这种方法的核心思想是依次探测和比较数组中的元素以判断目标键值对是否存在于哈希表中。实现哈希表的底层数据接口是数组。 
+
 哈希函数：index := hash(“key1”) % array.len 
-当我们向当前哈希表写入新的数据时，如果发生了冲突，就会将键值对写入到下
-一个索引不为空的位置，如果位置已经被占用了，则继续向下寻找，如果找到最
-后还是被占用的话，则从头开始寻找位置。 
+
+当我们向当前哈希表写入新的数据时，如果发生了冲突，就会将键值对写入到下一个索引不为空的位置，如果位置已经被占用了，则继续向下寻找，如果找到最后还是被占用的话，则从头开始寻找位置。
+
 2、拉链法。 
+
 实现哈希表的底层数据结构是链表数组。 
+
 哈希函数：index := hash(“key1”) % array.len 
-经过 hash 函数找到一个桶，然后就可以遍历当前桶的链表了，在遍历链表的过
-程中会遇到以下两种情况： 
+
+经过 hash 函数找到一个桶，然后就可以遍历当前桶的链表了，在遍历链表的过程中会遇到以下两种情况： 
 a、找到键相同的键值对 — 更新键对应的值； 
 b、没有找到键相同的键值对 — 在链表的末尾追加新的键值对； 
 
 
 
 #### 通过 make 函数定义 map 
-make(map[string]int) 
-mapCreated := make(map[string]float32)相当于：mapCreated := map[string]float32{}. 
+make(map[string]int)
 
+mapCreated := make(map[string]float32)  相当于：mapCreated := map[string]float32{}.
 
 如果只是 var 声明一个 map，此时不能添加新 key 到 map 中。 
-如果 key 没有在 map 中，取值时去 type 的默认值； 
+如果 key 没有在 map 中，取值时取 type 的默认值； 
+```Go
 m := map[string]int{"1": 1, "2": 2} 
 fmt.Println("value is", m["3"]) 
 //value is 0 
+```
 
 可以对未初始化的map取值，但是取出来的东西是空；不能对未初始化的map赋值；nil map未初始化，空map长度为0；
 
 map的key需要是可比的；map使用前一定要初始化；不是线程安全的；map循环是无序的；
 
 delete(map, key)  --移除 map 中的元素，如果 key 不存在，该操作不会产生错误； 
+
 len(map) ---可以获得 map 的长度 
+
 map 和 slice 一样是引用类型，不能通过==进行比较，==只能判断 map 是否是 nil；
 
 
 #### map 的排序 
-// for-range 遍历 map 
-for key, value := range map1 { 
-} 
-// 如果只想获取 key，可以这么使用： 
-for key := range map1 { 
-} 
-map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷贝到一个切片，
-再对切片排序，然后可以使用切片的 for-range 方法打印出所有的 key 和 value。
+// for-range 遍历 map             for key, value := range map1 {} 
+// 如果只想获取 key，可以这么使用：for key := range map1 {}
+
+map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷贝到一个切片，再对切片排序，然后可以使用切片的 for-range 方法打印出所有的 key 和 value。
 
 
 #### map 中删除一个 key，它的内存会释放么？
 如果删除的元素是值类型，如int，float，bool，string以及数组和struct，map的内存不会自动释放
-如果删除的元素是引用类型，如指针，slice，map，chan等，map的内存会自动释放，
-但释放的内存是子元素应用类型的内存占用将map设置为nil后，内存被回收。
+如果删除的元素是引用类型，如指针，slice，map，chan等，map的内存会自动释放，但释放的内存是子元素应用类型的内存占用将map设置为nil后，内存被回收。
 
 
 #### 遍历map为啥不是有序的？
@@ -633,8 +634,7 @@ map 默认是无序的，想为 map 排序，需要将 key（或者 value）拷�
 2. map 在扩容后，会发生 key 的搬迁，原来落在同一个 bucket 中的 key，搬迁后，有些 key 可能就到其他 bucket 了；
 而遍历的过程，就是按顺序遍历 bucket，同时按顺序遍历 bucket 中的 key。 
 搬迁后，key 的位置发生了重大的变化，有些 key 被搬走了，有些 key 则原地不动。这样，遍历 map 的结果就不可能按原来的顺序了。
-3. 在遍历 map 时，并不是固定地从 0 号 bucket 开始遍历，每次都是从一个随机值序号的 bucket 开始遍历，
-并且是从这个 bucket 的一个随机序号的 cell 开始遍历。
+3. 在遍历 map 时，并不是固定地从 0 号 bucket 开始遍历，每次都是从一个随机值序号的 bucket 开始遍历，并且是从这个 bucket 的一个随机序号的 cell 开始遍历。
 
 #### map三种并发安全的方式
 1. 读写锁；
@@ -650,20 +650,27 @@ type SafeMap2 struct {
 
 #### 数组 
 定义：arr := [...]int{1, 2, 3}或 arr := [3]int{1, 2, 3}     
+
 如果数组中元素的个数小于或者等于 4 个，那么所有的变量会直接在栈上初始化。
+
 如果数组元素大于 4 个，变量就会在静态存储区初始化然后拷贝到栈上； 
+
 数组是固定产长度的，不能动态扩容，在编译期就确定大小。 
+
 
 #### 操作切片方法
 numbers = append(numbers, 2,3,4)        ---往 numbers 中添加多个元素 
+
 append(slice1, slice...)，返回新的切片     ---将一个切片 append 到另一个切片中  
+
 copy(numbers1,numbers)                  ---拷贝 numbers 的内容到 numbers1 
+
 当切片作为参数传递给函数时，函数内部所做的更改在函数外部也可见；而数组不可见； 
+
 切片初始化三种方式：
-1、使用下标获取数组或者切片的一部分；不会拷贝原数组或者原切片中的数据，
-它只会创建一个指向原数组的切片结构体，所以修改新切片的数据也会修改原切片。 
-2、字面定义；sl := []int{1, 2, 3} --创建一个数组返回一个切片引用； 
-3、make([]T, length, capacity)    必须要有 length 参数，len() ---长度 ，cap() ---容量 
+1. 使用下标获取数组或者切片的一部分；不会拷贝原数组或者原切片中的数据，它只会创建一个指向原数组的切片结构体，所以修改新切片的数据也会修改原切片。 
+2. 字面定义；sl := []int{1, 2, 3} --创建一个数组返回一个切片引用； 
+3. make([]T, length, capacity)    必须要有 length 参数，len() ---长度 ，cap() ---容量 
 
 
 #### 切片初始化加索引
@@ -836,6 +843,8 @@ ALTER TABLE new_table RENAME TO old_table;                        ## 重命名 n
 
 #### gorm 加上 logger 
 go get –u gorm.io/gorm/logger 
+
+```Go
 newLogger := logger.New( 
    log.New(os.Stdout, "\r\n", log.LstdFlags), 
    logger.Config{ 
@@ -845,6 +854,7 @@ newLogger := logger.New(
    }) 
  
 DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dsn")), &gorm.Config{Logger: newLogger}) 
+```
 访问接口，终端会有 sql 语句打印；
 
  
@@ -853,6 +863,7 @@ DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dsn")), &gorm.Config{Logger:
 如果要批量插入某个字段，可以先构造一个包含该字段的结构体切片，然后使用CreateInBatches 方法进行批量插入。 
 
 下面是一个示例代码： 
+```Go
 type User struct { 
     ID   uint 
     Name string 
@@ -876,10 +887,13 @@ if result.Error != nil {
  
 // 输出插入的记录数 
 fmt.Printf("Inserted %d records\n", result.RowsAffected) 
+
+```
 在上面的代码中，我们先构造了一个包含 City 字段的结构体切片，然后使用 
 CreateInBatches 方法进行批量插入。在调用 CreateInBatches 方法时，我们指定
 了要插入的记录数和要选择的字段（即只插入 City 字段）。最后，我们可以通
 过 result.RowsAffected 获取插入的记录数。 
+
  
 #### gorm 里面更新有几种方式？ 
 1. 使用 Update 方法更新单条记录 
