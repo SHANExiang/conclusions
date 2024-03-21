@@ -5803,3 +5803,2318 @@ Scrapy 优缺点：
 是不会停掉其他任务的，数据出错后难以察觉。 
  
 
+ 
+#### 内建函数 
+######## range 
+range(1,10)---左开右闭， 
+ 
+
+######## sum 
+sum 可以接收一个容器，求其和 
+sum([23, 23, 34,])       ## 80 
+ 
+sum(range(1,10))----1-9 之间的和 
+
+ 
+######## sorted 
+sorted(iterable[, cmp[, key[, reverse]]]) 
+Return a new sorted list from the items in iterable. 
+它会从一个可迭代对象构建一个新的排序列表。 
+ iterable：可迭代对象； 
+ cmp：比较两个对象 x 和 y，如果 x > y 返回正数，x < y 返回负数；x == y，返回 0；比较什么由 key 决定。只适用于 python 2.x; 
+ key：用来决定在排序算法中 cmp 比较的内容，key 可以是任何可被比较的内容，比如元组（python 中元组是可被比较的）; 
+ reverse：排序规则, reverse = True(降序) 或者 reverse = False(升序，默认) 
+例如有一个字典，根据字典中的属性值来排序，返回一个排好序的元组： 
+>>> d = {"a":1, "c":3, "d":4, "b":2, "e": 5} 
+>>> sorted_d = sorted(d.items(), key=lambda i: i[1]) 
+>>> sorted_d 
+[('a', 1), ('b', 2), ('c', 3), ('d', 4), ('e', 5)] 
+或者有一个数组，它的每一个成员是一个字典，然后根据字典中的属性值来排序，
+用 cmp 参数如下： 
+>>> persons=[{'name':'zhang3','age':15},{'name':'li4','age':12}] 
+>>> sorted_d = sorted(persons, lambda a,b: a['age']-b['age']) 
+>>> sorted_d 
+[{'age': 12, 'name': 'li4'}, {'age': 15, 'name': 'zhang3'}]  
+再来看一个稍微复杂的例子。给定一个只包含大小写字母，数字的字符串，对其
+进行排序，保证： 
+ 所有的小写字母在大写字母前面， 
+ 所有的字母在数字前面 
+ 所有的奇数在偶数前面 
+像下面这样用 sorted 函数即可。 
+>>> s = "Sorting1234" 
+>>> "".join(sorted(s, key=lambda x: (x.isdigit(), x.isdigit() and int(x) % 2 == 0, x.isupper(), 
+x))) 
+'ginortS1324' 
+这里，lambda 函数将输入的字符转换为一个元组，然后 sorted 函数将根据元组
+（而不是字符）来进行比较，进而判断每个字符的前后顺序。这里可以理解为，
+根据字符生成的元组重新定义了排序的依据。 
+sorted(iterable, key=None, reverse=False)    ## 返回重新排序的列表,新列表 
+根据字典 value 进行排序 x[0]表示用键排序,x[1]表示用值进行排序 
+ 
+d = {'354': 34, 'dong': 54, 'fh': 10} 
+print(sorted(d.items(), key=lambda x:x[1]))          ## [('fh', 10), ('354', 34), ('dong', 54)] 
+
+
+######## reversed
+reversed(seq) 函数返回一个反转的迭代器。 
+seq--要转换的序列，可以是 tuple, string, list 或 range。 
+
+
+######## locals 与 globals 
+local()函数会以字典类型返回当前位置的全部局部变量。对于函数, 方法, lambda 
+函式, 类, 以及实现了 call 方法的类实例, 它都返回 True。 
+locals 函数可以得到一个局部变量字典，这样就可以从局部变量字典中取得修改
+过后的变量值； 每次它被调用的时候，locals()会获取局部变量值中的值并覆盖
+字典中相应的变量。 
+globals  
+函数会以字典类型返回当前位置的全部全局变量。 
+
+
+######## ord 与 chr 
+a. ord 与 chr 用法 
+def test_ord_chr(): 
+    print(ord('9')) 
+    print(chr(69)) 
+     
+test_ord_chr()        ## 57   E 
+ 
+ord() 函数是 chr() 函数（对于 8 位的 ASCII 字符串）或 unichr() 函数（对于 Unicode
+对象）的配对函数，它以一个字符（长度为 1 的字符串）作为参数，返回对应的 ASCII 
+数值，或者 Unicode 数值 
+返回值是对应的十进制整数。 
+ord 是将一个字符转换成 ascii 值 
+ 
+chr()函数是输入一个整数【0，255】返回其对应的 ascii 符号  
+获得所有的小写字母列表，获得大写的字母列表 chr(i) + 65 
+lower = [] 
+for i in range(26): 
+    lower.append(chr(i + 97))          ## lower = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'] 
+ 
+
+######## all 
+all(iterable) -> bool 
+all() 函数用于判断给定的可迭代参数 iterable 中的所有元素是否都为 TRUE，
+如果是返回 True，否则返回 False。 
+元素除了是 0、空、None、False 外都算 True。iterable -- 元组或列表。空元组、
+空列表返回值为 True 
+函数等价于： 
+def all(iterable): 
+    for element in iterable: 
+        if not element: 
+            return False 
+    return True 
+all 用法，接收一个可迭代对象，所有都为 True，结果才为 True 
+>>> all([1, 2, 3]) 
+True 
+>>> all([0, 2, 3]) 
+False 
+ 
+def test_all(): 
+    numbers = [23, 34, 12, 45] 
+    print(all(x > 20 for x in numbers)) 
+    print(all(x < 100 for x in numbers)) 
+     
+test_all()   ## False  True 
+
+
+######## any 
+Return True if any element of the iterable is true. If the iterable is empty, return False.  
+any() 函数用于判断给定的可迭代参数 iterable 是否全部为 False，则返回 False，
+如果有一个为 True，则返回 True。元素除了是 0、空、FALSE 外都算 TRUE。
+iterable -- 元组或列表。如果都为空、0、false，则返回 false，如果不都为空、0、
+false，则返回 true。 
+函数等价于 Equivalent to: 
+def any(iterable): 
+    for element in iterable: 
+        if element: 
+            return True 
+    return False 
+
+st = 'A8238i823acdeOUEI' 
+print(any(x.islower() for x in st))       ## True 
+st = 'DGRFRHR354DGHRYJH' 
+print(any(x.islower() for x in st))       ## False  
+ 
+
+简述 any()和 all()方法 
+any():只要迭代器中有一个元素为真就为真 
+all():迭代器中所有的判断项返回都是真，结果才为真 
+ 
+ 
+ 
+######## map 
+map(function, sequence[, sequence, ...]) -> list 
+map() 会根据提供的函数对指定序列做映射。Python 2.x 返回列表。Python 3.x 
+返回迭代器。 
+第一个参数 function 以参数序列中的每一个元素调用 function 函数，返回包含
+每次 function 函数返回值的新列表。 
+具体看简单的例子： 
+>>> Celsius = [39.2, 36.5, 37.3, 37.8] 
+>>> Fahrenheit = map(lambda x: (float(9)/5)*x + 32, Celsius) 
+>>> print Fahrenheit 
+[102.56, 97.700000000000003, 99.140000000000001, 100.03999999999999] 
+>>> a, b, c = [1,2,3,4], [17,12,11,10], [-1,-4,5,9] 
+>>> map(lambda x,y,z:x+y+z, a,b,c) 
+[17, 10, 19, 23] 
+ 
+ 
+一行输入两个数字 
+```python
+def test_input_two_integers_in_single_line(): 
+    print('input the value of x & y') 
+    x, y = map(int, input().split()) 
+    print('the value of x & y are---', x, y) 
+
+test_input_two_integers_in_single_line()
+## 输出
+## input the value of x & y 
+## 12  23 
+## the value of x & y are--- 12 23 
+
+``` 
+ 
+map()函数第一个参数是 fun，第二个参数是一般是 list，第三个参数可以写 list，也可以
+不写，根据需求 
+>>> l = [1,2,3,4,5] 
+>>> def fun(x): 
+...     return x**2 
+... 
+>>> res = map(fun, l) 
+>>> res 
+<map object at 0x0000025B21B79790> 
+>>> res = [x for x in res if x>10] 
+>>> res 
+[16, 25] 
+ 
+ 
+ 
+ 
+######## reduce 
+reduce(function, sequence[, initial]) -> value 
+reduce() 函数会对参数序列中元素进行累积。 
+函数将一个数据集合（链表，元组等）中的所有数据进行下列操作：用传给 reduce 
+中的函数 function（有两个参数）先对集合中的第 1、2 个元素进行操作，得到
+的结果再与第三个数据用 function 函数运算，最后得到一个结果。 
+具体看简单的例子： 
+>>> f = lambda a,b: a if (a > b) else b 
+>>> reduce(f, [47,11,42,102,13]) 
+102 
+>>> reduce(lambda x, y: x+y, range(1,101)) 
+5050 
+
+
+######## zip 
+zip(seq1 [, seq2 [...]]) -> [(seq1[0], seq2[0] ...), (...)] 
+zip() 函数用于将可迭代的对象作为参数，将对象中对应的元素打包成一个个元
+组，然后返回由这些元组组成的列表。如果各个迭代器的元素个数不一致，则返
+回列表长度与最短的对象相同，利用 * 号操作符，可以将元组解压为列表。解
+压只支持元组列表，不支持 dict 直接解压 
+具体看简单的例子： 
+>>> z1=[1,2,3] 
+>>> z2=[4,5,6] 
+>>> result = zip(z1,z2) 
+>>> a = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] 
+>>> zip(*a) 
+[(1, 4, 7), (2, 5, 8), (3, 6, 9)] 
+ 
+ 
+ 
+######## filter 
+filter(function or None, sequence) -> list, tuple, or string 
+filter()函数用于过滤序列，过滤掉不符合条件的元素，返回由符合条件元素组成
+的新列表。该接收两个参数，第一个为函数，第二个为序列，序列的每个元素作
+为参数传递给函数进行判断，然后返回 True 或 False，最后将返回 True 的元素
+放到新列表。
+具体看简单的例子： 
+>>> def f(x): return x % 2 != 0 and x % 3 != 0  
+>>> filter(f, range(2, 25))  
+[5, 7, 11, 13, 17, 19, 23] 
+>>> filter(lambda x: x!='a', "abcdef")  
+'bcdef' 
+
+>>> a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 
+>>> def fuc(l): 
+...     return l%2 == 1 
+... 
+>>> newlist = filter(fuc, a) 
+>>> newlist = [i for i in newlist] 
+>>> newlist 
+[1, 3, 5, 7, 9] 
+ 
+ 
+ 
+######## slice 
+内置的 slice()函数创建了一个切片对象，可以被用在任何切片允许使用的地方。 
+>>> a = slice(1,10,2) 
+>>> a 
+>>> a.start 
+1 
+>>> a.stop 
+10 
+>>> a.step 
+2 
+>>> items = [0, 1, 2, 3, 4, 5, 6] 
+>>> a = slice(2,5) 
+>>> items[2:5] 
+[2, 3, 4] 
+>>> items[a] 
+[2, 3, 4] 
+>>> items[a] = [5,6,7] 
+>>> items 
+[0, 1, 5, 6, 7, 5, 6] 
+>>> del items[a] 
+>>> imtes 
+[0, 1, 5, 6] 
+
+
+######## exec 与 eval 
+exec(object[, globals[, locals]]) 
+参数 
+object：必选参数，表示需要被指定的 Python 代码。它必须是字符串或 code 对象。 
+globals：可选参数，表示全局命名空间（存放全局变量），如果被提供，则必须是一个
+字典对象。 
+locals：可选参数，表示当前局部命名空间（存放局部变量），如果被提供，可以是任何
+映射对象。 
+如果该参数被忽略，那么它将会取与 globals 相同的值。 
+exec()最佳实践----这样 b 才是修改后的值 
+def test1(): 
+    a = 10 
+    loc = {'a': a} 
+    glb = {} 
+    exec('b = a + 1', glb, loc) 
+    b = loc['b'] 
+    print(loc) 
+     
+     
+ 
+exec 没有返回值 
+eval 有返回值,eval 还可以将字符串转化成对象 
+class obj(object): 
+    pass 
+ 
+ 
+a = eval('obj()') 
+print(a) 
+对表达式进行求值 
+print(eval('1 + 2'), type(eval('1 + 2')))  ## 3, <class 'int'> 
+print(eval('[1, 2, 3]'), type(eval('[1, 2, 3]'))) ## [1, 2, 3] <class 'list'> 
+print(eval('1' + '2')) ## 12 
+ 
+import ast 
+my_list = ast.literal_eval('[1, 2, 3]')  
+print(my_list, type(my_list))  ## [1, 2, 3] <class 'list'> 
+ 
+ 
+ 
+iter()与 next() 
+M = ['a', 'b', 'c', 'd', 'e'] 
+for x in M:  ## 解释器隐式调用 
+    print(x) 
+ 
+for x in iter(M):  ## 等价于 M.__iter()__   人为显示调用 
+    print(x) 
+     
+iter()函数，就是将一个可迭代对象 M 变为迭代器也就是 M 调用__iter__()方法，然后内
+部在调用__next__()方法。 
+next(M)等价于 M.__next__ 
+ 
+手动实现 for x in range(1, 4) print(x) 
+```python
+class Foo1(object): 
+    def __init__(self, start, end): 
+        self.start = start 
+        self.end = end 
+ 
+    def __iter__(self): 
+        return self 
+ 
+    def __next__(self): 
+        num = self.start 
+        if self.start == self.end: 
+            raise StopIteration 
+        self.start += 1 
+        return num 
+ 
+ 
+## 执行代码 
+## foo1 = Foo1(1, 4) 
+## for x in foo1: 
+##     print(x) 
+ 
+## output: 
+## 1 
+## 2 
+## 3
+```
+
+
+#### __init__ __new__ __del__ 构造和初始化
+__init__我们很熟悉了,它在对象初始化的时候调用,我们一般将它理解为"构造函数". 
+简化数据结构的初始化-----在基类的初始化方法__init__中对传参与每个实例的可允许传参进行校验。 
+定义多个构造器，定义__init__(*args)方法，另外的构造器--定义类方法，调用 cls(*args); 
+__new__()----创建一个未初始化的实例，类方法中调用时，instance = cls.__new__(cls); 
+实际上, 当我们调用 x = SomeClass()的时候调用,__init__并不是第一个执行的, 
+__new__才是。所以准确来说,是__new__和__init__共同构成了"构造函数". 
+__new__是用来创建类并返回这个类的实例, 而__init__只是将传入的参数来初始化该实例. 
+__new__在创建一个实例的过程中必定会被调用,但__init__就不一定，比如通过
+pickle.load 的方式反序列化一个实例时就不会调用__init__。 
+__new__方法总是需要返回该类的一个实例，而__init__不能返回除了 None 的任何值。比如下面例子: 
+class Foo(object): 
+ 
+    def __init__(self): 
+        print 'foo __init__' 
+        return None  ## 必须返回 None,否则抛 TypeError 
+ 
+    def __del__(self): 
+        print 'foo __del__' 
+
+在对象的生命周期结束时, __del__会被调用,可以将__del__理解为"析构函数"。 __del__定义的是当一个对象进行垃圾回收时候的行为。 
+有一点容易被人误解, 实际上，x.__del__() 并不是对于 del x 的实现,但是往往执行 del x 时会调用 x.__del__(). 
+怎么来理解这句话呢? 继续用上面的 Foo 类的代码为例: 
+foo = Foo() 
+foo.__del__() 
+print foo 
+del foo 
+print foo  ## NameError, foo is not defined 
+如果调用了 foo.__del__()，对象本身仍然存在. 但是调用了 del foo, 就再也没有foo 这个对象了. 
+请注意，如果解释器退出的时候对象还存在，就不能保证 __del__ 被确切的执行
+了。所以__del__并不能替代良好的编程习惯。 比如，在处理 socket 时，及时关闭结束的连接。 
+
+
+#### __setattr__ __getattr__ __delattr__属性访问控制 
+希望 Python 能够定义私有属性，然后提供公共可访问的 getter 和 setter。 
+代理----一种编程模式，将某个操作转移给另一个对象来实现； 
+当需要代理的方法很多时，可以尝试使用__getattr__来实现； 
+__getattr__是在属性不存在的时候才被调用；
+
+代理模式：代理类中实例化时传被代理类的实例，并在代理类中实现
+__setattr__/__getattr__/__delattr__方法； 
+有个约定是：只代理那些不以下划线开头的属性；  
+Python 其实可以通过魔术方法来实现封装。 
+凡是对属性赋值或者修改操作，都触发__setattr__的执行 
+__setattr__(self, name, value) 
+__setattr__ 是实现封装的解决方案，它定义了你对属性进行赋值和修改操作时的
+行为。 不管对象的某个属性是否存在,它都允许你为该属性进行赋值,因此你可以
+为属性的值进行自定义操作。有一点需要注意，实现__setattr__时要避免"无限递
+归"的错误，下面的代码示例中会提到。 
+__delattr__(self, name) 
+__getattr__:只有在调用属性时且属性不存在的情况下，触发這个函数的执行。 
+__getattr__(self, name) 
+该 方 法 定 义 了 你 试 图 访 问 一 个 不 存 在 的 属 性 时 的 行 为 。 因 此 ， 在 支 持
+__getattribute__的 Python 版本，调用__getattr__前必定会调用 __getattribute__。重
+载该方法可以实现捕获错误拼写然后进行重定向, 或者对一些废弃的属性进行警告。 
+__delattr__ 与 __setattr__ 很像，只是它定义的是你删除属性时的行为。实现
+__delattr__是同时要避免"无限递归"的错误，__getattribute__同样要避免"无限递归
+"的错误。 需要提醒的是，最好不要尝试去实现__getattribute__，因为很少见到这种做法，而且很容易出 bug。 
+例子说明__setattr__的无限递归错误: 
+def __setattr__(self, name, value): 
+    self.name = value 
+    ## 每一次属性赋值时, __setattr__都会被调用，因此不断调用自身导致无限递归了。 
+因此正确的写法应该是: 
+def __setattr__(self, name, value): 
+    self.__dict__[name] = value 
+下面的例子很好的说明了上面介绍的 4 个魔术方法的调用情况: 
+class Access(object): 
+ 
+    def __getattr__(self, name): 
+        print '__getattr__' 
+        return super(Access, self).__getattr__(name) 
+ 
+    def __setattr__(self, name, value): 
+        print '__setattr__' 
+        return super(Access, self).__setattr__(name, value) 
+ 
+    def __delattr__(self, name): 
+        print '__delattr__' 
+        return super(Access, self).__delattr__(name) 
+ 
+    def __getattribute__(self, name): 
+        print '__getattribute__' 
+        return super(Access, self).__getattribute__(name) 
+ 
+access = Access() 
+access.attr1 = True  ## __setattr__调用 
+access.attr1  ## 属性存在，只有__getattribute__调用 
+try: 
+    access.attr2  ## 属性不存在, 先调用__getattribute__, 后调用__getattr__ 
+except AttributeError: 
+    pass 
+del access.attr1  ## __delattr__调用 
+ 
+我们自己要重写方法，必须按照如下方式来做： 
+def __setattr__(self, key, value): 
+    self.__dict__[key] = value 
+     
+def __getattr__(self, item): 
+    return self.__dict__[item] 
+ 
+def __delattr__(self, item): 
+    del self.__dict__[item] 
+     
+
+ 
+__getattribute__ 
+__getattribute__(self, name) 
+__getattribute__是属性访问拦截器，就是当这个类的属性被实例访问时，会自动调
+用类的__getattribute__方法； 
+```python
+class TestObj(object): 
+    cls_attr = 10 
+ 
+    def __init__(self, name, age): 
+        self.name = name 
+        self.age = age 
+ 
+    def __getattribute__(self, item): 
+        print("__getattribute__被调用...") 
+        try: 
+            return super(TestObj, self).__getattribute__(item) 
+        except Exception: 
+            print("__getattribute__ error") 
+ 
+ 
+if __name__ == '__main__': 
+    t = TestObj(name='zhangsan', age=18) 
+    print(t.name) 
+    print(t.age) 
+    print(TestObj.cls_attr) 
+    print(t.email) 
+ 
+## __getattribute__被调用... 
+## zhangsan 
+## __getattribute__被调用... 
+## 18 
+## 10 
+## __getattribute__被调用... 
+## __getattribute__ error 
+## None 
+
+``` 
+ 
+总结要点： 
+1.__getattribute__(self，*args，**kwgs)中传入的参数是属性名，不是属值； 
+2.使用类名调用类属性时，不会经过__getattribute__方法，只拦截实例对象对属性
+的调用，包括调用类属性 
+3.__getattribute__是属性拦截器，属性调用会传入处理，最后要有返回值，将传入
+属性处理后返回给调用者。 
+ 
+
+#### __get__ __set__ __delete__描述器
+就是一个实现了三个核心属性访问操作的类，分别为__get__，__set__和
+__delete__方法； 这些方法接受一个实例作为输入，之后相应地操作实例底层的
+字典；描述其只能在类级别被定义；__get__方法就是确保绑定方法对象能被正确的创建； 
+我们知道，距离既可以用单位"米"表示,也可以用单位"英尺"表示。 现在我们定
+义一个类来表示距离,它有两个属性: 米和英尺。 
+class Meter(object): 
+    '''Descriptor for a meter.''' 
+    def __init__(self, value=0.0): 
+        self.value = float(value) 
+    def __get__(self, instance, owner): 
+        return self.value 
+    def __set__(self, instance, value): 
+        self.value = float(value) 
+ 
+class Foot(object): 
+    '''Descriptor for a foot.''' 
+    def __get__(self, instance, owner): 
+        return instance.meter * 3.2808 
+    def __set__(self, instance, value): 
+        instance.meter = float(value) / 3.2808 
+ 
+class Distance(object): 
+    meter = Meter() 
+    foot = Foot() 
+ 
+d = Distance() 
+print d.meter, d.foot  ## 0.0, 0.0 
+d.meter = 1 
+print d.meter, d.foot  ## 1.0 3.2808 
+d.meter = 2 
+print d.meter, d.foot  ## 2.0 6.5616 
+在上面例子中，在还没有对 Distance 的实例赋值前, 我们认为 meter 和 foot 应该
+是各自类的实例对象, 但是输出却是数值。这是因为__get__发挥了作用. 
+我们只是修改了 meter，并且将其赋值成为 int，但 foot 也修改了。这是__set__发
+挥了作用.  
+描述器对象(Meter、Foot)不能独立存在, 它需要被另一个所有者类(Distance)所持
+有。 描述器对象可以访问到其拥有者实例的属性，比如例子中 Foot 的
+instance.meter。 
+在面向对象编程时，如果一个类的属性有相互依赖的关系时，使用描述器来编写
+代码可以很巧妙的组织逻辑。 在 Django 的 ORM 中, models.Model 中的
+IntegerField 等, 就是通过描述器来实现功能的。 
+一个类要成为描述器，必须实现__get__, __set__, __delete__ 中的至少一个方法。
+下面简单介绍下: 
+__get__(self, instance, owner) 
+参数 instance 是拥有者类的实例。参数 owner 是拥有者类本身。__get__在其拥有
+者对其读值的时候调用。 
+__set__(self, instance, value) 
+__set__在其拥有者对其进行修改值的时候调用。 
+__delete__(self, instance) 
+
+创建描述符 
+对于实例 a，a.x 的查找顺序为 a.__dict__['x'],然后是 type(a).__dict__['x'] 
+ 
+a. 基于类创建描述符 
+class Email(object): 
+    def __init__(self): 
+        self._name = '' 
+ 
+    def __get__(self, instance, owner): 
+        return self._name 
+ 
+    def __set__(self, instance, value): 
+        m = re.match('\w+@\w+\.\w+', value) 
+        if not m: 
+            raise Exception('email not valid') 
+        self._name = value 
+ 
+    def __delete__(self, instance): 
+        del self._name 
+ 
+ 
+class Person1(object): 
+    email = Email() 
+ 
+ 
+p2 = Person1() 
+p2.email = '234354@126.com' 
+print(p2.email) ## 234354@126.com 
+p2.email = 'sfgdgfrgr' ## Exception: email not valid 
+ 
+b. 使用 property 函数创建描述符 
+class Person2(object): 
+    def __init__(self): 
+        self._email = None 
+ 
+    def get_email(self): 
+        return self._email 
+ 
+    def set_email(self, email): 
+        m = re.match('\w+@\w+\.\w+', email) 
+        if not m: 
+            raise Exception('email not valid') 
+        self._email = email 
+ 
+    def delete_email(self): 
+        del self._email 
+ 
+    email = property(get_email, set_email, delete_email, 'email valid check') 
+ 
+ 
+p3 = Person2() 
+p3.email = '234354@126.com' 
+print(p3.email) ## 234354@126.com 
+p3.email = 'sfgdgfrgr' ## Exception: email not valid 
+ 
+c. 使用@property 装饰器 
+class Person3(object): 
+    def __init__(self): 
+        self._email = None 
+ 
+    @property 
+    def email(self): 
+        return self._email 
+ 
+    @email.setter 
+    def email(self, email): 
+        m = re.match('\w+@\w+\.\w+', email) 
+        if not m: 
+            raise Exception('email not valid') 
+        self._email = email 
+ 
+    @email.deleter 
+    def email(self): 
+        del self._email 
+ 
+ 
+p4 = Person3() 
+p4.email = 'dgfgrhtyjy@163.com' 
+print(p4.email) 
+p4.email = 'grfghoosf' ## Exception: email not valid 
+ 
+ 
+ 
+#### __getitem__ __setitem__ __delitem__构造自定义容器  
+列表，字典取元素的方式，lst = [1,2,3,4],取第一个元素 lst[0],d ={'name':'xiaohua'} 取元
+素 dd['name'],与__setitem__，__getitem__，delitem__三个函数有关 
+```python
+## -*- coding: utf-8 -*- 
+class FunctionalList: 
+    ''' 实现了内置类型 list 的功能,并丰富了一些其他方法: head, tail, init, last, drop, take''' 
+ 
+    def __init__(self, values=None): 
+        if values is None: 
+            self.values = [] 
+        else: 
+            self.values = values 
+ 
+    def __len__(self): 
+        return len(self.values) 
+ 
+    def __getitem__(self, key): 
+        return self.values[key] 
+ 
+    def __setitem__(self, key, value): 
+        self.values[key] = value 
+ 
+    def __delitem__(self, key): 
+        del self.values[key] 
+ 
+    def __iter__(self): 
+        return iter(self.values) 
+ 
+    def __reversed__(self): 
+        return FunctionalList(reversed(self.values)) 
+ 
+    def append(self, value): 
+        self.values.append(value) 
+    def head(self): 
+        ## 获取第一个元素 
+        return self.values[0] 
+    def tail(self): 
+        ## 获取第一个元素之后的所有元素 
+        return self.values[1:] 
+    def init(self): 
+        ## 获取最后一个元素之前的所有元素 
+        return self.values[:-1] 
+    def last(self): 
+        ## 获取最后一个元素 
+        return self.values[-1] 
+    def drop(self, n): 
+        ## 获取所有元素，除了前 N 个 
+        return self.values[n:] 
+    def take(self, n): 
+        ## 获取前 N 个元素 
+        return self.values[:n] 
+ 
+if __name__ == '__main__': 
+    l = [1, 2, 3] 
+    f = FunctionalList(l) 
+    f[2] = 10   ## 调用__setitem__ 
+    print(f.values)  ## [1, 2, 10] 
+    del f[0]  ## 调用__delitem__ 
+    print(f.values) ## [2, 10] 
+    print(f[0]) ## 2 调用__getitem__
+```
+ 
+如果我们要自定义一些数据结构，使之能够跟以上的容器类型表现一样，那就需
+要去实现某些协议。 
+这里的协议跟其他语言中所谓的"接口"概念很像，一样的需要你去实现才行，只
+不过没那么正式而已。 
+如果要自定义不可变容器类型，只需要定义__len__ 和 __getitem__方法; 如果要
+自定义可变容器类型，还需要在不可变容器类型的基础上增加定义__setitem__ 和 
+__delitem__。 如果你希望你的自定义数据结构还支持"可迭代", 那就还需要定义
+__iter__。 
+__len__(self) 
+需要返回数值类型，以表示容器的长度。该方法在可变容器和不可变容器中必须
+实现。 
+__getitem__(self, key) 
+当你执行 self[key]的时候，调用的就是该方法。该方法在可变容器和不可变容器
+中也都必须实现。 调用的时候,如果 key 的类型错误，该方法应该抛出 TypeError； 
+如果没法返回 key 对应的数值时,该方法应该抛出 ValueError。 
+__setitem__(self, key, value) 
+当你执行 self[key] = value 时，调用的是该方法。 
+__delitem__(self, key) 
+当你执行 del self[key]的时候，调用的是该方法。 
+__iter__(self) 
+该方法需要返回一个迭代器(iterator)。当你执行 for x in container: 或者使用
+iter(container)时，该方法被调用。 
+__reversed__(self) 
+如果想要该数据结构被內建函数 reversed()支持,就还需要实现该方法。 
+__contains__(self, item) 
+如果定义了该方法，那么在执行 item in container 或者 item not in container 时该方
+法就会被调用。 如果没有定义，那么 Python 会迭代容器中的元素来一个一个比
+较，从而决定返回 True 或者 False。 
+__missing__(self, key) 
+dict 字典类型会有该方法，它定义了 key 如果在容器中找不到时触发的行为。 比
+如 d = {'a': 1}, 当你执行 d[notexist]时，d.__missing__('notexist')就会被调用。 
+我们再举个例子，实现 Perl 语言的 AutoVivification,它会在你每次引用一个值未
+定义的属性时为你自动创建数组或者字典。 
+```python
+class AutoVivification(dict): 
+    """Implementation of perl's autovivification feature.""" 
+    def __missing__(self, key): 
+        value = self[key] = type(self)() 
+        return value 
+ 
+weather = AutoVivification() 
+weather['china']['guangdong']['shenzhen'] = 'sunny' 
+weather['china']['hubei']['wuhan'] = 'windy' 
+weather['USA']['California']['Los Angeles'] = 'sunny' 
+print(weather) 
+ 
+## 结果输出:{'china': {'hubei': {'wuhan': 'windy'}, 'guangdong': {'shenzhen': 'sunny'}}, 'USA': {'California': {'Los Angeles': 'sunny'}}} 
+
+```
+在 Python 中，关于自定义容器的实现还有更多实用的例子，但只有很少一部分
+能够集成在 Python 标准库中，比如 Counter, OrderedDict 等 
+ 
+ 
+
+#### __slots__ __dict__
+Python 是一门动态语言。通常，动态语言允许我们在程序运行时给对象绑定新的
+属性或方法，当然也可以对已经绑定的属性和方法进行解绑定。但是如果我们需
+要限定自定义类型的对象只能绑定某些属性，可以通过在类中定义__slots__变量
+来进行限定。 
+__slots__是什么:是一个类变量,变量值可以是列表,元祖,或者可迭代对象,也可以是一个
+字符串(意味着所有实例只有一个数据属性) 
+ 
+字典会占用大量内存,如果你有一个属性很少的类,但是有很多实例,为了节省内存可以使
+用__slots__取代实例的__dict__ 
+ 
+限定 Person 对象只能绑定_name, _age 和_gender 属性 
+__slots__ = ('_name', '_age', '_gender') 
+##当你定义 __slots__ 后，Python 就会为实例使用一种更加紧凑的内部表示。实例通过
+一个很小的固定大小的数组来构建，而不是为每个实例定义一个字典，这跟元组或列表
+很类似。在 __slots__ 中列出的属性名在内部被映射到这个数组的指定小标上，使用
+__slots__一个不好的地方就是我们不能再给实例添加新的属性了,只能使用在__slots__
+中定义的那些属性名。 
+ 
+定义了__slots__后的类不再 支持一些普通类特性了,比如多继承。大多数情况下,你应该
+只在那些经常被使用到 的用作数据结构的类上定义__slots__比如在程序中需要创建某
+个类的几百万个实例对象。 
+ 
+ 
+```python
+class Person(object): 
+    __slots__ = {'name': 'dong', 'age': 20} 
+ 
+    def __init__(self, name): 
+        self.name = name 
+ 
+ 
+p1 = Person('p1') 
+print('p1.__slot__==%s, 以及 p1.__slot__内存地址==%s, ' % 
+      (p1.__slots__, id(p1.__slots__))) 
+ 
+p2 = Person('p2') 
+print('p2.__slot__==%s, 以及 p2.__slot__内存地址==%s, ' % 
+      (p2.__slots__, id(p2.__slots__))) 
+ 
+## 可以看到有类属性__slot__，所有实例共享一份此属性，且内存中此资源只有一份，并且类型定义了__slot__就不能没有__dict__属性了 
+## p1.__slot__=={'name': 'dong', 'age': 20}, 以及 p1.__slot__内存地址==2776144564544,  
+## p2.__slot__=={'name': 'dong', 'age': 20}, 以及 p2.__slot__内存地址==2776144564544,  
+ 
+ 
+class Person1(object): 
+    prop = 'wuming' 
+ 
+    def __init__(self, name): 
+        self.name = name 
+ 
+ 
+p3 = Person1('p3') 
+print('p3.__dict__==%s, 以及 p3.__dict__内存地址==%s, ' % 
+      (p3.__dict__, id(p3.__dict__))) 
+p4 = Person1('p4') 
+print('p4.__dict__==%s, 以及 p4.__dict__内存地址==%s, ' % 
+      (p4.__dict__, id(p4.__dict__))) 
+## __dict__是每个实例都有一份不同的属性，且存储根据实例来 
+## p3.__dict__=={'name': 'p3'}, 以及 p3.__dict__内存地址==2042154602752,  
+## p4.__dict__=={'name': 'p4'}, 以及 p4.__dict__内存地址==2042155447744,  
+
+``` 
+ 
+ 
+#### __repr__ __str__ __format__格式化代码  
+__repr__返回一个实例的代码表示形式，通常用来重新构造这个函数，跟我们使
+用交互式解释器显示的是同一个值；!r----格式化代码时表示使用__repr__代替
+__str__输出； 
+__format__自定义格式化； 
+b、d、o、x 分别是二进制、十进制、八进制、十六进制。 
+__str__(self)   ## 对实例使用 str()时调用。 
+__repr__(self)  ## 对实例使用 repr()时调用。str()和 repr()都是返回一个代表该实例的字
+符串， 主要区别在于: str()的返回值要方便人来看,而 repr()的返回值要方便计算机看。 
+'Pair({0.x!r}, {0.y!r})'.format(self)   ## {0.x!r}意思是第 1 个参数 self 的属性 x,!r 格式化代
+码指明输出使用 __repr__() 来代替默认的 __str__() 。 
+ 
+ 
+ 
+ 
+在打印对象的时候，会触发這个函数的执行，__str__：只能返回一个字符串类型，__repr__
+先于__str__执行。 
+ 
+```python
+ 
+class Person(object): 
+    def __init__(self, name): 
+        self.name = name 
+ 
+ 
+## p = Person('dong') 
+## print(p)    ## <__main__.Person object at 0x000001A7B682CEE0> 
+ 
+ 
+class Person1(object): 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def __str__(self): 
+        return 'person name==%s' % self.name 
+ 
+ 
+## p1 = Person1('dong') 
+## print(p1)  ## person name==dong 
+ 
+## p1 = Person1('dong') 
+## print(p1)  ## str person name==dong 
+ 
+ 
+class Person2(object): 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def __repr__(self): 
+        return 'repr person name==%s' % self.name 
+ 
+ 
+## p2 = Person2('dong') 
+## print(p2) ## repr Person name==dong 
+ 
+ 
+class Person3(object): 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def __str__(self): 
+        return 'str person name=%s' % self.name 
+ 
+    def __repr__(self): 
+        return 'repr person name==%s' % self.name 
+ 
+ 
+## p3 = Person3('dong') 
+## print(p3) 
+## repr Person name==dong 
+## str Person name=dong 
+ 
+ 
+ 
+ 
+## 带关键字的格式化 
+print('Your name %(name)s sounds nice!!' % {'name': 'dong'}) 
+## Your name dong sounds nice!! 
+print('My age %(age)i years old.' % {'age': 20}) 
+## My age 20 years old. 
+print('Hello {name}!!!'.format(name='James')) 
+## hello James!!! 
+
+``` 
+ 
+ 
+__import__('字符串') 
+CC = __import__(imp) 這种方式就是通过输入字符串导入你所想导入的模块  
+CC.f1()  ## 执行模块中的 f1 方法 
+這种方式就是通过输入字符串导入你所想导入的模块 
+模块名有可能不是在本级目录中存放着，这时可以通过以下方式处理： 
+dd = __import__("lib.text.commons",fromlist = True)  ##改用这种方式就能导入成功 
+
+
+__class__ 
+__class__它是一个类的引用， 
+self.__class__ is a reference to the type of the current instance. 
+ 
+name = 'dong' 
+age = 20 
+print(name.__class__)  ## <class 'str'> 
+print(age.__class__) ## <class 'int'> 
+ 
+ 
+def foo(): 
+    pass 
+ 
+ 
+print(foo.__class__)  ## <class 'function'> 
+ 
+ 
+class Bar(): 
+    pass 
+ 
+ 
+b = Bar() 
+print(b.__class__)  ## <class '__main__.Bar'> 
+print(b.__class__()) ## <__main__.Bar object at 0x0000029BE5D4F370> 又成为一个实例了 
+print(name.__class__.__class__) ## <class 'type'> 
+print(age.__class__.__class__) ## <class 'type'> 
+print(foo.__class__.__class__) ## <class 'type'> 
+print(b.__class__.__class__) ## <class 'type'> 
+元类就是创建类这种对象的东西。 
+ 
+ 
+当你写如下代码时 : 
+class Foo(Bar): 
+    pass 
+Python 做了如下的操作： 
+Foo 中有__metaclass__这个属性吗？如果是，Python 会在内存中通过__metaclass__创建
+一个名字为 Foo 的类对象（我说的是类对象，请紧跟我的思路）。如果 Python 没有找
+到__metaclass__，它会继续在 Bar（父类）中寻找__metaclass__属性，并尝试做和前面同
+样的操作。如果 Python 在任何父类中都找不到__metaclass__，它就会在模块层次中去寻
+找__metaclass__，并尝试做同样的操作。如果还是找不到__metaclass__,Python 就会用内
+置的 type 来创建这个类对象。 
+ 
+在用 class 语句自定义类时，默认 metaclass 是 type，我们也可以指定 metaclass 来创
+建类。 由于 python3 和 python2 在指定类的 metaclass 语法不兼容，下面分别示例 
+python2 和 python3 两个版本。 
+ 
+python2 版本： 
+class Bar(object): 
+    __metaclass__ = MetaClass 
+ 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def print_name(): 
+        print(self.name) 
+ 
+python3 版本： 
+class Bar(object, metaclass=MetaClass): 
+    def __init__(self, name): 
+        self.name = name 
+ 
+    def print_name(): 
+        print(self.name) 
+ 
+ 
+ 
+修改某个对象的__class__属性为另一个类，之后使用另一个类的方法         
+class A(object): 
+    def show(self): 
+        print('A detail') 
+ 
+ 
+class B(A): 
+    def show(self): 
+        print('B detail') 
+ 
+ 
+obj = B() 
+obj.__class__ = A 
+obj.show()  
+ 
+ 
+ 
+ 
+#### __call__
+__call__()----特殊的类实例方法，使得类实例对象可以像调用普通函数那样，以"对象名()"的形式调用； 
+Python 中，凡是可以将()直接应用到自身并执行，都称为可调用对象。
+可调用对象包括自定义的函数、Python 内置函数以及本节所讲的类实例对象。 
+
+
+可以调用的对象: 一个特殊的魔术方法可以让类的实例的行为表现的像函数一样 
+class Entity: 
+'''调用实体来改变实体的位置。''' 
+ 
+def __init__(self, size, x, y): 
+    self.x, self.y = x, y 
+    self.size = size 
+ 
+def __call__(self, x, y): 
+    '''改变实体的位置''' 
+    self.x, self.y = x, y 
+ 
+e = Entity(1, 2, 3) // 创建实例 
+e(4, 5) //实例可以象函数那样执行，并传入 x y 值，修改对象的 x y 
+ 
+ 
+ 
+ 
+ 
+#### __all__ 
+模块中定义__all__变量，当这个模块被导入到别处； 
+from module import *----这样的导入将会导入所有不以下划线开头的属性和方法； 
+from . import A----导入同级目录下的 A 模块 
+from .module import A----打入同级目录下的模块中的类； 
+ 
+  
+一个包里有三个模块，mod1.py, mod2.py, mod3.py，但使用 from demopack import *导入模块时，如何保证只有 mod1、mod3 被导入了。 
+答案:增加__init__.py 文件，并在文件中增加：__all__ = ['mod1','mod3'] 
+
+
+
+
+#### 运算符相关的魔术方法 
+运算符相关的魔术方法实在太多了，也很好理解，不打算多讲。在其他语言里，
+也有重载运算符的操作，所以我们对这些魔术方法已经很了解了。 
+比较运算符 
+__cmp__(self, other) 
+如果该方法返回负数，说明 self < other; 返回正数，说明 self > other; 返回 0 说明
+self == other。 强烈不推荐来定义__cmp__, 取而代之, 最好分别定义__lt__等方法
+从而实现比较功能。 __cmp__在 Python3 中被废弃了。 
+__eq__(self, other) 
+定义了比较操作符==的行为. 
+__ne__(self, other) 
+定义了比较操作符!=的行为. 
+__lt__(self, other) 
+定义了比较操作符<的行为. 
+__gt__(self, other) 
+定义了比较操作符>的行为. 
+__le__(self, other) 
+定义了比较操作符<=的行为. 
+__ge__(self, other) 
+定义了比较操作符>=的行为. 
+下面我们定义一种类型 Word, 它会使用单词的长度来进行大小的比较, 而不是
+采用 str 的比较方式。 但是为了避免 Word('bar') == Word('foo') 这种违背直觉的
+情况出现,并没有定义__eq__, 因此 Word 会使用它的父类(str)中的__eq__来进行
+比较。 
+下面的例子中也可以看出: 在编程语言中, 如果 a >=b and a <= b, 并不能推导出 a == b 这样的结论。 
+```python
+## -*- coding: utf-8 -*- 
+class Word(str): 
+    '''存储单词的类，定义比较单词的几种方法''' 
+    def __new__(cls, word): 
+        ## 注意我们必须要用到__new__方法，因为 str 是不可变类型 
+        ## 所以我们必须在创建的时候将它初始化 
+        if ' ' in word: 
+            print "Value contains spaces. Truncating to first space." 
+            word = word[:word.index(' ')]  ## 单词是第一个空格之前的所有字符 
+        return str.__new__(cls, word) 
+ 
+    def __gt__(self, other): 
+        return len(self) > len(other) 
+    def __lt__(self, other): 
+        return len(self) < len(other) 
+    def __ge__(self, other): 
+        return len(self) >= len(other) 
+    def __le__(self, other): 
+        return len(self) <= len(other) 
+ 
+print('foo < fool:', Word('foo') < Word('fool'))  ## True 
+print('foolish > fool:', Word('foolish') > Word('fool'))  ## True 
+print('bar >= foo:', Word('bar') >= Word('foo'))  ## True 
+print('bar <= foo:', Word('bar') <= Word('foo'))  ## True 
+print('bar == foo:', Word('bar') == Word('foo'))  ## False, 用了 str 内置的比较方法来进行比较 
+print('bar != foo:', Word('bar') != Word('foo'))  ## True 
+
+```
+
+#### 一元运算符和函数 
+__pos__(self) 
+实现了'+'号一元运算符(比如+some_object) 
+__neg__(self) 
+实现了'-'号一元运算符(比如-some_object) 
+__invert__(self) 
+实现了~号(波浪号)一元运算符(比如~some_object) 
+__abs__(self) 
+实现了 abs()內建函数. 
+__round__(self, n) 
+实现了 round()内建函数. 参数 n 表示四舍五进的精度. 
+__floor__(self) 
+实现了 math.floor(), 向下取整. 
+__ceil__(self) 
+实现了 math.ceil(), 向上取整. 
+__trunc__(self) 
+实现了 math.trunc(), 向 0 取整. 
+算术运算符 
+__add__(self, other) 
+实现了加号运算. 
+__sub__(self, other) 
+实现了减号运算. 
+__mul__(self, other) 
+实现了乘法运算. 
+__floordiv__(self, other) 
+实现了//运算符. 
+__div__(self, other) 
+实现了/运算符. 该方法在 Python3 中废弃. 原因是 Python3 中，division 默认就是
+true division. 
+__truediv__(self, other) 
+实现了 true division. 只有你声明了 from __future__ import division 该方法才会生效. 
+__mod__(self, other) 
+实现了%运算符, 取余运算. 
+__divmod__(self, other) 
+实现了 divmod()內建函数. 
+__pow__(self, other) 
+实现了**操作. N 次方操作. 
+__lshift__(self, other) 
+实现了位操作<<. 
+__rshift__(self, other) 
+实现了位操作>>. 
+__and__(self, other) 
+实现了位操作&. 
+__or__(self, other) 
+实现了位操作| 
+__xor__(self, other) 
+实现了位操作^ 
+反算术运算符 
+这里只需要解释一下概念即可。 假设针对 some_object 这个对象: 
+some_object + other 
+上面的代码非常正常地实现了 some_object 的__add__方法。那么如果遇到相反的
+情况呢? 
+other + some_object 
+这时候，如果 other 没有定义__add__方法，但是 some_object 定义了__radd__, 那
+么上面的代码照样可以运行。 这里的__radd__(self, other)就是__add__(self, other)的
+反算术运算符。 
+所以，类比的，我们就知道了更多的反算术运算符, 就不一一展开了: 
+ 
+__rsub__(self, other) 
+ 
+__rmul__(self, other) 
+ 
+__rmul__(self, other) 
+ 
+__rfloordiv__(self, other) 
+ 
+__rdiv__(self, other) 
+ 
+__rtruediv__(self, other) 
+ 
+__rmod__(self, other) 
+ 
+__rdivmod__(self, other) 
+ 
+__rpow__(self, other) 
+ 
+__rlshift__(self, other) 
+ 
+__rrshift__(self, other) 
+ 
+__rand__(self, other) 
+ 
+__ror__(self, other) 
+ 
+__rxor__(self, other) 
+增量赋值 
+这也是只要理解了概念就容易掌握的运算。举个例子: 
+x = 5 
+x += 1  ## 这里的+=就是增量赋值，将 x+1 赋值给了 x 
+因此对于 a += b, __iadd__ 将返回 a + b, 并赋值给 a。 所以很容易理解下面的魔
+术方法了: 
+ 
+__iadd__(self, other) 
+ 
+__isub__(self, other) 
+ 
+__imul__(self, other) 
+ 
+__ifloordiv__(self, other) 
+ 
+__idiv__(self, other) 
+ 
+__itruediv__(self, other) 
+ 
+__imod__(self, other) 
+ 
+__ipow__(self, other) 
+ 
+__ilshift__(self, other) 
+ 
+__irshift__(self, other) 
+ 
+__iand__(self, other) 
+ 
+__ior__(self, other) 
+ 
+__ixor__(self, other) 
+类型转化 
+__int__(self) 
+实现了类型转化为 int 的行为. 
+__long__(self) 
+实现了类型转化为 long 的行为. 
+__float__(self) 
+实现了类型转化为 float 的行为. 
+__complex__(self) 
+实现了类型转化为 complex(复数, 也即 1+2j 这样的虚数)的行为. 
+__oct__(self) 
+实现了类型转化为八进制数的行为. 
+__hex__(self) 
+实现了类型转化为十六进制数的行为. 
+__index__(self) 
+在切片运算中将对象转化为 int, 因此该方法的返回值必须是 int。用一个例子来
+解释这个用法。 
+class Thing(object): 
+    def __index__(self): 
+        return 1 
+ 
+thing = Thing() 
+list_ = ['a', 'b', 'c'] 
+print list_[thing]  ## 'b' 
+print list_[thing:thing]  ## [] 
+上面例子中, list_[thing]的表现跟 list_[1]一致，正是因为 Thing 实现了__index__方法。 
+可能有的人会想，list_[thing]为什么不是相当于 list_[int(thing)]呢? 通过实现 Thing
+的__int__方法能否达到这个目的呢? 
+显然不能。如果真的是这样的话，那么 list_[1.1:2.2]这样的写法也应该是通过的。 
+而实际上，该写法会抛出 TypeError: slice indices must be integers or None or have an 
+__index__ method 
+下面我们再做个例子,如果对一个 dict 对象执行 dict_[thing]会怎么样呢? 
+dict_ = {1: 'apple', 2: 'banana', 3: 'cat'} 
+print dict_[thing]  ## raise KeyError 
+这个时候就不是调用__index__了。虽然 list 和 dict 都实现了__getitem__方法, 但
+是它们的实现方式是不一样的。 如果希望上面例子能够正常执行, 需要实现
+Thing 的__hash__ 和 __eq__方法. 
+class Thing(object): 
+    def __hash__(self): 
+        return 1 
+    def __eq__(self, other): 
+        return hash(self) == hash(other) 
+ 
+dict_ = {1: 'apple', 2: 'banana', 3: 'cat'} 
+print dict_[thing]  ## apple 
+__coerce__(self, other) 
+实现了混合模式运算。 
+要了解这个方法,需要先了解 coerce()内建函数: 官方文档上的解释是, coerce(x, y)
+返回一组数字类型的参数, 它们被转化为同一种类型，以便它们可以使用相同的
+算术运算符进行操作。如果过程中转化失败，抛出 TypeError。 
+比如对于 coerce(10, 10.1), 因为 10 和 10.1 在进行算术运算时，会先将 10 转为 10.0
+再来运算。因此 coerce(10, 10.1)返回值是(10.0, 10.1). 
+__coerce__在 Python3 中废弃了。 
+其他魔术方法 
+ 
+__unicode__(self) 
+对实例使用 unicode()时调用。unicode()与 str()的区别在于: 前者返回值是 unicode, 
+后者返回值是 str。unicode 和 str 都是 basestring 的子类。 
+当你对一个类只定义了__str__但没定义__unicode__时,__unicode__会根据__str__
+的返回值自动实现,即 return unicode(self.__str__()); 但返回来则不成立。 
+class StrDemo2: 
+    def __str__(self): 
+        return 'StrDemo2' 
+ 
+class StrDemo3: 
+    def __unicode__(self): 
+        return u'StrDemo3' 
+ 
+demo2 = StrDemo2() 
+print str(demo2)  ## StrDemo2 
+print unicode(demo2)  ## StrDemo2 
+ 
+demo3 = StrDemo3() 
+print str(demo3)  ## <__main__.StrDemo3 instance> 
+print unicode(demo3)  ## StrDemo3 
+__format__(self, formatstr) 
+"Hello, {0:abc}".format(a)等价于 format(a, "abc"), 等价于 a.__format__("abc")。 
+这在需要格式化展示对象的时候非常有用，比如格式化时间对象。 
+__hash__(self) 
+对实例使用 hash()时调用, 返回值是数值类型。 
+__nonzero__(self) 
+对实例使用 bool()时调用, 返回 True 或者 False。 你可能会问, 为什么不是命名
+为__bool__? 我也不知道。 我只知道该方法在 Python3 中改名为__bool__了。 
+__dir__(self) 
+对实例使用 dir()时调用。通常实现该方法是没必要的。 
+__sizeof__(self) 
+对实例使用 sys.getsizeof()时调用。返回对象的大小，单位是 bytes。 
+__instancecheck__(self, instance) 
+对实例调用 isinstance(instance, class)时调用。 返回值是布尔值。它会判断 instance
+是否是该类的实例。 
+__subclasscheck__(self, subclass) 
+对实例使用 issubclass(subclass, class)时调用。返回值是布尔值。它会判断 subclass
+否是该类的子类。 
+__copy__(self) 
+对实例使用 copy.copy()时调用。返回"浅复制"的对象。 
+__deepcopy__(self, memodict={}) 
+对实例使用 copy.deepcopy()时调用。返回"深复制"的对象。 
+__call__(self, [args...]) 
+该方法允许类的实例跟函数一样表现: 
+class XClass: 
+    def __call__(self, a, b): 
+        return a + b 
+ 
+def add(a, b): 
+    return a + b 
+ 
+x = XClass() 
+print 'x(1, 2)', x(1, 2) 
+print 'callable(x)', callable(x)  ## True 
+print 'add(1, 2)', add(1, 2) 
+print 'callable(add)', callable(add)  ## True 
+Python3 中的差异 
+ 
+Python3 中，str 与 unicode 的区别被废除了,因而__unicode__没有了，取而代之地
+出现了__bytes__. 
+ 
+Python3 中，division 默认就是 true division, 因而__div__废弃. 
+ 
+__coerce__因存在冗余而废弃. 
+ 
+__cmp__因存在冗余而废弃. 
+ 
+__nonzero__改名为__bool__. 
+字典运算 
+在数据字典中执行一些计算操作（比如求最小值、最大值、排序等等） 
+为了对字典值执行计算操作，通常需要使用 zip() 函数先将键和值反转过来。zip() 
+函数方案通过将字典”反转”为 (值，键) 元组序列来解决了问题。当比较两个元
+组的时候，值会先进行比较，然后才是键。这样的话你就能通过一条 简单的语
+句就能很轻松的实现在字典上的求最值和排序操作了。
+```shell
+prices = { 'ACME': 45.23, 'AAPL': 612.78, 'IBM': 205.55, 'HPQ': 37.20, 'FB': 10.75 } 
+>>> [i for i in zip(prices.values(), prices.keys())] 
+[(45.23, 'ACME'), (612.78, 'AAPL'), (205.55, 'IBM'), (37.2, 'HPQ'), (10.75, 'FB')] 
+>>> min(zip(prices.values(), prices.keys())) 
+(10.75, 'FB') 
+>>> max(zip(prices.values(), prices.keys())) 
+(612.78, 'AAPL') 
+>>> sorted(zip(prices.values(), prices.keys())) 
+[(10.75, 'FB'), (37.2, 'HPQ'), (45.23, 'ACME'), (205.55, 'IBM'), (612.78, 'AAPL')] 
+注意：zip() 函数创建的是一个只能访问一次的迭代器。如下例子： 
+>>> s = zip(prices.values(), prices.keys()) 
+>>> min(s) 
+(10.75, 'FB') 
+>>> max(s) 
+Traceback (most recent call last): 
+  File "<stdin>", line 1, in <module> 
+ValueError: max() arg is an empty sequence 
+举例说明 zip()函数用法 
+zip()函数在运算时，会以一个或多个序列（可迭代对象）做为参数，返回一个元
+组的列表。同时将这些序列中并排的元素配对。 
+zip()参数可以接受任何类型的序列，同时也可以有两个以上的参数;当传入参数
+的长度不同时，zip 能自动以最短序列长度为准进行截取，获得元组。 
+ 
+查找字典中的相同点（比如相同的键、相同的值等等） 
+>>> a = { 
+... 'x' : 1, 
+... 'y' : 2, 
+... 'z' : 3 
+... } 
+>>> b = { 
+... 'w' : 10, 
+... 'x' : 11, 
+... 'y' : 2 
+... } 
+>>> a.keys() & b.keys() 
+{'x', 'y'} 
+>>> a.keys() - b.keys() 
+{'z'} 
+>>> a.items() & b.items() 
+{('y', 2)} 
+一个字典就是一个键集合与值集合的映射关系。字典的 keys() 方法返回一个展
+现 键集合的键视图对象。键视图的一个很少被了解的特性就是它们也支持集合
+操作，比如 集合并、交、差运算。 
+字典的 items() 方法返回一个包含 (键，值) 对的元素视图对象。这个对象同样
+也 支持集合操作，并且可以被用来查找两个字典有哪些相同的键值对。 
+尽管字典的 values() 方法也是类似，但是它并不支持这里介绍的集合操作。 
+使用 operator 模块的 itemgetter 函数，通过某个关键字排序一个字典列表 
+>>> rows = [ 
+... {'fname': 'Brian', 'lname': 'Jones', 'uid': 1003}, 
+... {'fname': 'David', 'lname': 'Beazley', 'uid': 1002}, 
+... {'fname': 'John', 'lname': 'Cleese', 'uid': 1001}, 
+... {'fname': 'Big', 'lname': 'Jones', 'uid': 1004} 
+... ] 
+>>> from operator import itemgetter 
+>>> result = sorted(rows, key=itemgetter('fname')) 
+>>> print(result) 
+[{'fname': 'Big', 'lname': 'Jones', 'uid': 1004}, {'fname': 'Brian', 'lname': 'Jones', 'uid': 1003}, 
+{'fname': 'David', 'lname': 'Beazley', 'uid': 1002}, {'fname': 'John', 'lname': 'Cl 
+eese', 'uid': 1001}] 
+
+```
+
+itemgetter 也可以支持多个 keys，如 sorted(rows, itemgetter('fname','uid')) 
+rows 被传递给接受一个关键字参数的 sorted() 内置函数。这个 参数是 callable 
+类型，并且从 rows 中接受一个单一元素，然后返回被用来排序的值。 itemgetter() 
+函数就是负责创建这个 callable 对象的。 operator.itemgetter() 函数有一个被 
+rows 中的记录用来查找值的索引参数。可 以是一个字典键名称，一个整形值或
+者任何能够传入一个对象的 __getitem__() 方法 的值。如果你传入多个索引参
+数给 itemgetter() ，它生成的 callable 对象会返回一 个包含所有元素值的元组，
+并且 sorted() 函数会根据这个元组中元素顺序去排序。但 你想要同时在几个字
+段上面进行排序（比如通过姓和名来排序，也就是例子中的那样） 的时候这种
+方法是很有用的。 
+使用 itemgetter() 方式会运行的稍微快点。因此，如果 你对性能要求比较高的话
+就使用 itemgetter() 方式。 
+ 
+ 
+
+#### <1> random 
+import random 
+print(random.randrange(1, 10))   ## 左开右闭,不包括 10 
+print(random.randrange(1, 20, 3))   ## 1-20 之间，步长为 3 的数字 
+print(random.randint(1, 10))   ## 1-10 之间的整数，包括 10 
+print(random.choice('dongxiang1243'))   ## 在一个字符串中间选择一个 
+print(random.choice((1, 2, 34, '34')))   ## 返回一个给定数据集合的随意数据 
+print(random.sample('shanedfgv2335', 4))   ## 返回给定数量的数据集合的列表 
+print(random.sample([2, 34, '34', 3], 4))   ## 返回给定数量的数据集合的列表 
+ 
+ 
+ 
+python 中生成随机整数、随机小数、0--1 之间小数方法 
+随机整数：random.randint(a,b),生成区间内的整数 
+随机小数：习惯用 numpy 库，利用 np.random.randn(5)生成 5 个随机小数 
+0-1 随机小数：random.random(),括号中不传参
+ 
+ 
+打乱数据集合 
+l = [3, 4, 5, 6, 7] 
+random.shuffle(l) 
+print(l)  
+ 
+ 
+#### <2> requests 
+在 requests 模块中，requests.content 和 requests.text 什么区别 
+.content 中间存的是字节码 .text 存的是.content 编码后的字符串 
+操作方式就是，如果想取得文本就用.text，如果想获取图片，就用.content 
+
+
+#### <3> glob 
+glob.glob(pathname) 
+返回所有匹配的文件路径列表。它只有一个参数 pathname，定义了文件路径匹配规则，
+这里可以是绝对路径，也可以是相对路径。 
+ 
+###### 获取当前程序所在路径下的以.py 扩展结尾的文件列表 
+files = glob.glob('*.py') 
+ 
+ 
+###### 获得一个目录下的文件； 
+files = glob.glob(dir + filenames) 
+
+
+#### <4> functools 
+functools.reduce() 
+reduce() 函数会对参数序列中元素进行累积。 
+函数将一个数据集合（链表，元组等）中的所有数据进行下列操作： 
+用传给 reduce 中的函数 function（有两个参数）先对集合中的第 1、2 个元素进行操作， 
+得到的结果再与第三个数据用 function 函数运算，最后得到一个结果。 
+语法 
+reduce()函数语法： 
+reduce(function, iterable[, initializer]) 
+参数 
+function -- 函数，有两个参数 
+iterable -- 可迭代对象 
+initializer -- 可选，初始参数 
+ 
+ 
+###### 求数字列表的乘积 
+```python
+lis = [2, 34, 10] 
+product = reduce((lambda x, y : x * y), lis) 
+## 680 
+``` 
+
+ 
+###### functions.wraps
+在类中定义装饰器，并将其作用在其它函数和方法上； 
+```python
+from functools import wraps 
+ 
+ 
+class Decorate(object): 
+    def decorate1(self, func): 
+        @wraps(func) 
+        def wrapper(*args, **kwargs): 
+            print('decorate1, instance method') 
+            func(*args, **kwargs) 
+        return wrapper 
+ 
+    @classmethod 
+    def decorate2(cls, func): 
+        @wraps(func) 
+        def wrapper(*args, **kwargs): 
+            print('decorate2, classmethod') 
+            func(*args, **kwargs) 
+        return wrapper 
+ 
+ 
+d = Decorate() 
+ 
+ 
+@d.decorate1 
+def add(x, y): 
+    return x + y 
+ 
+ 
+@Decorate.decorate2 
+def spam(): 
+    print('spam') 
+
+``` 
+ 
+ 
+ 
+     
+###### paritial
+如果需要减少某个函数的参数个数，可以使用 functools.partial() 。 partial() 函数允许给
+一个或多个参数设置固定的值，减少接下来被调用时的参数个数。假设有下面的函数： 
+def spam(a, b, c, d): 
+    print(a, b, c, d) 
+     
+现在使用 partial() 函数来固定某些参数值：   
+```shell
+>>> from functools import partial 
+>>> s1 = partial(spam, 1) ## a = 1 
+>>> s1(2, 3, 4) 
+1 2 3 4 
+>>> s2 = partial(spam, d=42) ## d = 42 
+>>> s2(1, 2, 3) 
+1 2 3 42 
+>>> s3 = partial(spam, 1, 2, d=42) ## a = 1, b = 2, d = 42 
+>>> s3(3) 
+1 2 3 42
+``` 
+可以看出，partial() 固定某些参数并返回一个新的 callable 对象。这个新的 callable 接受
+未赋值的参数，然后跟之前已经赋值过的参数合并起来，最后将所有参数传递给原始函
+数。 
+
+
+#### collections 
+collections 定义了很多抽象类，如果想自定义容器类的时候可以继承其中的类；
+使用 collections 中的抽象基类，可以确保自定义的容器实现了所有必要的方法，
+并且还能简化类型检查； 
+```python
+num = [2, 3, 4, 3, 3, 0, 10, 4, 4, 4] 
+c = collections.Counter(num) 
+print(c, c.items(), type(c.items())) 
+print(sum(c.values())) ## 求数字出现次数的和 
+ 
+## Counter({4: 4, 3: 3, 2: 1, 0: 1, 10: 1}) dict_items([(2, 1), (3, 3), (4, 4), (0, 1), (10, 1)]) <class 'dict_items'> 
+## 10
+
+import collections 
+import pprint 
+ 
+ 
+## Write a Python program to count the number of each character of a text file. 
+file_path = input('file is --') 
+with open(file_path, 'r') as info: 
+    count = collections.Counter(info.read().upper()) 
+    print(count.items()) 
+    pprint.pprint(count) 
+ 
+ 
+## file is --abc.txt 
+## dict_items([('G', 13), ('E', 64), ('R', 29), ('M', 17), ('A', 42), ('N', 45), (' ', 86), ('U', 14), ('I', 36), 
+## ('T', 40), ('Y', 17), ('D', 19), ('\n', 10), ('F', 15), ('O', 31), ('W', 5), ('K', 1), ('P', 4), (',', 7), ('H', 25), 
+## ('C', 13), ('L', 15), ('(', 1), (':', 1), ('S', 12), (')', 1), ('B', 6), ('3', 2), ('.', 4), ('V', 1), ('1', 3), ('9', 5), 
+## ('0', 2), ('-', 1)]) 
+## Counter({' ': 86, 
+##          'E': 64, 
+##          'N': 45, 
+##          'A': 42, 
+##          'T': 40, 
+##          'I': 36, 
+##          'O': 31, 
+##          'R': 29, 
+##          'H': 25, 
+##          'D': 19, 
+##          'M': 17, 
+##          'Y': 17, 
+##          'F': 15, 
+##          'L': 15, 
+##          'U': 14, 
+##          'G': 13, 
+##          'C': 13, 
+##          'S': 12, 
+##          '\n': 10, 
+##          ',': 7, 
+##          'B': 6, 
+##          'W': 5, 
+##          '9': 5, 
+##          'P': 4, 
+##          '.': 4, 
+##          '1': 3, 
+##          '3': 2, 
+##          '0': 2, 
+##          'K': 1, 
+##          '(': 1, 
+##          ':': 1, 
+##          ')': 1, 
+##          'V': 1, 
+##          '-': 1}) 
+
+```
+ 
+ 
+ 
+ 
+ 
+###### 创建双向链表----collections.deque('abcdef'); 
+双向链表操作： 
+deque_obj.pop()--移除最右边的元素，deque_obj.popleft()--移除最做左边的元素； 
+deque_obj.reverse()--反转链表；deque_obj.appendleft(element)--左边添加元素； 
+deque_obj.append(element)--右边添加元素； 
+deque_obj.extend(iterable_obj)；deque_obj.clear()--移除所有的元素； 
+deque_obj.count(element)--返回 element 在 deque_obj 中出现的次数； 
+deque_obj.rotate(2)--双向链表正向转动 2 次；deque_obj.rotate(-2)--反向转动 2 次； 
+获得一个text出现最多的10个word的列表----collections.Counter(text).most_common(10); 
+两个 Counter 可以取相加，可以取交集; 
+collections.OrderDict(original_dict)---记住插入的顺序； 
+
+ 
+###### 利用 collections 库的 Counter 方法统计字符串每个单词出现的次数 
+ 
+Counter 类中的 most_common()可以给出序列中出现次数最多的元素 
+```shell
+>>> s = "kjalfj;ldsjafl;hdsllfdhg;lahfbl;hl;ahlf;h" 
+>>> from collections import Counter 
+>>> res = Counter(s) 
+>>> res 
+Counter({'l': 9, ';': 6, 'h': 6, 'f': 5, 'a': 4, 'j': 3, 'd': 3, 's': 2, 'k': 1, 'g': 1, 'b': 1}) 
+>>> print(res.most_common(3))    ## 出现最多的三个元素是哪些 
+[('l', 9), (';', 6), ('h', 6)] 
+>>> res['l']    ## 在底层实现上，一个 Counter 对象就是一个字典，将元素映射到它出现
+的次数上。 
+Counter 实例一个鲜为人知的特性是它们可以很容易的跟数学运算操作相结合。比如两个 Counter 实例的相加减等。 
+``` 
+
+
+
+
+#### inspect ## 获取给定对象的实际模块对象 
+import inspect 
+import math 
+from python.w3resource import sort_tests_69 
+ 
+print(inspect.getmodule(math.pow))          ## <module 'math' (built-in)> 
+ 
+print(inspect.getmodule(sort_tests_69))            ## <module 'python.w3resource.sort_tests_69' from 'F:\\projects\\python\\w3resource\\sort_tests_69.py'> 
+ 
+inspect.signature(func)----获得函数的参数信息； 
+from inspect import Signature, Parameter 
+ 
+ 
+params = [Parameter('x', Parameter.POSITIONAL_OR_KEYWORD), 
+          Parameter('y', Parameter.POSITIONAL_OR_KEYWORD, default=24), 
+          Parameter('z', Parameter.KEYWORD_ONLY, default=None)] 
+ 
+sig = Signature(params) 
+print(sig)  ## (x, y=24, *, z=None) 
+sig 就是签名对象，可以使用它的 bind()将它绑定到*args, **kwargs 中，bound_args = 
+sig.bind(*args, **kwargs), 
+参数名称和参数值可以通过 bound_args.arguments.items()获得； 
+通过将签名和传递的参数绑定起来，可以强制函数调用遵循特定的规则，比如必填、默
+认、重复等等 
+
+
+#### pkg_resources 获取本地安装的所有模块 
+import pkg_resources 
+ 
+ 
+installed_packages = pkg_resources.working_set 
+installed_packages_list = sorted( 
+    ['%s==%s' % (x.key, x.version) for x in installed_packages]) 
+for p in installed_packages_list: 
+    print(p) 
+ 
+#### <8> array 
+导入 array---from array improt *; 
+定义一个 Integer 类型的 array----arr = array('i', original_list)； 
+数组最后添加元素----arr.append(10); 
+数组反转---arr.reverse(); 
+数组中一个元素的字节长度----arr.itemsize; 
+缓存取的内存地址以及所有元素的长度---arr.buffer_info(); 
+append() -- append a new item to the end of the array 
+buffer_info() -- return information giving the current memory info 
+byteswap() -- byteswap all the items of the array 
+count() -- return number of occurrences of an object 
+extend() -- extend array by appending multiple elements from an iterable 
+fromfile() -- read items from a file object 
+fromlist() -- append items from the list 
+frombytes() -- append items from the string 
+index() -- return index of first occurrence of an object 
+insert() -- insert a new item into the array at a provided position 
+pop() -- remove and return item (default last) 
+remove() -- remove first occurrence of an object 
+reverse() -- reverse the order of the items in the array 
+tofile() -- write all items to a file object 
+tolist() -- return the array converted to an ordinary list 
+tobytes() -- return the array converted to a string 
+
+
+#### <9> itertools 
+itertools.product(*iterables, repeart=1) 
+获取所有迭代器的组合，默认重复一次 
+```shell
+>>>from itertools import product 
+>>> x = product([1,2,3], [4,5]) 
+>>> for a in x: 
+...     print(a) 
+... 
+(1, 4) 
+(1, 5) 
+(2, 4) 
+(2, 5) 
+(3, 4) 
+(3, 5) 
+ 
+>>> x = product('34', '23', '34') 
+>>> for a in x: 
+...     print(a) 
+... 
+('3', '2', '3') 
+('3', '2', '4') 
+('3', '3', '3') 
+('3', '3', '4') 
+('4', '2', '3') 
+('4', '2', '4') 
+('4', '3', '3') 
+('4', '3', '4') 
+
+```
+ 
+ 
+###### islice(iterable, [start, ] stop [, step])
+创建一个迭代器： iterable[start : stop : step]，跳过前 start 个项， 
+迭代在 stop 所指定的位置停止，step 指定用于跳过项的步幅。迭代默认将从 0 开始，步幅默认 1 
+用 python 快速写斐波那契数列(延迟计算：生成器表达式，仅在需要计算的时候才通过
+yield 产生所需的元素)： 
+def get_fibonacci_numbers(a=0, b=1): 
+     yield a 
+     while True: 
+         yield b 
+         a, b = b, a + b 
+result = list(itertools.islice(get_fibonacci_numbers(), n)) 
+ 
+
+###### itertools.starmap(func, iterables) 
+第一个参数是函数对象，后一个参数是可迭代对象，意思将迭代对象中的参数传给函数。 
+```python
+def test_itertools_starmap(): 
+    map = itertools.starmap(str.isdigit, '34dfgg43dfd') 
+    print('type(map)==%s', type(map)) 
+    print(list(map)) 
+ 
+ 
+test_itertools_starmap() 
+## type(map)==%s <class 'itertools.starmap'> 
+## [True, True, False, False, False, False, True, True, False, False, False] 
+
+```
+
+ 
+<10> argparse 
+```python
+parser = argparse.ArgumentParser() 
+parser.add_argument('-b', nargs='+', help='backup log path', default=['/var/log/mongodb_backup.log'])
+parser.add_argument('-r', nargs='+', help='restore log path', default=['/var/log/mongodb_restore.log']) 
+## parser.print_help() 
+args = parser.parse_args() 
+mongo_data_integrity_check(args.b[0], args.r[0]) 
+ 
+parser = arsparse.ArgumentParser(prog='python mongodb_data_interity_check,.py') 
+## 参数 prog 是程序的名字（默认 sys.argv[0]） 
+ 
+## 对象的 add_argument 函数增加参数，以下是其常用的参数： 
+default: 没有设置值情况下的默认参数； 
+required: 表示这个参数是都一定需要设置，如果设置了 required=True，则在实际运行的
+时候不设置该参数将报错； 
+type: 参数类型； 
+默认的参数类型是 str 类型，如果你的程序需要一个整数或者布尔型参数，你需要设置
+type=int 或者 type=bool; 
+choices: 参数值只能从几个选项里面选择； 
+help: 指定参数的说明信息； 
+dest: 设置参数在代码中的变量； 
+argparse 默认的变量名是--或-后面的字符串，但是你也可以通过 dest=xxx 来设置参数的
+变量名，然后在代码中用 args.xxx 来获取参数的值； 
+nargs: 设置参数在使用可以提供的个数； 
+parse.add_argument('-name', nargs=x) 
+-----N,参数的绝对个数(列如 3)，其中 x 的候选值和含义如下："?"--0 或 1 个参数，"*"--
+0 或所有参数，"+"--所有，并且至少一个参数； 
+ 
+ 
+ 
+为了解析命令行参数，首先要创建一个 ArgumentParser 实例，并使用 add_argument()方
+法声明想要支持的选项； 
+在每个 add_argument()调用中，dest 参数指定解析结果被指派给属性的名字。metavar 参
+数被用来生成帮助信息； 
+action 参数指定跟属性对应的处理逻辑，通常的值为 store，被用来存储某个值或将多个
+参数值收集到一个列表中。 
+parse = argparse.ArgumentParser(description='Search some file') 
+## 用来构造一个文件名列表 
+parse.add_argument(dest='filenames', metavar='filename', nargs='*') 
+## 参数说明允许某个参数重复出现多次，并将它们追加到一个列表中去。required 标志
+表示该参数至少要有一个。 
+-p 和 --pat 表示两个参数名形式都可使用。 
+parse.add_argument('-p', '--pat', metavar='pattern', required=True, 
+                   dest='patterns', action='append', 
+                   help='text pattern to search for') 
+## 下面的参数根据参数是否存在来设置一个 Boolean 标志 
+parse.add_argument('-v', dest='verbose', action='store_true', 
+                   help='verbose mode') 
+## 下面的参数接受一个单独值并将其存储为一个字符串 
+parse.add_argument('-o', dest='outfile', action='store', help='output file') 
+## 下面的参数说明接受一个值，但是会将其和可能的选择值做比较，以检测其合法性 
+parse.add_argument('--speed', dest='speed', action='store', 
+                   choices={'slow', 'fast'}, default='slow', 
+                   help='search speed') 
+## 一旦参数选项被指定，你就可以执行 parser.parse() 方法了。它会处理 sys.argv 的值并
+返回一个结果实例。 
+每个参数值会被设置成该实例中 add_argument()方法的 dest 参数指定的属性值 
+args = parse.parse_args() 
+
+```
+
+#### <11> os 
+###### 获取 os 的位数，32bit 还是 64bit 
+import struct 
+def get_os_mode_32bit_or_64bit(): 
+    return struct.calcsize("P") * 8 
+     
+ 
+###### 获取系统的名称，系统所在平台，系统的发行版     
+def get_os_name(): 
+    import platform 
+    return os.name, platform.system(), platform.release()    
+ 
+###### 获得 python 的 site-packages 所在目录 
+def get_python_site_packages(): 
+    import site 
+    return site.getsitepackages() 
+ 
+ 
+###### 调用一个外部命令 
+def command_to_call(): 
+    import subprocess 
+    return subprocess.call(['python', '--version']) 
+ 
+ 
+###### 获得当前执行程序的文件路径，__file__绝对路径 
+def get_file_path_the_current_execute(): 
+    print(__file__) 
+    return os.path.realpath(__file__) 
+ 
+ 
+###### 获取当前正在使用的 cpu 个数 
+def get_cup_numbers_using(): 
+    import multiprocessing 
+    return multiprocessing.cpu_count() 
+ 
+ 
+###### 获得一个目录下的所有文件 
+def get_all_files_list_from_direction(): 
+    files_list = [f for f in os.listdir('F:\projects\python') 
+                  if os.path.isfile(os.path.join('F:\projects\python', f))] 
+    directions_list = [f for f in os.listdir('F:\projects\python') 
+                       if not os.path.isfile(os.path.join('F:\projects\python', f))] 
+    return files_list, directions_list 
+ 
+###### 系统变量 
+os.environ 
+os.environ['PATH']  ## 获取指定的环境变量 
+ 
+###### 获取当前的用户名   
+import getpass 
+print(getpass.getuser())  ## Administrator 
+ 
+###### 获取绝对文件路径 
+os.path.abspath(path_fname) 
+ 
+ 
+###### 获取版权信息 
+import sys 
+print(sys.copyright)            ## Copyright (c) 2001-2019 Python Software Foundation. 
+All Rights Reserved. 
+ 
+###### 查看系统是小端平台还是大端平台 
+sys.byteorder   ## 两个值 little 和 big 
+ 
+ 
+###### 清屏或者清除终端 
+os.system('cls') 
+ 
+ 
+###### 从给定路径中提取文件名 
+os.path.basename('/users/system1/student1/homework-1.py')      ## homework-1.py 
+ 
+import os 
+print("\nEffective group id: ",os.getegid()) 
+print("Effective user id: ",os.geteuid()) 
+print("Real group id: ",os.getgid()) 
+print("List of supplemental group ids: ",os.getgroups()) 
+print() 
+ 
+ 
+###### 将一个路径按照扩展名分离成元组 
+```python
+def divide_path_on_extension_separator(): 
+    import os.path 
+    for path in ['test.txt', 'filename', '/user/system/test.txt', '/', '']: 
+        print('"%s" :' % path, os.path.splitext(path)) 
+ 
+ 
+divide_path_on_extension_separator() 
+## "test.txt" : ('test', '.txt') 
+## "filename" : ('filename', '') 
+## "/user/system/test.txt" : ('/user/system/test', '.txt') 
+## "/" : ('/', '') 
+## "" : ('', '') 
+
+``` 
+ 
+
+###### 检索文件属性 
+```python
+def retrieve_file_properties(): 
+    import os.path 
+    import time 
+    print('file is', __file__)  ## 文件名 
+    print('Access time', time.ctime(os.path.getatime(__file__)))  ## 执行程序时间 
+    print('Modify time', time.ctime(os.path.getmtime(__file__))) ## 修改时间 
+    print('create time', time.ctime(os.path.getctime(__file__))) ## 创建时间 
+    print('size of file', os.path.getsize(__file__)) ## 文件大小 
+ 
+ 
+retrieve_file_properties() 
+## file is F:/projects/python/w3resource/retrieve_file_properties_107.py 
+## Access time Fri Sep 11 22:59:53 2020 
+## Modify time Fri Sep 11 22:59:53 2020 
+## create time Fri Sep 11 22:54:19 2020 
+## size of file 376 
+
+``` 
+ 
+###### display some information about the OS 
+import platform as pl 
+ 
+ 
+def test_list_os_profile(): 
+    os_profile = [ 
+        'architecture', 
+        'linux_distribution', 
+        'mac_ver', 
+        'machine', 
+        'node', 
+        'platform', 
+        'processor', 
+        'python_build', 
+        'python_compiler', 
+        'python_version', 
+        'release', 
+        'system', 
+        'uname', 
+        'version', 
+    ] 
+    for x in os_profile: 
+        if hasattr(pl, x): 
+            print(x + ": " + str(getattr(pl, x)())) 
+ 
+             
+ 
+###### 测试文件是否存在
+
+try: 
+    file = open('a.txt', 'r') 
+    text = file.read() 
+    file.close() 
+except IOError: 
+    print('not accessed or problem in reading:', 'a.txt') 
+文件是否可读----os.access(file, os.R_OK); 
+文件是否可写----os.access(file, os.W_OK); 
+文件是否存在----os.access(file, os.F_OK); 
+文件是否可执行----os.access(file, os.X_OK); 
+在给定路径上执行统计系统调用----stat_info = os.stat('D:\python_projects\python') 
+大小---print(stat_info.st_size) 
+权限---print(stat_info.st_mode) 
+owner---print(stat_info.st_uid) 
+device---print(stat_info.st_dev) 
+创建时间---print(time.ctime(stat_info.st_ctime)) 
+最后一次修改时间---print(time.ctime(stat_info.st_mtime)) 
+最后一次操作时间---print(time.ctime(stat_info.st_atime)) 
+获得当前执行文件---os.path.basename(__file__) 
+获得当前文件的目录名---os.path.dirname(__file__); 
+文件的全路径名---__file__; 
+创建软链接---os.symlink(src_file, des_file); 
+返回软链接的指向---os.readllink(path)； 
+解除软链接---os.unlink(path); 
+父进程 id----os.getppid(); 
+当前进程的用户 id---os.getuid(); 
+change 用户 id---os.setuid(); 
+change 路径到上级目录---os.pardir 
+change 当前路径到指定的路径下：os.chdir(os.pardir)--从当前路径转到上级目录； 
+获得所有环境变量----os.environ; 
+获得指定环境变量---os.environ[var]; 
+获得环境变量键的值---os.getenv(key); 
+返回主路径，主路径下的子路径名，文件名---os.walk(path); 
+判断文件是否存在---os.path.exists(file); 
+文件被 split 成目录和文件---os.path.split(path); 
+一个文件被添加到一个目录中---os.path.join(dir, file); 
+它接受一个路径，可能是相对路径，最后返回绝对路径---os.path.abspath(); 
+用来返回正常路径，可以解决双斜杆、对目录的多重引用的问题等---os.path.normpath(); 
+将字符串写入缓存中---io.StringIO().write(string); 
+从缓存中取值---io.StringIO().getvalue(); 
+使用 os 模块执行命令---os.system(command); 
+获得纪元时间---time.gmtime(0); 
+将一个结构时间转换成 string--- 
+t = (2020, 1, 22, 2, 34, 6, 6, 362, 0) 
+result = time.asctime(t) ##  Sun Jan 22 02:34:06 2020 
+将一个 string 格式的时间转换成结构时间： 
+time_string = '04/11/15 11:55:23' 
+result = time.strptime(time_string, "%m/%d/%y %H:%M:%S")
+
+time.struct_time(tm_year=2015, 
+tm_mon=4, 
+tm_mday=11, 
+tm_hour=11, 
+tm_min=55, 
+tm_sec=23, tm_wday=5, tm_yday=101, tm_isdst=-1) 
+当前终端的大小以便正确的格式化输出----size=os.get_terminal_size() 
+>>> size.columns 
+184 
+>>> size.lines 
+16 
+
+```python
+ 
+## os.remove()删除文件 
+## os.rename()重命名文件 
+## os.walk()生成目录树下的所有文件名 
+## os.chdir()改变目录 
+## os.mkdir/makedirs 创建目录/多层目录 
+## os.rmdir/removedirs 删除目录/多层目录 
+## os.listdir()列出指定目录的文件 
+## os.getcwd()取得当前工作目录 
+## os.chmod()改变目录权限 
+## os.path.basename()去掉目录路径，返回文件名 
+## os.path.dirname()去掉文件名，返回目录路径 
+## os.path.join()将分离的各部分组合成一个路径名 
+## os.path.split()返回（dirname(),basename())元组 
+## os.path.splitext()(返回 filename,extension)元组 
+## os.path.getatime\ctime\mtime 分别返回最近访问、创建、修改时间 
+## os.path.getsize()返回文件大小 
+## os.path.exists()是否存在 
+## os.path.isabs()是否为绝对路径 
+## os.path.isdir()是否为目录 
+## os.path.isfile()是否为文件 
+
+``` 
+ 
+#### <12> json 
+json.dumps()   ## 将 python 对象编码成 json 字符串； 
+json.loads()   ## 将已编码的 json 字符串解码成 python 对象； 
+json.dump()    ## 编码处理文件 
+json.load()    ## 解码处理文件 
+ 
+ 
+json.dump 显示中文 
+json dump 有一个 ensure_ascii 参数，当它为 True 的时候，所有非 ASCII 码字符显示为
+\uXXXX 序列，只需在 dump 时将 ensure_ascii 设置为 False 即可，此时存入 json 的中文
+即可正常显示。 
+with open('tickets.json', 'w', encoding='utf-8') as f: 
+        json.dump({'速度与激情 7': 4}, f, ensure_ascii=False) 
+    file_new = open('tickets.json', 'r', encoding='utf-8') 
+    print(file_new.read()) 
+    file_new.close() 
+```shell
+     
+>>> d = {'name': 'dx', 'age': '20'} 
+>>> d01 = json.dumps(d) 
+>>> print(d01, type(d01)) 
+{"name": "dx", "age": "20"} <class 'str'> 
+>>> d02 = json.loads(d01) 
+>>> print(d02, type(d02)) 
+{'name': 'dx', 'age': '20'} <class 'dict'>     
+
+```
+     
+#### <13> bisect 
+bisect 模块 bisect.insort(lis, item)-----在排序列表中插入元素，保证元素插入后还保持顺
+序；bisect.bisect_left(list, item)----返回元素 item 插入 list 中的索引； 
+ 
+ 
+
+#### <14> heapq 
+heapq.nlargest(num, dict1)----表示获取最大 num 的 dict1 的键； 
+```shell
+>>> nlargest(3, {'item1': 45.50, 'item2':35, 'item3': 41.30, 'item4':55, 'item5': 24}.items(), 
+key=lambda x: x[1]) 
+[('item4', 55), ('item1', 45.5), ('item3', 41.3)] 
+heapq.nsmallest(num, list1)----表示湖区最大的 num 个的 list 的值，字典同样是键； 
+heapq.heappush(iterable_obj, value)----向可迭代对象中 push 值 value; 
+heapq.heappop(iterable_obj)----从 iterable_obj 中 pop 值，从小到大 pop; 
+heapq.heapify(original_list)---将一个 list 转换成 heap; 
+heapq.heappushpop(iterable_obj, item)---pop 最小的元素，push 一个 item; 
+
+``` 
+ 
+ 
+#### <15> enum 
+枚举类： 
+class Country(enum.Enum): 
+    Afghanistan = 93 
+    Albania = 355 
+    Algeria = 213 
+    Andorra = 376 
+    Angola = 244 
+    Antarctica = 672 
+print('Member name:', Country.Albania.name) 
+print("Member value:", Country.Albania.value) 
+Member name: Albania 
+Member value: 355 
+ 
+迭代一个枚举类，并独立展示成员以及其值： 
+for data in Country: 
+    print(data.name, data.value) 
+ 
+获取一个枚举类的值列表： 
+枚举类继承自 enum.IntEnum,返回 list(map(int, Country)); 
+ 
+ 
+ 
+#### <16> getpass 
+弹出密码输入提示，并且不会再任务终端回显密码。 
+user = getpass.getuser() ## 不会弹出用户名的输入提示。它会根据该用户的 shell 环境或者
+会依据本地系统的密码库（支持 pwd 模块的平台）来使用当前用户的登录名 
+password = getpass.getpass() 
+<17> subprocess 模块 
+执行外部命令并获取它的输出 
+默认情况下，check_output()仅仅返回输入到标准输出的值。如果你需要同时收集标准输
+出和错误输出，使用 stderr 参数 
+output_bytes = subprocess.check_output(['cmd', 'arg1', 'arg2'], 
+                                       stderr=subprocess.STDOUT) 
+如果你需要用一个超时机制来执行命令，使用 timeout 参数： 
+try: 
+    output_bytes = subprocess.check_output(['cmd', 'arg1', 'arg2'], timeout=5) 
+except subprocess.TimeoutExpired as e: 
+    pass 
+如果你想让命令被一个 shell 执行，传递一个字符串参数，并设置参数 shell=True 
+output_bytes = subprocess.check_output('grep python |wc > out', shell=True) 
+ 
+ 
+ 
+#### <> subprocess 
+系统命令输出 
+import subprocess 
+ 
+执行 dir 命令，打印到终端 
+returned_text = subprocess.check_output('dir', shell=True, 
+                                        universal_newlines=True) 
+print(returned_text) 
+ 
+ 
+ 
+#### <17> sys 
+你无法导入你的 python 代码因为它所在的目录不在 sys.path 里； 
+两种常见的方式将新目录添加到 sys.path 中： 
+1. 可以使用 PYTHONPATH 环境变量来添加； 
+env PYTHONPATH=/some/dir:/other/dir python3 
+>>> import sys 
+>>> sys.path 
+['', '/some/dir', '/other/dir', ...] 
+这样的环境变量可在程序启动时设置或通过 shell 脚本 
+2. 第二种方法是创建一个.pth 文件，将目录列举出来，像这样： 
+myapplication.pth 
+/some/dir 
+/other/dir 
+这 个 .pth
+文 件 需 要 放 在 某 个 Python 的 site-packages 目 录 ， 通 常 位 于
+/usr/local/lib/python3.3/site-packages 
+或者 ~/.local/lib/python3.3/sitepackages, 
+当解释器启动时，.pth 文件里列举出来的存在于文件系统的目录将被添加到 sys.path。安装一个.pth 
+文件可能需要管理员权限，如果它被添加到系统级的 Python 解释器。 
+3. 手动调节 sys.path 的值； 
+sys.path.insert(0, /some/dir) 
+ 
+ 
+ 
+向标准错误打印一条消息并返回某个非零状态码来终止程序运行 
+raise SystemExit('It failed!')----将消息打印在 sys.stderr 中,然后程序以状态码 1 退出； 
+ 
+ 
+python 1.py 22 33 命令行启动程序并传参，print(sys.argv)会输出什么数据？ 
+文件名和参数构成的列表 
+['1.py', '22', '33'] 
+sys.argv[0]  -----文件名 
+sys.argv[1:] -----参数 
+ 
+ 
+def test_get_object_size_in_bytes(): 
+    st1 = 'one' 
+    st2 = 'two' 
+    st3 = 'three' 
+    print('st1 is %s, ' % st1, "it\'s size %s bytes" % sys.getsizeof(st1)) 
+    print('st1 is %s, ' % st2, "it\'s size %s bytes" % sys.getsizeof(st2)) 
+    print('st1 is %s, ' % st3, "it\'s size %s bytes" % sys.getsizeof(st3)) 
+ 
+ 
+test_get_object_size_in_bytes() 
+output: 
+st1 is one,  it's size 52 bytes 
+st1 is two,  it's size 52 bytes 
+st1 is three,  it's size 54 bytes 
+ 
+ 
+sys.getrecursionlimit()   递归深度 
+sys.argv      命令行参数 List，第一个元素是程序本身路径 
+sys.modules.keys() 返回所有已经导入的模块列表 
+sys.exc_info()   获取当前正在处理的异常类,exc_type、exc_value、exc_traceback 当前
+处理的异常详细信息 
+sys.exit(n)    退出程序，正常退出时 exit(0) 
+sys.hexversion   获取 Python 解释程序的版本值，16 进制格式如：0x020403F0 
+sys.version    获取 Python 解释程序的版本信息 
+sys.maxint     最大的 Int 值 
+sys.maxunicode   最大的 Unicode 值 
+sys.modules    返回系统导入的模块字段，key 是模块名，value 是模块 
+sys.path      返回模块的搜索路径，初始化时使用 PYTHONPATH 环境变量的值 
+sys.platform    返回操作系统平台名称 
+sys.stdout     标准输出 
+sys.stdin     标准输入 
+sys.stderr     错误输出 
+sys.exc_clear()  用来清除当前线程所出现的当前的或最近的错误信息 
+sys.exec_prefix  返回平台独立的 python 文件安装的位置 
+sys.byteorder   本地字节规则的指示器，big-endian 平台的值是'big',little-endian 平台的 值是'little' 
+sys.copyright   记录 python 版权相关的东西 
+sys.api_version  解释器的 C 的 API 版本 
+sys.version_info  python 版本 
+
+ 
+ 
+#### <19> importlib 
+对字符串调用导入命令 
+import importlib 
+mod = importlib.import_module('urllib.request') 
+>>> u = mod.urlopen('http://www.python.org') 
+import module 只是简单地执行和 import 相同的步骤，但是返回生成的模块对象。 
+你只需要将其存储在一个变量，然后像正常的模块一样使用。 
+ 
+ 
+ 
+#### <20> pickle 
+持久化存储对象，模块为 pickle 或 cpickle 
+pickle.dump() ----用来把对象存储在打开的文件中，成为存储； 
+pickle.load() ----用来取对象，成为取存储； 
+ 
+ 
+ 
+####<21> urllib 
+params = { 
+    'name1': 'value1', 
+    'name2': 'value2' 
+} 
+querystring = parse.urlencode(params) 
+querystring 变成了这种形式 name1=value1&name2=value2 
+发送一个简单的 HTTP GET 请求到远程服务器上----urllib.request.urlopen(url + '?' + 
+querystring) 
+将 参 数 编 码 后 作 为 可 选 参 数 提 供 给 urlopen() 函 数 ----urllib.request.urlopen(url, 
+querystring.encode('ascii')) 
+你需要在发出的请求中提供一些自定义的 HTTP 头，例如修改 user-agent 字段,  
+ 
+ 
+ 
+<22> xml_rpc 
+xml_rpc 构造简单远程调用服务 
+远程调用理解：在本地调用远程机器上的服务； 
+xmlrpc 模块的实现---创建一个服务器实例，通过它的方法 registry_function()来注册函数， 
+                  然后使用方法 server_forever()启动它。 
+python 代码笔记 
+1. 解压序列赋值给多个变量 
+ 
+ 
+----任何的序列（或者是可迭代对象）可以通过一个简单的赋值语句解压
+并赋值给多个变量； 
+ 
+ 
+----*号变量可以用来接收多个元素；
+函数解包以及元组解包 
+def unpack(x, y): 
+    print('x==%s, y==%s' % (x, y)) 
+ 
+ 
+lis1 = [1, 2] 
+unpack(*lis1)  
+dic = {'x': 'dong', 'y': 20} 
+unpack(**dic) 
+ 
+output: 
+x==1, y==2 
+x==dong, y==20 
+ 
+a, b, *c = range(6) 
+print('a==%s, b==%s, c==%s' % (a, b, c)) 
+a==0, b==1, c==[2, 3, 4, 5] 
+x, *y, z = range(5) 
+print('x==%s, y==%s, z==%s' % (x, y, z)) 
+x==0, y==[1, 2, 3], z==4 
+ 
+ 
+ 
+2. global 在函数声明修改全局变量 
+>>> a=3 
+>>> def change(): 
+...     global a 
+...     a=5 
+... 
+>>> change() 
+>>> a 
+5
