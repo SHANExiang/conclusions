@@ -1310,6 +1310,22 @@ volume.delete.end--->deleted,
 3. 删除虚机nova传给cinder delete请求(cinder/volume/api.py)带cascade=true；
 
 
+#### OpenStack 中的卷(volume)可能会变成 reserved 状态,主要出现在以下几种场景:
+
+卷被删除但还没有完全清理:
+
+当用户删除一个卷时,该卷首先会进入 reserved 状态,等待系统进一步清理和回收资源。这是为了防止数据丢失和确保系统稳定。
+卷所在的宿主机故障或不可用:
+
+如果卷所在的计算节点(宿主机)发生故障或不可用,该卷也会变成 reserved 状态,等待迁移到其他可用的节点。
+卷元数据损坏或不一致:
+
+在某些极端情况下,如果卷的元数据发生损坏或不一致,系统会将其置为 reserved 状态,以防止数据丢失和系统崩溃。
+管理员手动设置:
+
+有时管理员也可能会手动将某个卷设置为 reserved 状态,比如在执行特殊的维护操作时
+
+
 
 #### 挂载volume
 volume.attach.end--->in-use
