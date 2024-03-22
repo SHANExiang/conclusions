@@ -27,7 +27,7 @@
 排序数组中的搜索问题，首先想到二分法解决。 
 ```python
 class Solution: 
-    def search(self, nums: List[int], target: int) -> int: 
+    def search(self, nums, target: int) -> int: 
         left, right = 0, len(nums) - 1 
         while left <= right: 
             pivot = left + (right - left) // 2 
@@ -311,7 +311,7 @@ def backtrack(路径, 选择列表):
  
 #### 全排列 
 class Solution: 
-    def permute(self, nums: List[int]) -> List[List[int]]: 
+    def permute(self, nums) -> List[List[int]]: 
         ''' 
         如果 nums = [1, 2, 3] 
         其全排列有: [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1] 
@@ -824,7 +824,7 @@ d. 如果不相等则 cur 移动到下一个位置继续循环
  
 #### 反转链表 
 class Solution: 
-    def reverseList(self, head: ListNode) -> ListNode: 
+    def reverseList(self, head) : 
         cur, pre = head, None 
         while cur: 
             tmp = cur.next ## 暂存后继节点 cur.next 
@@ -834,7 +834,7 @@ class Solution:
         return pre 
  
 class Solution: 
-    def reverseList(self, head: ListNode) -> ListNode: 
+    def reverseList(self, head) : 
         def recur(cur, pre): 
             if not cur: return pre     ## 终止条件 
             res = recur(cur.next, cur) ## 递归后继节点 
@@ -862,7 +862,7 @@ a + (b - c) = b + (a - c)
 若两链表 有 公共尾部 (即 c > 0) ：指针 A , B 同时指向「第一个公共节点」node 。 
 若两链表 无 公共尾部 (即 c = 0) ：指针 A , B 同时指向 null。 
  
-def getIntersectionNode(self, headA: ListNode, headB: ListNode) -> ListNode: 
+def getIntersectionNode(self, headA, headB) : 
         A, B = headA, headB 
         while A != B: 
             A = A.next if A else headB 
@@ -931,7 +931,7 @@ q[0]就是最小的元素；
 #### 1. 合并两个无序链表
 ```python
 class Solution: 
-   def sortList(self, head: ListNode) -> ListNode: 
+   def sortList(self, head) : 
        def sort_func(head, tail): 
            if not head: 
                return head 
@@ -1130,7 +1130,7 @@ class Test(object):
 #### 7. 最小的 k 个数 ok 
 ```python
 class Solution: 
-   def getLeastNumbers(self, arr: List[int], k: int) -> List[int]: 
+   def getLeastNumbers(self, arr, k: int) -> List[int]: 
        n = len(arr) 
        if k == 0: 
            return [] 
@@ -1145,7 +1145,7 @@ class Solution:
  
 ## 用 python 中的最小堆 
 class Solution: 
-   def getLeastNumbers(self, arr: List[int], k: int) -> List[int]: 
+   def getLeastNumbers(self, arr, k: int) -> List[int]: 
        n = len(arr) 
        if k == 0: 
            return [] 
@@ -1182,7 +1182,7 @@ class MyQueue:
 ```python
 class Solution: 
  
-    def detectCycle1(self, head: ListNode) -> ListNode: 
+    def detectCycle1(self, head) : 
         seen = set() 
         cur = head 
         while cur: 
@@ -1193,7 +1193,7 @@ class Solution:
         return None 
  
     ## 从头结点出发一个指针，从相遇节点也出发一个指针，这两个指针每次只走一个节点， 那么当这两个指针相遇的时候就是 环形入口的节点。 
-    def detectCycle2(self, head: ListNode) -> ListNode: 
+    def detectCycle2(self, head) : 
         slow, fast = head, head 
         while fast and fast.next: 
             slow = slow.next 
@@ -1267,7 +1267,7 @@ class Solution:
 ```
  
 
-11. 搜索二维矩阵 ok 
+#### 11. 搜索二维矩阵 ok 
 编写一个高效的算法来搜索 m x n 矩阵 matrix 中的一个目标值 target 。该矩阵具有以
 下特性： 
 每行的元素从左到右升序排列。 
@@ -1288,12 +1288,12 @@ class Solution:
         return False 
  
  
-12. 从前序与中序遍历序列构造二叉树 ok 
+#### 12. 从前序与中序遍历序列构造二叉树 ok 
 给定两个整数数组 preorder 和 inorder ，其中 preorder 是二叉树的先序遍历， 
 inorder 是同一棵树的中序遍历，请构造二叉树并返回其根节点。 
- 
+```python
 class Solution: 
-    def buildTree(self, preorder: List[int], inorder: List[int]) -> Optional[TreeNode]: 
+    def buildTree(self, preorder, inorder) : 
         if not preorder: 
             return None 
         root_val = preorder[0] 
@@ -1305,12 +1305,12 @@ class Solution:
         left = self.buildTree(left_pre, left_inorder) 
         right = self.buildTree(right_pre, right_inorder) 
         root = TreeNode(root_val, left, right) 
-        return root 
+        return root
+```
  
  
- 
- 
-13. 旋转图像 
+
+#### 13. 旋转图像 
 给定一个 n × n 的二维矩阵 matrix 表示一个图像。请你将图像顺时针旋转 90 度。 
 你必须在 原地 旋转图像，这意味着你需要直接修改输入的二维矩阵。请不要 使用另
 一个矩阵来旋转图像。 
@@ -1326,10 +1326,10 @@ class Solution:
 ```
 
  
-14. 反转链表 ok 
+#### 14. 反转链表 ok 
 给你单链表的头节点 head ，请你反转链表，并返回反转后的链表 
 class Solution: 
-    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]: 
+    def reverseList(self, head): 
         pre = None 
         cur = head 
         while cur: 
@@ -1347,7 +1347,7 @@ k 是一个正整数，它的值小于或等于链表的长度。如果节点总
 ```python
 class Solution: 
     ## 翻转一个子链表，并且返回新的头与尾 
-    def reverse(self, head: ListNode, tail: ListNode): 
+    def reverse(self, head, tail): 
         prev = tail.next 
         p = head 
         while prev != tail: 
@@ -1357,7 +1357,7 @@ class Solution:
             p = nex 
         return tail, head 
  
-    def reverseKGroup(self, head: ListNode, k: int) -> ListNode: 
+    def reverseKGroup(self, head, k: int) : 
         hair = ListNode(0) 
         hair.next = head 
         pre = hair 
@@ -1382,7 +1382,7 @@ class Solution:
 给你两个单链表的头节点 headA 和 headB ，请你找出并返回两个单链表相交的起始节点。如果两个链表不存在相交节点，返回 null 。 
 ```python
 class Solution: 
-    def getIntersectionNode(self, headA: ListNode, headB: ListNode) ->Optional[ListNode]: 
+    def getIntersectionNode(self, headA, headB) ->Optional[ListNode]: 
         curA, curB = headA, headB 
         while curA != curB: 
             curA = curA.next if curA else headB 
@@ -1396,7 +1396,7 @@ class Solution:
 位置 left 到位置 right 的链表节点，返回反转后的链表 。 
 ```python
 class Solution: 
-    def reverseBetween(self, head: Optional[ListNode], left: int, right: int) -> Optional[ListNode]: 
+    def reverseBetween(self, head, left: int, right: int): 
         dummy = ListNode(-1) 
         cur = temp = head 
         i = 1 
@@ -1420,7 +1420,7 @@ class Solution:
         return dummy.next 
  
 class Solution: 
-    def reverseBetween(self, head: ListNode, left: int, right: int) -> ListNode: 
+    def reverseBetween(self, head, left: int, right: int) : 
         ## 设置 dummyNode 是这一类问题的一般做法 
         dummy_node = ListNode(-1) 
         dummy_node.next = head 
@@ -1438,15 +1438,17 @@ class Solution:
 ``` 
  
  
-18. 合并 K 个升序链表 
+#### 18. 合并 K 个升序链表 
 给你一个链表数组，每个链表都已经按升序排列。 
 请你将所有链表合并到一个升序链表中，返回合并后的链表。 
- 
+```python
+
 class Solution: 
-def mergeKLists(self, lists: List[ListNode]) -> ListNode: 
+    def mergeKLists(self, lists) : 
         if not lists:return  
         n = len(lists) 
         return self.merge(lists, 0, n-1) 
+    
     def merge(self,lists, left, right): 
         if left == right: 
             return lists[left] 
@@ -1454,6 +1456,7 @@ def mergeKLists(self, lists: List[ListNode]) -> ListNode:
         l1 = self.merge(lists, left, mid) 
         l2 = self.merge(lists, mid+1, right) 
         return self.mergeTwoLists(l1, l2) 
+    
     def mergeTwoLists(self,l1, l2): 
         if not l1:return l2 
         if not l2:return l1 
@@ -1462,12 +1465,11 @@ def mergeKLists(self, lists: List[ListNode]) -> ListNode:
             return l1 
         else: 
             l2.next = self.mergeTwoLists(l1, l2.next) 
-            return l2 
- 
- 
- 
- 
-19. 堆排序 
+            return l2
+```
+
+
+#### 19. 堆排序 
 堆排序（Heapsort）是指利用堆这种数据结构所设计的一种排序算法。堆积是一个近似
 完全二叉树的结构，并同时满足堆积的性质：即子结点的键值或索引总是小于（或者
 大于）它的父节点。堆排序可以说是一种利用堆的概念来排序的选择排序。分为两种
@@ -1488,7 +1490,7 @@ def mergeKLists(self, lists: List[ListNode]) -> ListNode:
 置； 
 重复步骤 2，直到堆的尺寸为 1。 
  
- 
+```python
 def buildMaxHeap(arr): 
     import math 
     for i in range(math.floor(len(arr)/2),-1,-1): 
@@ -1518,9 +1520,9 @@ def heapSort(arr):
         swap(arr,0,i) 
         arrLen -=1 
         heapify(arr, 0) 
-    return arr 
- 
- 
+    return arr
+``` 
+
  
  
 #### 20. 双向链表 
@@ -1782,7 +1784,7 @@ class LRUCache:
         return node
 ```
 
-22. 缺失的第一个正数 
+#### 22. 缺失的第一个正数 
 给你一个未排序的整数数组 nums ，请你找出其中没有出现的最小的正整数。 
 请你实现时间复杂度为 O(n) 并且只使用常数级别额外空间的解决方案。 
 示例 1： 
@@ -1797,9 +1799,10 @@ class LRUCache:
 
 输入：nums = [7,8,9,11,12] 
 输出：1 
- 
+
+```python
 class Solution: 
-    def firstMissingPositive(self, nums: List[int]) -> int: 
+    def firstMissingPositive(self, nums) -> int: 
         n = len(nums) 
         for i in range(n): 
             while 1 <= nums[i] <= n and nums[nums[i] - 1] != nums[i]: 
@@ -1807,26 +1810,30 @@ class Solution:
         for i in range(n): 
             if nums[i] != i + 1: 
                 return i + 1 
-        return n + 1 
- 
- 
-23. 只出现一次的数字 ok 
+        return n + 1
+``` 
+
+
+#### 23. 只出现一次的数字 ok 
 给定一个非空整数数组，除了某个元素只出现一次以外，其余每个元素均出现两次。
 找出那个只出现了一次的元素。 
 说明： 
 你的算法应该具有线性时间复杂度。 你可以不使用额外空间来实现吗？ 
- 
+```python
+
 class Solution: 
-    def singleNumber(self, nums: List[int]) -> int: 
+    def singleNumber(self, nums) -> int: 
         res = 0 
         for num in nums: 
             res ^= num 
-        return res 
+        return res
+``` 
  
- 
-24. 全排列 
+
+#### 24. 全排列 
+```python
 class Solution: 
-    def permute(self, nums: List[int]) -> List[List[int]]: 
+    def permute(self, nums) -> List[List[int]]: 
         ''' 
         如果 nums = [1, 2, 3] 
         其全排列有: [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1] 
@@ -1839,8 +1846,7 @@ class Solution:
         depth: 当前所在位置所处树的深度 
         path: 记录当前遍历过的数字序列, i.e. [1], [1, 2], [1, 2, 3] 
         res: 最后输出的包含所有的全序列的数组 
-        ls_used: 由于全排列同一个数字不可出现 2 次, 所以需创建一个额外数组跟踪
-每一个数字的使用情况, 其初始为全 False  
+        ls_used: 由于全排列同一个数字不可出现 2 次, 所以需创建一个额外数组跟踪每一个数字的使用情况, 其初始为全 False  
         ''' 
         depth, path, res = 0, [], [] 
         ls_used = [False for _ in nums] 
@@ -1859,14 +1865,13 @@ class Solution:
         for (i, used) in enumerate(ls_used): 
             if used: ## 跳过已经在 path 中出现的数字 
                 continue 
-            path.append(nums[i])  ## 如果该数字没有被使用, 则添加到 path 中, 并将
-数字状态改为 True 表示其已经被遍历 
+            path.append(nums[i])  ## 如果该数字没有被使用, 则添加到 path 中, 并将数字状态改为 True 表示其已经被遍历 
             ls_used[i] = True 
             self.dfs(nums, depth + 1, ls_used, path, res) ## 递归: 往下一层进一步探索 
-            path.pop()  ## 回溯到原来位置, 把 path 中最后新加入的弹出, 之前使用过
-数字现在变成未使用 
+            path.pop()  ## 回溯到原来位置, 把 path 中最后新加入的弹出, 之前使用过数字现在变成未使用 
             ls_used[i] = False 
- 
+
+``` 
  
 #### 25. 无重复字符的最长子串 100 
 给定一个字符串 s ，请你找出其中不含有重复字符的最长子串的长度。 
@@ -1925,10 +1930,10 @@ class Solution:
 ```
  
  
-27. 二叉树的锯齿形层序遍历 98 ok 
+#### 27. 二叉树的锯齿形层序遍历 98 ok 
 给你二叉树的根节点 root，返回其节点值的锯齿形层序遍历。（即先从左往右，再从
 右往左进行下一层遍历，以此类推，层与层之间交替进行）。 
- 
+```python
 from collections import deque 
 class Solution: 
     def zigzagLevelOrder(self, root: Optional[TreeNode]) -> List[List[int]]: 
@@ -1948,12 +1953,12 @@ class Solution:
             else: 
                 res.append(temp[::-1]) 
                 flag = 1 
-        return res 
+        return res
+```
+
  
- 
- 
-28. 买卖股票的最佳时机 ok 
- 
+#### 28. 买卖股票的最佳时机 ok 
+```python
 class Solution: 
     ''' 
     给定一个数组 prices ，它的第 i 个元素 prices[i] 表示一支给定股票第 i 天的价
@@ -1992,7 +1997,9 @@ class Solution:
             min_price = min(min_price, prices[i]) 
             dp[i] = max(dp[i - 1], prices[i] - min_price) 
             print(dp[i]) 
-        return dp[-1] 
+        return dp[-1]
+```
+
 
 #### 29. 二叉树的最近公共祖先 
 给定一个二叉搜索树, 找到该树中两个指定节点的最近公共祖先。 
@@ -2055,7 +2062,7 @@ class Solution:
         return "1" + res if carry else res
 ``` 
 
-31. 接雨水 
+#### 31. 接雨水 
 给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨
 之后能接多少雨水。 
 输入：height = [0,1,0,2,1,0,1,3,2,1,2,1] 
@@ -2066,7 +2073,7 @@ class Solution:
  
 # Solution 6 --- Monotonic stack 
 class Solution: 
-    def trap(self, height: List[int]) -> int: 
+    def trap(self, height) -> int: 
         n = len(height) 
         if n < 3: return 0 
         water = 0 
@@ -2091,7 +2098,7 @@ class Solution:
  
 ## ########## Solution 5 --- DP and Two pointers O(n), O(1) 
 ## class Solution: 
-##     def trap(self, height: List[int]) -> int: 
+##     def trap(self, height) -> int: 
 ##         n = len(height) 
 ##         if n < 3: return 0 
 ##         max_left = height[0] 
@@ -2117,7 +2124,7 @@ class Solution:
  
 ## ########## Solution 4 --- DP O(n), O(n) 
 ## class Solution: 
-##     def trap(self, height: List[int]) -> int: 
+##     def trap(self, height) -> int: 
 ##         n = len(height) 
 ##         if n < 3: return 0 
 ##         max_left = height[0] 
@@ -2137,7 +2144,7 @@ class Solution:
  
 ## ########## Solution 3 --- DP O(n), O(n) 
 ## class Solution: 
-##     def trap(self, height: List[int]) -> int: 
+##     def trap(self, height) -> int: 
 ##         n = len(height) 
 ##         if n < 3: return 0 
 ##         max_left = [height[0]]*n 
@@ -2158,7 +2165,7 @@ class Solution:
  
 ## ########## Solution 2 --- naive O(n^2), O(1) 
 ## class Solution: 
-##     def trap(self, height: List[int]) -> int: 
+##     def trap(self, height) -> int: 
 ##         ## Check for i-th column's left highest wall and right one, 
 ##         ## pick the short one and compare it with current height. 
 ##         ## If current is lower, add height difference to water, else, 
@@ -2180,7 +2187,7 @@ class Solution:
  
 ########## Solution 1  O(n), O(1) 
 ## class Solution: 
-##     def trap(self, height: List[int]) -> int: 
+##     def trap(self, height) -> int: 
 ##         ans = 0 
 ##         h1 = 0 
 ##         h2 = 0 
@@ -2193,9 +2200,10 @@ class Solution:
 ```
 
 
-32. 二叉树的右视图 ok 
+#### 32. 二叉树的右视图 ok 
 给定一个二叉树的 根节点 root，想象自己站在它的右侧，按照从顶部到底部的顺序，
 返回从右侧所能看到的节点值。 
+```python
 class Solution: 
     def rightSideView(self, root: Optional[TreeNode]) -> List[int]: 
         if not root: 
@@ -2212,6 +2220,9 @@ class Solution:
                 if node.right: 
                     queue.append(node.right) 
         return ans 
+
+```
+
  
 #### 33. 合并两个有序数组 
 给你两个按 非递减顺序 排列的整数数组 nums1 和 nums2，另有两个整数 m 和 n ，分别表示 nums1 和 nums2 中的元素数目。 
@@ -2247,7 +2258,7 @@ class Solution:
             tail -= 1
 ```
 
-34. 搜索旋转排序数组 
+#### 34. 搜索旋转排序数组 
 整数数组 nums 按升序排列，数组中的值 互不相同 。 
  
 在传递给函数之前，nums 在预先未知的某个下标 k（0 <= k < nums.length）上进行了 
@@ -2259,9 +2270,10 @@ target ，则返回它的下标，否则返回 -1 。
 你必须设计一个时间复杂度为 O(log n) 的算法解决此问题。 
 输入：nums = [4,5,6,7,0,1,2], target = 0 
 输出：4 
- 
+
+```python
 class Solution: 
-    def search(self, nums: List[int], target: int) -> int: 
+    def search(self, nums, target: int) -> int: 
         n = len(nums) 
         left, right = 0, n - 1 
         while left <= right: 
@@ -2278,8 +2290,8 @@ class Solution:
                     left = mid + 1 
                 else: 
                     right = mid - 1 
-        return -1 
- 
+        return -1
+``` 
  
  
 #### 35. 螺旋矩阵 
@@ -2357,16 +2369,16 @@ class Solution:
         return True if not stack else False
 ``` 
 
-38. 数组中的逆序对 
+#### 38. 数组中的逆序对
 在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆
 序对。输入一个数组，求出这个数组中的逆序对的总数。 
 示例 1: 
 输入: [7,5,6,4] 
 输出: 5 
  
- 
+```python
 class Solution: 
-    def reversePairs(self, nums: List[int]) -> int: 
+    def reversePairs(self, nums) -> int: 
         def merge_sort(l, r): 
             ## 终止条件 
             if l >= r: return 0 
@@ -2391,14 +2403,15 @@ class Solution:
             return res 
          
         tmp = [0] * len(nums) 
-        return merge_sort(0, len(nums) - 1) 
- 
-39. 岛屿数量 
+        return merge_sort(0, len(nums) - 1)
+```
+
+
+#### 39. 岛屿数量
 给你一个由 '1'（陆地）和 '0'（水）组成的的二维网格，请你计算网格中岛屿的数量。 
-岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形
-成。 
+岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形成。 
 此外，你可以假设该网格的四条边均被水包围。 
- 
+```python
 class Solution: 
     def numIslands(self, grid: List[List[str]]) -> int: 
         m, n = len(grid), len(grid[0]) 
@@ -2414,7 +2427,9 @@ class Solution:
                 if grid[i][j] == '1': 
                     res += 1 
                     dfs(i, j, grid) 
-        return res 
+        return res
+```
+
  
 #### 40. 合并区间 
 以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。请你合并所有重叠的区间，并返回 一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间。 
@@ -2440,14 +2455,13 @@ class Solution:
 ``` 
 
  
-41. 递增的三元子序列 
+#### 41. 递增的三元子序列 
 给你一个整数数组 nums ，判断这个数组中是否存在长度为 3 的递增子序列。 
  
 如果存在这样的三元组下标 (i, j, k) 且满足 i < j < k ，使得 nums[i] < nums[j] < 
 nums[k] ，返回 true ；否则，返回 false 。 
  
- 
- 
+```python
 class Solution: 
     def increasingTriplet2(self, nums): 
         small, mid = float('inf'), float('inf') 
@@ -2458,9 +2472,12 @@ class Solution:
                 mid = x 
             elif x > mid: 
                 return True 
-        return False 
- 
-42. 最长递增子序列 
+        return False
+``` 
+
+
+
+#### 42. 最长递增子序列 
 给你一个整数数组 nums ，找到其中最长严格递增子序列的长度。 
 子序列是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素 
 的顺序。例如，[3,6,2,7]是数组 [0,3,1,6,2,2,7]的子序列。 
@@ -2468,7 +2485,7 @@ class Solution:
 
 ## Dynamic programming. 
 class Solution: 
-    def lengthOfLIS(self, nums: List[int]) -> int: 
+    def lengthOfLIS(self, nums) -> int: 
         if not nums: return 0 
         dp = [1] * len(nums) 
         for i in range(len(nums)): 
@@ -2479,10 +2496,11 @@ class Solution:
 
 ``` 
  
-43. x 的平方根 
+#### 43. x 的平方根 
 给你一个非负整数 x ，计算并返回 x 的 算术平方根 。 
 由于返回类型是整数，结果只保留 整数部分 ，小数部分将被 舍去 。 
 注意：不允许使用任何内置指数函数和算符，例如 pow(x, 0.5) 或者 x ** 0.5 。 
+```python
 class Solution: 
     def mySqrt(self, x: int) -> int: 
         l, r, ans = 0, x, -1 
@@ -2494,6 +2512,9 @@ class Solution:
             else: 
                 r = mid - 1 
         return ans 
+
+```
+
  
 #### 44. 二叉树中的最大路径和 
 路径 被定义为一条从树中任意节点出发，沿父节点-子节点连接，达到任意节点的序列。
@@ -2559,7 +2580,8 @@ class Solution:
         return s[begin:begin+max_len]
 ```
 
-46. 二叉树中序遍历 
+#### 46. 二叉树中序遍历 
+```python
 class Solution: 
     def inorderTraversal(self, root): 
         if not root: 
@@ -2586,16 +2608,19 @@ class Solution:
                 res.append(tmp.val) 
                 root = tmp.right 
         return res 
- 
-47. 最小栈 
+
+``` 
+
+#### 47. 最小栈 
 设计一个支持 push ，pop ，top 操作，并能在常数时间内检索到最小元素的栈。 
 实现 MinStack 类: 
- 
+
 MinStack() 初始化堆栈对象。 
 void push(int val) 将元素 val 推入堆栈。 
 void pop() 删除堆栈顶部的元素。 
 int top() 获取堆栈顶部的元素。 
 int getMin() 获取堆栈中的最小元素。 
+```python
 class MinStack: 
  
     def __init__(self): 
@@ -2618,9 +2643,9 @@ class MinStack:
         return self.stack[-1] 
  
     def min(self) -> int: 
-        return self.min_stack[-1] 
- 
- 
+        return self.min_stack[-1]
+``` 
+
 #### 48. 重排链表 
 给定一个单链表 L 的头节点 head ，单链表 L 表示为： 
 L0 → L1 → … → Ln - 1 → Ln 
@@ -2629,7 +2654,7 @@ L0 → Ln → L1 → Ln - 1 → L2 → Ln - 2 → …
 不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。 
 ```python
 class Solution: 
-    def reorderList(self, head: ListNode) -> None: 
+    def reorderList(self, head) -> None: 
         if not head: 
             return 
          
@@ -2640,14 +2665,14 @@ class Solution:
         l2 = self.reverseList(l2) 
         self.mergeList(l1, l2) 
      
-    def middleNode(self, head: ListNode) -> ListNode: 
+    def middleNode(self, head) : 
         slow = fast = head 
         while fast.next and fast.next.next: 
             slow = slow.next 
             fast = fast.next.next 
         return slow 
      
-    def reverseList(self, head: ListNode) -> ListNode: 
+    def reverseList(self, head) : 
         prev = None 
         curr = head 
         while curr: 
@@ -2657,7 +2682,7 @@ class Solution:
             curr = nextTemp 
         return prev 
  
-    def mergeList(self, l1: ListNode, l2: ListNode): 
+    def mergeList(self, l1, l2): 
         while l1 and l2: 
             l1_tmp = l1.next 
             l2_tmp = l2.next 
@@ -2670,11 +2695,10 @@ class Solution:
 ```
 
  
-49. 对称的二叉树 
+#### 49. 对称的二叉树 
 请实现一个函数，用来判断一棵二叉树是不是对称的。如果一棵二叉树和它的镜像一
 样，那么它是对称的。 
- 
- 
+```python
 class Solution: 
     def isSymmetric(self, root: TreeNode) -> bool: 
         if not root: 
@@ -2712,7 +2736,8 @@ class Solution:
                    is_sysmmetric_tree(right.left, left.right) 
         if not root: 
             return True 
-        return is_sysmmetric_tree(root.left, root.right) 
+        return is_sysmmetric_tree(root.left, root.right)
+```
  
 #### 50. 路径总和 II 
 给你二叉树的根节点 root 和一个整数目标和 targetSum ，找出所有 从根节点到叶子节点 路径总和等于给定目标和的路径。 
@@ -2876,7 +2901,7 @@ res, target - candidates[index])
 你必须在 O(1) 的额外空间复杂度和 O(n) 的时间复杂度下解决这个问题。 
  
 class Solution: 
-    def oddEvenList(self, head: Optional[ListNode]) -> Optional[ListNode]: 
+    def oddEvenList(self, head): 
         pre = odd = ListNode(0) 
         event = cur = ListNode(0) 
         while head: 
@@ -2893,12 +2918,13 @@ class Solution:
         odd.next = event.next 
         return pre.next 
  
-57. 回文链表 
+#### 57. 回文链表
 给定单链表的头节点 head ，将所有索引为奇数的节点和索引为偶数的节点分别组合
 在一起，然后返回重新排序的列表。 
 第一种方式放到节点的值放到列表中； 
+```python
 class Solution: 
-    def isPalindrome(self, head: Optional[ListNode]) -> bool: 
+    def isPalindrome(self, head) -> bool: 
         if not head: 
             return True 
         fast_pointer = head 
@@ -2927,13 +2953,16 @@ class Solution:
                 return False 
             slow_pointer = slow_pointer.next 
             head = head.next 
-        return True 
+        return True
+```
+
  
-58. 平衡二叉树 
+#### 58. 平衡二叉树 
 给定一个二叉树，判断它是否是高度平衡的二叉树。 
 本题中，一棵高度平衡二叉树定义为： 
  
 一个二叉树每个节点 的左右两个子树的高度差的绝对值不超过 1 。 
+```python
 class Solution: 
     def isBalanced(self, root: Optional[TreeNode]) -> bool: 
         if not root: 
@@ -2945,8 +2974,8 @@ class Solution:
         if -1 <= get_depth(root.left) - get_depth(root.right) <= 1 and \ 
                 self.isBalanced(root.left) and self.isBalanced(root.right): 
             return True 
-        return False 
- 
+        return False
+``` 
  
 #### 59. 二叉树的直径 
 给定一棵二叉树，你需要计算它的直径长度。一棵二叉树的直径长度是任意两个结点
@@ -2984,7 +3013,7 @@ class Solution:
 给两个整数数组 nums1 和 nums2 ，返回两个数组中公共的、长度最长的子数组的长度。 
 ```python
 class Solution: 
-    def findLength(self, A: List[int], B: List[int]) -> int: 
+    def findLength(self, A, B) -> int: 
         ## 滑动窗口 
          
         def findmax(A,B): 
@@ -3020,8 +3049,8 @@ class Solution:
         else: 
             return findmax(B,A)
 ```
- 
-61. 反转字符串中的单词 
+
+#### 61. 反转字符串中的单词 
 给你一个字符串 s ，请你反转字符串中单词的顺序。 
  
 单词 是由非空格字符组成的字符串。s 中使用至少一个空格将字符串中的单词分隔
@@ -3029,6 +3058,7 @@ class Solution:
 返回单词顺序颠倒且 单词 之间用单个空格连接的结果字符串。 
 注意：输入字符串 s 中可能会存在前导空格、尾随空格或者单词间的多个空格。返回
 的结果字符串中，单词间应当仅用单个空格分隔，且不包含任何额外的空格。 
+```python
 class Solution: 
     def reverseWords(self, s: str) -> str: 
         left, right = 0, len(s) - 1 
@@ -3052,21 +3082,23 @@ class Solution:
         d.appendleft(''.join(word)) 
          
         return ' '.join(d) 
-或者： 
+# 或者： 
 class Solution: 
     def reverseWords(self, s: str) -> str: 
         return " ".join(reversed(s.split())) 
-或 
+# 或 
 class Solution: 
     def reverseWords(self, s: str) -> str: 
         return " ".join(s[::-1].split(" ")[::-1]) 
+```
  
  
-62. 最小路径和 
+#### 62. 最小路径和
 给定一个包含非负整数的 m x n 网格 grid ，请找出一条从左上角到右下角的路径，
 使得路径上的数字总和为最小。 
  
 说明：每次只能向下或者向右移动一步。 
+```python
 class Solution: 
     def minPathSum(self, grid: [[int]]) -> int: 
         for i in range(len(grid)): 
@@ -3078,15 +3110,17 @@ class Solution:
                 elif j == 0:   
                     grid[i][j] = grid[i - 1][j] + grid[i][j] 
                 else:  
-                    grid[i][j] = min(grid[i - 1][j], grid[i][j - 1]) + 
-grid[i][j] 
+                    grid[i][j] = min(grid[i - 1][j], grid[i][j - 1]) + grid[i][j] 
         return grid[-1][-1] 
- 
-63. 不同路径 ok 
+
+```
+
+#### 63. 不同路径 ok 
 一个机器人位于一个 m x n 网格的左上角 （起始点在下图中标记为 “Start” ）。 
 机器人每次只能向下或者向右移动一步。机器人试图达到网格的右下角（在下图中标
 记为 “Finish” ）。 
 问总共有多少条不同的路径？ 
+```python
 class Solution: 
     def uniquePaths(self, m: int, n: int) -> int: 
         f = [[1] * n] + [[1] + [0] * (n - 1) for _ in range(m - 1)] 
@@ -3094,14 +3128,15 @@ class Solution:
         for i in range(1, m): 
             for j in range(1, n): 
                 f[i][j] = f[i - 1][j] + f[i][j - 1] 
-        return f[m - 1][n - 1] 
+        return f[m - 1][n - 1]
+```
 
 
 #### 64. 删除排序链表中的重复元素 ok 
 给定一个已排序的链表的头 head， 删除所有重复的元素，使每个元素只出现一次 。 返回已排序的链表 。 
 ```python
 class Solution: 
-    def deleteDuplicates(self, head: ListNode) -> ListNode: 
+    def deleteDuplicates(self, head) : 
         if not head: 
             return head 
         cur = head 
@@ -3113,14 +3148,15 @@ class Solution:
         return head
 ```
 
-65. 寻找峰值 ok 
+#### 65. 寻找峰值 ok 
 峰值元素是指其值严格大于左右相邻值的元素 
 给你一个整数数组 nums，找到峰值元素并返回其索引。数组可能包含多个峰值，在这
 种情况下，返回 任何一个峰值 所在位置即可。 
 你可以假设 nums[-1] = nums[n] = -∞ 。 
 你必须实现时间复杂度为 O(log n) 的算法来解决此问题。 
+```python
 class Solution: 
-    def findPeakElement(self, nums: List[int]) -> int: 
+    def findPeakElement(self, nums) -> int: 
         n = len(nums) 
  
         ## 辅助函数，输入下标 i，返回 nums[i] 的值 
@@ -3142,15 +3178,18 @@ class Solution:
                 right = mid - 1 
          
         return ans 
+
+```
+
  
-66. 长度最小的子数组 ok 
+#### 66. 长度最小的子数组 ok 
 给定一个含有 n 个正整数的数组和一个正整数 target 。 
 找出该数组中满足其和 ≥ target 的长度最小的 连续子数组 [numsl, numsl+1, ..., numsr-
 1, numsr] ，并返回其长度。如果不存在符合条件的子数组，返回 0 。 
  
- 
+```python
 class Solution: 
-    def minSubArrayLen(self, s: int, nums: List[int]) -> int: 
+    def minSubArrayLen(self, s: int, nums) -> int: 
         if not nums: 
             return 00 
          
@@ -3166,9 +3205,11 @@ class Solution:
                 start += 1 
             end += 1 
          
-        return 0 if ans == n + 1 else ans 
+        return 0 if ans == n + 1 else ans
+```
+
  
-67. 零钱兑换 II  
+#### 67. 零钱兑换 II  
 给你一个整数数组 coins 表示不同面额的硬币，另给一个整数 amount 表示总金额。 
 请你计算并返回可以凑成总金额的硬币组合数。如果任何硬币组合都无法凑出总金
 额，返回 0 。 
@@ -3183,9 +3224,9 @@ class Solution:
 i−coin，则在该硬币组合中增加一个面额为 coin 的硬币，即可得到一种金额之和等于 iii 的
 硬币组合。因此需要遍历 coins，对于其中的每一种面额的硬币，更新数组 dp 中的每个大
 于或等于该面额的元素的值。 
- 
+```python
 class Solution: 
-    def change(self, amount: int, coins: List[int]) -> int: 
+    def change(self, amount: int, coins) -> int: 
         dp = [0] * (amount+1)  
         dp[0] = 1 
         for coin in coins: 
@@ -3193,28 +3234,29 @@ class Solution:
             while i <= amount: 
                 dp[i] += dp[i - coin] 
                 i += 1 
-        return dp[amount] 
+        return dp[amount]
+```
  
-68. 最小覆盖子串  
+
+#### 68. 最小覆盖子串  
 给你一个字符串 s 、一个字符串 t 。返回 s 中涵盖 t 所有字符的最小子串。如果 s 
 中不存在涵盖 t 所有字符的子串，则返回空字符串 "" 。 
 输入：s = "ADOBECODEBANC", t = "ABC" 
 输出："BANC" 
+```python
+import collections
 class Solution: 
     def minWindow(self, s: str, t: str) -> str: 
          
         if len(t) > len(s): 
             return ''         
          
-        cnt = collections.Counter(t)    ## 哈希表：记录需要匹配到的各个元素的数
-目 
-        need = len(t)                   ## 记录需要匹配到的字符总数【need=0 表示
-匹配到了】 
+        cnt = collections.Counter(t)    ## 哈希表：记录需要匹配到的各个元素的数目
+        need = len(t)                   ## 记录需要匹配到的字符总数【need=0 表示匹配到了】 
          
         n = len(s) 
         start, end = 0, -1          ## 记录目标子串 s[start, end]的起始和结尾 
-        min_len = n + 1             ## 符合题意的最短子串长度【初始化为一个不可能
-的较大值】 
+        min_len = n + 1             ## 符合题意的最短子串长度【初始化为一个不可能的较大值】 
         left = right = 0            ## 滑动窗口的左右边界 
          
         for right in range(n): 
@@ -3234,18 +3276,19 @@ class Solution:
                  
                 ch = s[left]            ## 窗口中要滑出的字符 
                 if ch in cnt:           ## 刚滑出的字符位于 t 中 
-                    if cnt[ch] >= 0:    ## 对当前字符 ch 还有需求，或刚好无需求
-(其实此时只有=0 的情况) 
+                    if cnt[ch] >= 0:    ## 对当前字符 ch 还有需求，或刚好无需求(其实此时只有=0 的情况) 
                         need += 1       ## 此时滑出窗口的 ch 会对 need 有影响 
                     cnt[ch] += 1 
                 left += 1               ## 窗口左边界+1 
          
         return s[start: end+1] 
- 
-69. 最长有效括号  
-给你一个只包含 '(' 和 ')' 的字符串，找出最长有效（格式正确且连续）括号子串的长
-度。 
- 
+
+```
+
+
+#### 69. 最长有效括号  
+给你一个只包含 '(' 和 ')' 的字符串，找出最长有效（格式正确且连续）括号子串的长度。 
+```python
 class Solution: 
     def longestValidParentheses(self, s: str) -> int: 
         if len(s) < 1: return 0 
@@ -3254,19 +3297,19 @@ class Solution:
             if s[i] == "(": 
                 stack.append(i) 
             else: 
-                ## Stack either store the index of "(" or the last invalide 
-bracket ")" index. 
+                ## Stack either store the index of "(" or the last invalide bracket ")" index. 
                 stack.pop() 
                 if not stack: 
-                    stack.append(i) ## To store the last one that is not a 
-valid bracket. 
+                    stack.append(i) ## To store the last one that is not a valid bracket. 
                 else: 
                     ## Current index minus the last invalid bracket index. 
                     res = max(res, i - stack[-1]) 
-        return res 
+        return res
+```
  
 
-70. 交替打印奇偶数 ok 
+#### 70. 交替打印奇偶数 ok 
+```python
 import threading 
  
  
@@ -3297,15 +3340,15 @@ if __name__ == '__main__':
     t1.start() 
     t2.start() 
  
-    t1.join() 
+    t1.join()
+``` 
  
- 
-71. 滑动窗口最大值 
+#### 71. 滑动窗口最大值
 给你一个整数数组 nums，有一个大小为 k 的滑动窗口从数组的最左侧移动到数组的最
 右侧。你只可以看到在滑动窗口内的 k 个数字。滑动窗口每次只向右移动一位。 
  
 返回滑动窗口中的最大值。 
- 
+```python
 class Solution: 
     def maxSlidingWindow(self, nums, k: int): 
         n = len(nums) 
@@ -3352,9 +3395,11 @@ class Solution:
             ## 记录窗口最大值 
             if i >= 0: 
                 res.append(d[0]) 
-        return res 
+        return res
+```
  
-72. 复原 IP 地址 
+
+#### 72. 复原 IP 地址
 有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 
 0），整数之间用 '.' 分隔。 
    
@@ -3363,8 +3408,7 @@ class Solution:
 给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 
 地址，这些地址可以通过在 s 中插入 '.' 来形成。你 不能 重新排序或删除 s 中的任
 何数字。你可以按 任何 顺序返回答案。 
- 
- 
+```python
 class Solution: 
     def restoreIpAddresses(self, s: str) -> List[str]: 
         SEG_COUNT = 4 
@@ -3400,14 +3444,17 @@ class Solution:
          
  
         dfs(0, 0) 
-        return ans 
+        return ans
+``` 
  
-73. 调整数组顺序使奇数位于偶数前面 
+
+ 
+#### 73. 调整数组顺序使奇数位于偶数前面 
 输入一个整数数组，实现一个函数来调整该数组中数字的顺序，使得所有奇数在数组
 的前半部分，所有偶数在数组的后半部分。 
- 
+```python
 class Solution: 
-    def exchange(self, nums: List[int]) -> List[int]: 
+    def exchange(self, nums) -> List[int]: 
         n = len(nums) 
         left, right = 0, n - 1 
         while left < right: 
@@ -3419,13 +3466,15 @@ class Solution:
                 nums[left], nums[right] = nums[right], nums[left] 
                 left += 1 
                 right -= 1 
-        return nums 
+        return nums
+```
  
- 
- 
-74. 最长公共前缀 
+
+
+#### 74. 最长公共前缀
 编写一个函数来查找字符串数组中的最长公共前缀。 
 如果不存在公共前缀，返回空字符串 ""。 
+```python
 class Solution: 
     def longestCommonPrefix(self, strs: List[str]) -> str: 
         def lcp(s1, s2): 
@@ -3466,7 +3515,7 @@ class Solution:
             else: 
                 break 
         return ans
-
+```
 
 #### 75. 字符串转换整数
 请你来实现一个 myAtoi(string s) 函数，使其能将字符串转换成一个 32 位有符号整数（类似 C/C++ 中的 atoi 函数）。
@@ -3607,7 +3656,7 @@ class Solution:
 给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。
 ```python
 class Solution:
-    def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:
+    def removeNthFromEnd(self, head, n: int) :
         dummy = ListNode(0, head)
         first = head
         second = dummy
@@ -3665,13 +3714,13 @@ class Solution:
         return rev
 ```
 
-80. 两数相加
+#### 80. 两数相加
 给你两个 非空 的链表，表示两个非负的整数。它们每位数字都是按照 逆序 的方式存储的，并且每个节点只能存储 一位 数字。
 请你将两个数相加，并以相同形式返回一个表示和的链表。
 你可以假设除了数字 0 之外，这两个数都不会以 0 开头。
 ```python
 class Solution:
-    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+    def addTwoNumbers(self, l1, l2):
         num1,num2 = 0,0
         a,b = l1,l2
         tmp = 1
@@ -3696,5 +3745,98 @@ class Solution:
         return head.next
 ```
 
+#### 81. 下一个排列
+整数数组的一个 排列  就是将其所有成员以序列或线性顺序排列。
 
+例如，arr = [1,2,3] ，以下这些都可以视作 arr 的排列：[1,2,3]、[1,3,2]、[3,1,2]、[2,3,1] 。
+整数数组的 下一个排列 是指其整数的下一个字典序更大的排列。更正式地，如果数组的所有排列根据其字典顺序从小到大排列在一个容器中，那么数组的 下一个排列 就是在这个有序容器中排在它后面的那个排列。如果不存在下一个更大的排列，那么这个数组必须重排为字典序最小的排列（即，其元素按升序排列）。
+
+例如，arr = [1,2,3] 的下一个排列是 [1,3,2] 。
+类似地，arr = [2,3,1] 的下一个排列是 [3,1,2] 。
+而 arr = [3,2,1] 的下一个排列是 [1,2,3] ，因为 [3,2,1] 不存在一个字典序更大的排列。
+给你一个整数数组 nums ，找出 nums 的下一个排列。
+
+必须 原地 修改，只允许使用额外常数空间。
+
+```python
+class Solution:
+    def nextPermutation(self, nums) -> None:
+        i = len(nums) - 2
+        while i >= 0 and nums[i] >= nums[i + 1]:
+            i -= 1
+        if i >= 0:
+            j = len(nums) - 1
+            while j >= 0 and nums[i] >= nums[j]:
+                j -= 1
+            nums[i], nums[j] = nums[j], nums[i]
+        
+        left, right = i + 1, len(nums) - 1
+        while left < right:
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+            right -= 1
+```
+
+
+#### 82. 螺旋矩阵
+给你一个 m 行 n 列的矩阵 matrix ，请按照 顺时针螺旋顺序 ，返回矩阵中的所有元素。
+
+```python
+class Solution:
+    def spiralOrder(self, matrix):
+        if not matrix or not matrix[0]:
+            return list()
+        m, n = len(matrix), len(matrix[0])
+        res = []
+        left, right, top, bottom = 0, n - 1, 0, m - 1
+        while left <= right and top <= bottom:
+            for i in range(left, right+1):
+                res.append(matrix[top][i])
+            for j in range(top+1, bottom+1):
+                res.append(matrix[j][right])
+            if left < right and top < bottom:
+                for i in range(right-1, left, -1):
+                    res.append(matrix[bottom][i])
+                for j in range(bottom, top, -1):
+                    res.append(matrix[j][left])
+            left += 1
+            right -= 1
+            bottom -= 1
+            top += 1
+        return res
+```
+
+#### 83. 重排链表
+给定一个单链表 L 的头节点 head ，单链表 L 表示为：
+
+L0 → L1 → … → Ln - 1 → Ln
+请将其重新排列后变为：
+
+L0 → Ln → L1 → Ln - 1 → L2 → Ln - 2 → …
+不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+
+```python
+class Solution:
+    def reorderList(self, head) -> None:
+        if not head:
+            return
+        
+        vec = list()
+        node = head
+        while node:
+            vec.append(node)
+            node = node.next
+        
+        i, j = 0, len(vec) - 1
+        while i < j:
+            vec[i].next = vec[j]
+            i += 1
+            if i == j:
+                break
+            vec[j].next = vec[i]
+            j -= 1
+        
+        vec[i].next = None
+
+```
 

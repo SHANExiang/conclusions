@@ -2608,6 +2608,7 @@ func main() {
 上述例子中，reflect.TypeOf 方法获取对象的类型，之后 NumField()获取结构体成员的数量。 
 通过 Field(i)获取第 i 个成员的名字。 再通过其 Tag 方法获得标签。
 
+
 ## rpc
 Remote Procedure Call，远程过程调用
 grpc 使用了 Google 开源的 Protocol Buffers 作为数据格式，这种数据格式比 JSON 和 XML 更加高效，更加紧凑。 
@@ -2623,7 +2624,7 @@ grpc 的主要特点是高效、可靠、跨平台、易于扩展。它使用 HT
 最后，使用 Go 语言代码 实现 RPC 服务端和客户端。 
 
 
-#### RPC 工作原理
+### RPC 工作原理
 远程过程调用协议，是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。
 它假定某些传输协议的存在，如 TCP 或 UDP，以便为通信程序之间携带信息数据。
 通过它可以使函数调用模式网络化。在 OSI 网络通信模型中，RPC 跨越了传输层和应用层。
@@ -2642,7 +2643,7 @@ RPC 使得开发包括网络分布式多程序在内的应用程序更加容易�
 10. 客户接收句柄返回的数据。
 
 
-#### rpc和http区别
+### rpc和http区别
 rpc 是远程过程调用，就是本地去调用一个远程的函数，而 http 是通过url 和符合 restful 风格的数据包去发送和获取数据； 
 rpc 的一般使用的编解码协议更加高效，比如 grpc 使用 protobuf 编解码。
 而 http 的一般使用 json 进行编解码，数据相比 rpc 更加直观，但是数据包也更大，效率低下； 
@@ -2651,7 +2652,7 @@ rpc 一般用在服务内部的相互调用，而 http 则用于和用户交互�
 而且 web 框架，和 rpc 框 架中都有拦截器的概念。grpc 使用的是 http2.0 协议。  
 
 
-#### grpc使用
+### grpc使用
 1. 先使用protobuf定义服务;
 2. 提前windows下载protoc到本地 https://github.com/protocolbuffers/protobuf/releases
 下载protoc-gen-go到本地 https://github.com/protocolbuffers/protobuf-go/releases
@@ -2663,16 +2664,24 @@ go install .
 protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative myprotobuf.proto
 
 
-#### grpc四种请求响应模式 
+### grpc四种请求响应模式 
 简单模式(Simple RPC)：客户端发起请求并等待服务端响应。
+
 服务端流式（Server-side streaming RPC）：客户端发送请求到服务器，拿到一个流去读取返回的消息序列。 客户端读取返回的流，直到里面没有任何消息。
+
 客户端流式（Client-side streaming RPC）：与服务端数据流模式相反，这次是客户端源源不断的向服务端发送数据流，而在发送结束后，由服务端返回一个响应。
+
 双向流式（Bidirectional streaming RPC）：双方使用读写流去发送一个消息序列，两个流独立操作，双方可以同时发送和同时接收。
 
 
-#### tips
-1. 不设置请求参数或者返回体，proto文件中import "google/protobuf/empty.proto"(下载放到同级目录)，google.protobuf.Empty；
+### rpc框架特性
+协议交换(protocol exchange)、注册中心(registry)、服务发现(service discovery)、负载均衡(load balance)、超时处理(timeout processing)等特性
 
+
+
+
+### tips
+1. 不设置请求参数或者返回体，proto文件中import "google/protobuf/empty.proto"(下载放到同级目录)，google.protobuf.Empty；
 
 
 ## 微服务 
