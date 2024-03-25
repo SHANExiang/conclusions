@@ -1889,6 +1889,65 @@ JOIN (
 WHERE r.ranking <= 3
 ORDER BY s.c_id, r.ranking;
 
+24. 行转列
+在SQL中，可以使用CASE语句或者PIVOT子句来实现行转列。下面是两种方式的示例：
+
+使用CASE语句：
+
+假设有一个名为`sales`的表，包含以下数据：
+
+```
+year    product    revenue
+----    -------    -------
+2022    A          1000
+2022    B          2000
+2023    A          1500
+2023    B          2500
+```
+
+可以使用CASE语句将行转换为列：
+
+```sql
+SELECT 
+    year,
+    SUM(CASE WHEN product = 'A' THEN revenue ELSE 0 END) AS product_A,
+    SUM(CASE WHEN product = 'B' THEN revenue ELSE 0 END) AS product_B
+FROM 
+    sales
+GROUP BY 
+    year;
+```
+
+输出结果：
+
+```
+year    product_A    product_B
+----    ---------    ---------
+2022    1000         2000
+2023    1500         2500
+```
+
+使用PIVOT子句（适用于SQL Server等支持PIVOT的数据库）：
+
+使用与上面相同的`sales`表，可以使用PIVOT子句将行转换为列：
+
+```sql
+SELECT 
+    year, 
+    [A] AS product_A, 
+    [B] AS product_B
+FROM 
+    (SELECT year, product, revenue FROM sales) AS SourceTable
+PIVOT 
+    (SUM(revenue) FOR product IN ([A], [B])) AS PivotTable;
+```
+
+输出结果与使用CASE语句相同。
+
+PIVOT子句首先将原始表格转换为一个子查询（SourceTable），然后根据指定的列（product）和聚合函数（SUM(revenue)）进行透视操作，生成新的列（[A]和[B]）。
+
+这两种方式都可以实现将行转换为列的目的，具体选择哪种方式取决于所使用的数据库系统和个人偏好。CASE语句更加通用，而PIVOT子句在支持的数据库中使用起来更加简洁。
+
 
 
 
