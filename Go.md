@@ -4403,7 +4403,7 @@ k8s 由两种节点组成，master 节点和工作节点；前者是管理节点
 master 主要有三个重要的组件，分别是 APIServer、scheduler 和 controller manager； 
 
 
-###### CLI
+### CLI
 kubectl get all -n <ns>
 kubectl delete namespace --all
 kubectl delete pod pod_name   
@@ -4420,7 +4420,7 @@ kubectl get service   ## 查看创建的 service
 kubectl get services   ## 查看创建的 services 
 
 
-###### kube-apiserver
+### kube-apiserver
 1. 配置文件路径  /etc/kubernetes/kube-controller-manager.kubeconfig;
 2. 重启systemctl restart kube-apiserver.service;
 3. 设置日志输出到文件中        --logtostderr=false --log-dir=/var/log/kubernetes
@@ -4431,7 +4431,7 @@ Stable: 稳定版本，将会得到持续支持
 5. 查看k8s支持的资源  kubectl api-resources
 
 
-###### pod
+### pod
 kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
 1. 容器的集合，紧密相关的一组容器放到一个pod中，同一个pod中的容器共享ip地址和port空间；
 2. 同一pod中的容器始终被一起调度；
@@ -4454,7 +4454,7 @@ kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:
 
 
 
-###### Deployment
+### Deployment
 kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:v1 --port=8000
 1. 创建deployment，会创建指定的pod;
 2. 暴露端口--->kubectl expose deployment kubernetes-bootcamp --type=NodePort --port=8080；
@@ -4471,11 +4471,11 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 
 
 
-###### DaemonSet
+### DaemonSet
 
 
 
-###### Job
+### Job
 工作类容器，一次性任务，比如批量处理程序，完成后容器退出；
 1. kubectl get job；pod执行完毕后容器已经退出，pod状态变成Completed；
 2. job并行--->设置参数parallelism，比如parallelism: 2会启动两个pod；
@@ -4486,7 +4486,7 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 
 
 
-###### minikube安装
+### minikube安装
 1. curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 2. sudo install minikube-linux-amd64 /usr/local/bin/minikube
 3. 添加用户---adduser dx;设置用户密码---passwd dx
@@ -4495,14 +4495,14 @@ kubectl create deployment kubernetes-bootcamp --image=docker.io/jocatalin/kubern
 
 
 
-###### controller控制器
+### controller控制器
 1. 通过controller管理pod;
 2. controller种类：Deployment/ReplicaSet/DaemonSet/StatefuleSet/Job等；
 3. 查看k8s master组件状态 kubectl get cs；
 4. 
 
 
-###### service
+### service
 定义了外界访问一组特定pod的方式，service有自己的IP和Port,为pod提供负载均衡；
 kubernetes运行容器和访问容器，两项任务分别由controller和service执行；
 1. Service的Cluster IP通过iptables映射到Pod IP；
@@ -4514,25 +4514,25 @@ kubernetes运行容器和访问容器，两项任务分别由controller和servic
 
 
 
-###### Namespace
+### Namespace
 如果有多个用户或项目组使用同一个Kubernetes Cluster，如何将他们创建的Controller、Pod等资源分开呢？
 答案就是Namespace。Namespace可以将一个物理的Cluster逻辑上划分成多个虚拟Cluster，每个Cluster就是一个Namespace。
 不同Namespace里的资源是完全隔离的。Kubernetes默认创建了两个Namespace。
 
 
 
-###### coredns
+### coredns
 DNS服务器，每当有新的Service被创建，coredns会添加该Service的DNS记录，Cluster中的pod可以通过<Service_Name>.<Namespace_Name>访问Service；
 1. nslookup查看Service的DNS信息；
 
 
-###### kubernetes健康检查机制
+### kubernetes健康检查机制
 1. 每个容器启动时，都会执行一个进程，此进程由DockerFile的CMD或ENTRYPOINT指定。如果进程退出时返回码非零，则认为容器故障，k8s会根据restartPolicy进行重启容器；
 2. Liveness探测让用户自定义判断容器是否健康的条件；告诉k8s什么时候通过重启容器实现自愈；探测失败后会重启容器；
 3. Readiness探测；告诉k8s什么时候可以将容器加入到Service负载均衡池中，对外提供服务；探测失败后将容器设置为不可用，不接受Service转发的请求；
 
 
-###### kubernetes volume
+### kubernetes volume
 1. 作用：持久化保存容器中的数据；
 2. volume声明周期独立于容器，pod中的容器可能被销毁和重建，但volume会被保留；
 3. 本质上，volume是一个目录，当volume被mount到pod，pod中的所有容器都可以访问这个volume；
@@ -4544,7 +4544,115 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 9. 回收PV---删除PVC来回收PV，kubectl delete pvc <pvcName>; kubectl patch pvc <pvcName> -p '{"metadata": "finalizers": null}'；pv状态变成Released-->数据清除完毕，最终变成Available；
 
 
-###### Secret
+### 在Kubernetes中，可以通过多种方式实现Pod之间共享文件夹。下面是几种常见的方法：
+
+1. 使用EmptyDir卷：
+   EmptyDir卷是一个空目录，它的生命周期与Pod相同。可以在Pod的容器之间共享EmptyDir卷，实现文件夹共享。
+
+   示例：
+   ```yaml
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: shared-pod
+   spec:
+     containers:
+     - name: container1
+       image: nginx
+       volumeMounts:
+       - name: shared-volume
+         mountPath: /shared
+     - name: container2
+       image: busybox
+       command: ["sh", "-c", "echo 'Hello from container2' > /shared/data.txt"]
+       volumeMounts:
+       - name: shared-volume
+         mountPath: /shared
+     volumes:
+     - name: shared-volume
+       emptyDir: {}
+   ```
+
+   在这个示例中，两个容器共享一个名为`shared-volume`的EmptyDir卷，挂载到容器内的`/shared`目录。
+
+2. 使用HostPath卷：
+   HostPath卷将主机节点的文件系统中的文件或目录挂载到Pod中。可以通过挂载相同的HostPath卷到多个Pod，实现文件夹共享。
+
+   示例：
+   ```yaml
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: shared-pod
+   spec:
+     containers:
+     - name: container1
+       image: nginx
+       volumeMounts:
+       - name: shared-volume
+         mountPath: /shared
+     - name: container2
+       image: busybox
+       command: ["sh", "-c", "echo 'Hello from container2' > /shared/data.txt"]
+       volumeMounts:
+       - name: shared-volume
+         mountPath: /shared
+     volumes:
+     - name: shared-volume
+       hostPath:
+         path: /path/on/host
+         type: Directory
+   ```
+
+   在这个示例中，主机上的`/path/on/host`目录被挂载到Pod的`/shared`目录，实现文件夹共享。
+
+3. 使用PersistentVolumeClaim（PVC）：
+   通过创建PersistentVolumeClaim并将其挂载到多个Pod，可以实现持久化的文件夹共享。
+
+   示例：
+   ```yaml
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: shared-pvc
+   spec:
+     accessModes:
+     - ReadWriteMany
+     resources:
+       requests:
+         storage: 1Gi
+   
+   ---
+   
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: shared-pod
+   spec:
+     containers:
+     - name: container1
+       image: nginx
+       volumeMounts:
+       - name: shared-volume
+         mountPath: /shared
+     - name: container2
+       image: busybox
+       command: ["sh", "-c", "echo 'Hello from container2' > /shared/data.txt"]
+       volumeMounts:
+       - name: shared-volume
+         mountPath: /shared
+     volumes:
+     - name: shared-volume
+       persistentVolumeClaim:
+         claimName: shared-pvc
+   ```
+
+   在这个示例中，创建了一个名为`shared-pvc`的PersistentVolumeClaim，然后将其挂载到Pod的`/shared`目录，实现持久化的文件夹共享。
+
+这些是在Kubernetes中实现Pod之间共享文件夹的几种常见方法。根据具体需求和环境，可以选择适合的方式来实现文件夹共享。
+
+
+### Secret
 为Pod提供密码、Token、秘钥等敏感数据；
 1. 通过--from-literal创建；kubectl create secret generic mysecret --from-literal=username=admin --from-literal=password=123456
 2. 通过--from-file创建；
@@ -4563,7 +4671,7 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 7. 使用secret--->通过环境变量；
 
 
-###### ConfigMap
+### ConfigMap
 为Pod提供配置信息；
 1. 通过--from-literal创建；kubectl create configmap myconfigmap --from-literal=config1=xxx --from-literal=config2=yyy
 2. 通过--from-file创建；kubectl create configmap myconfigmap2 --from-file=./config1 --from-file=./config2
@@ -4571,7 +4679,7 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 4. 通过yaml配置文件创建；kubectl apply -f configmap4.yaml；
 
 
-###### Helm
+### Helm
 应用打包工具；
 1. chart；类似apt、yum；它包含一系列 k8s 资源配置文件的模板与参数，可供灵活配置
 2. repo；chart的仓库，其中有很多chart可供选择；
@@ -4582,12 +4690,12 @@ DNS服务器，每当有新的Service被创建，coredns会添加该Service的DN
 
 
 
-###### CNI
+### CNI
 container networking interface
 
 
 
-###### network policy
+### network policy
 1. 通过label选择pod,并指定其他pod或外界如果与这些pod进行通信；当为pod定义network policy时，只有policy允许的流量才能访问pod；
 2. ingress:
   - from:
@@ -4595,6 +4703,7 @@ container networking interface
         matchLabels:
           access: "true"
   表示只有pod带label access=true的才能和建立network policy的pod进行通信；
+
 
 
 
