@@ -36,7 +36,7 @@ b. python run.py 调用 python 解释器来调用 python 脚本
 ### python2 与 python3 区别
 1. Python3 使用 print 必须要以小括号包裹打印内容，比如 print('hi') Python2 既可以使用带小括号的方式，也可以使用一个空格来分隔打印内容，比如 print 'hi'  
 2. python2 range(1,10)返回列表，python3 中返回迭代器，节约内存； 
-3. python2 中使用 ascii 编码，python 中使用 utf-8 编码； 
+3. python2 中使用 ascii 编码，python3 中使用 utf-8 编码； 
 4. python2 中 unicode 表示字符串序列，str 表示字节序列 python3 中 str 表示字符串序列，byte 表示字节序列； 
 5. python2 中为正常显示中文，引入 coding 声明，python3 中不需要； 
 6. python2 中是 raw_input()函数，python3 中是 input()函数； 
@@ -48,7 +48,7 @@ b. python run.py 调用 python 解释器来调用 python 脚本
  
 
 
-#### python 解释代码原理，函数怎么解析的
+### python 解释代码原理，函数怎么解析的
 python 解释器由一个编译器和一个虚拟机构成，编译器负责将源代码转换成字节码文件，而虚拟机负责执行字节码。
 所以，解释型语言其实也有编译过程，只不过这个编译过程并不是直接生成目标代码，而是中间代码（字节码），然后再通过虚拟机来逐行解释执行字节码
 
