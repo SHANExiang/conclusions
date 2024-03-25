@@ -2379,3 +2379,7 @@ nvidia-smi -L         ## 确认pod使用了GPU卡
 持续交付----频繁将软件的新版本交付该质量团队或者用户，以供审批；
 持续部署----代码评审或者测试通过后，将其自动部署到生产环境； 
 
+
+
+## tips
+1. pip install <package> -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
