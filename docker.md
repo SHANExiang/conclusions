@@ -36,10 +36,6 @@ docker启动的容器卷模式为ro，此时不能再文件夹内新建文件；
 config.json中command值为sleep 600，容器可以启动；cinder-volume --config-file /etc/cinder/cinder.conf
 
 
-# 容器时间和宿主机一致
-将宿主机的时区文件映射到容器中  -v /etc/localtime:/etc/localtime
-
-
 # 容器化技术在底层的运行原理
 每个容器运行在它自己的命名空间中，但是，确实与其它运行中的容器共用相同的系统内核。
 隔离的产生是由于系统内核清楚地知道命名空间及其中的进程，且这些进程调用系统api时，内核保证进程只能访问属于其命名空间中的资源。
@@ -54,17 +50,17 @@ ce.repo
 
  
 # docker 容器与主机时间保持同步 
-1.共享主机的 localtime 
-创建容器指定启动参数，挂 载localtime文件到容器内 v /etc/localtime:/etc/localtime:ro  
-2.复制主机的 localtime 
-3.创建 dockerfile   
+1. 共享主机的 localtime 
+创建容器指定启动参数，挂载localtime文件到容器内 v /etc/localtime:/etc/localtime:ro  
+2. 复制主机的 localtime 
+3. 创建 dockerfile   
 RUN 
 /bin/cp 
 /usr/share/zoneinfo/Asia/Shanghai 
 /etc/localtime 
 && echo ‘Asia/Shanghai’ > /etc/timezone 
 
- 
+
 # docker 隔离原理 
 docker 本质上是宿主机上的进程，通过 namespace 实现资源隔离，通过 cgroup 实现了资源限制，通过写时复制实现了高效文件操作。 
 

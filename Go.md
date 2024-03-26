@@ -2428,10 +2428,122 @@ go build -gcflags '-m -m -l' xxx.go.
 JWT就是一种基于Token的轻量级认证模式，服务端认证通过后，会生成一个JSON对象，经过签名后得到一个Token（令牌）再发回给用户，
 用户后续请求只需要带上这个Token，服务端解密之后就能获取该用户的相关信息了。
 
-jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔成三个部分。
-1. header(头部)，也是json对象，描述jwt的元数据，最后用Base64URL加密成字符串；
+jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔成三个部分。形如 header.payload.signature。
+1. header(头部)，也是json对象，描述jwt的元数据，最后用Base64URL加密成字符串；包含令牌的类型(通常为"JWT")和使用的签名算法(如 HMAC SHA256 或 RSA)。
 2. payload(负载)，用来存放实际需要传递的数据，最后用Base64URL加密成字符串；
+包含声明(Claims),即有关实体(通常是用户)的一些元数据。
+可以包含标准声明(如 iss、sub、aud、exp、iat)和自定义声明。
+示例: {"sub": "1234567890", "name": "John Doe", "admin": true}
 3. signature(签名)，对前两部分的签名；
+使用 Header 中指定的算法,根据 Header 和 Payload 生成签名。
+签名用于验证消息在传输过程中没有被篡改。
+示例: HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
+
+
+
+在 Go 中使用 JWT(JSON Web Token)的示例如下:
+1. 安装 JWT 库:
+
+```
+go get github.com/dgrijalva/jwt-go
+```
+
+2. 创建 JWT 签名密钥:
+ 
+```go
+import (
+    "github.com/dgrijalva/jwt-go"
+)
+
+// 定义签名密钥
+var signingKey = []byte("your_secret_key")
+```
+
+3. 生成 JWT 令牌:
+
+```go
+// 定义 JWT 声明
+type CustomClaims struct {
+    UserID int `json:"user_id"`
+    jwt.StandardClaims
+}
+
+// 生成 JWT 令牌
+func GenerateToken(userID int) (string, error) {
+    claims := &CustomClaims{
+        UserID: userID,
+        StandardClaims: jwt.StandardClaims{
+            ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // 令牌有效期为 24 小时
+        },
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return token.SignedString(signingKey)
+}
+```
+
+4. 验证 JWT 令牌:
+
+```go
+// 验证 JWT 令牌
+func VerifyToken(tokenString string) (*CustomClaims, error) {
+    token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+        }
+        return signingKey, nil
+    })
+    if err != nil {
+        return nil, err
+    }
+
+    if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+        return claims, nil
+    }
+    return nil, fmt.Errorf("invalid token")
+}
+```
+
+5. 在 HTTP 处理程序中使用 JWT 令牌:
+
+```go
+// 登录处理程序
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+    // 验证用户身份
+    userID := 1 // 假设从数据库中获取的用户 ID
+
+    // 生成 JWT 令牌
+    token, err := GenerateToken(userID)
+    if err != nil {
+        http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+        return
+    }
+
+    // 将令牌返回给客户端
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{
+        "token": token,
+    })
+}
+
+// 受保护的处理程序
+func ProtectedHandler(w http.ResponseWriter, r *http.Request) {
+    // 从 HTTP 请求头中获取 JWT 令牌
+    tokenString := r.Header.Get("Authorization")
+
+    // 验证 JWT 令牌
+    claims, err := VerifyToken(tokenString)
+    if err != nil {
+        http.Error(w, "Invalid token", http.StatusUnauthorized)
+        return
+    }
+
+    // 处理受保护的逻辑
+    fmt.Fprintf(w, "User ID: %d", claims.UserID)
+}
+```
+
+这个示例展示了如何在 Go 中使用 JWT 进行身份验证和授权。生成 JWT 令牌时,可以在自定义声明中包含用户 ID 等信息。在验证 JWT 令牌时,可以解析出这些信息并用于处理逻辑。
 
 
 #### json序列化与反序列化
@@ -2448,6 +2560,7 @@ jwt三个部分组成,它是一个很长的字符串，中间用点（.）分隔
 4. defer用于关闭文件和互斥锁；
 5. panic后面的defer语句不被执行，panic语句前的defer语句会被执行；
 6. 调用os.Exit(0)时defer语句不会被执行；
+
 
 ### defer的底层数据结构
 在 Go 语言的源码中,`defer` 的实现位于 `src/runtime/defer.go` 文件中。这个文件定义了与 `defer` 相关的数据结构和函数。
@@ -2475,6 +2588,7 @@ defer 执行顺序和调用顺序相反，类似于栈后进先出(LIFO)。
 defer 在 return 之后执行，但在函数退出之前，defer 可以修改返回值。
 
 下面是一个例子： 
+```Go
 func test() int {  
     i := 0
     defer func() {
@@ -2494,9 +2608,11 @@ func main() {
 // defer2 
 // defer1 
 // return 0 
+```
 上面这个例子中，test 返回值并没有修改，这是由于 Go 的返回机制决定的，执行 Return 语句后，Go 会创建一个临时变量保存返回值。
 
 如果是有名返回（也就是指明返回值 func test() (i int)） 
+```Go
 func test() (i int) {
     i = 0
     defer func() {
@@ -2511,9 +2627,9 @@ func main() {
 }
 // defer2 
 // return 1 
-这个例子中，返回值被修改了。对于有名返回值的函数，执行 return 语句时，并
-不会再创建临时变量保存，因此，defer 语句修改了 i，即对返回值产生了影响。
-
+```
+这个例子中，返回值被修改了。对于有名返回值的函数，执行 return 语句时，并不会再创建临时变量保存，因此，defer 语句修改了 i，即对返回值产生了影响。
+```Go
 func main() { 
     var a bool = true
     defer func(){
@@ -2528,8 +2644,8 @@ func main() {
     }() 
 }
 // 输出 2 1 
-// defer 关键字后面的函数或者方法想要执行必须先注册，return 之后的 defer 是不能注册的， 也就不能执行后面的函数或方法 
-
+// defer 关键字后面的函数或者方法想要执行必须先注册，return 之后的 defer 是不能注册的， 也就不能执行后面的函数或方法
+```
 
 
 ## errors包
@@ -2581,16 +2697,36 @@ func main() {
 
 #### go 的 reflect 底层实现 
 go reflect 源码位于 src\reflect\下面，作为一个库独立存在。反射是基于接口实现的。 
-Go 反射有三大法则： 
-1. 反射从接口映射到反射对象；
-2. 反射从反射对象映射到接口值；
-3. 只有值可以修改(settable)，才可以修改反射对象。 
-Go 反射基于上述三点实现。我们先从最核心的两个源文件入手 type.go 和 value.go. 
-type 用于获取当前值的类型。value 用于获取当前的值。
+
+Go语言的reflect包提供了在运行时检查和操作变量的能力,是实现反射机制的关键。reflect包的底层实现涉及到Go语言的类型系统和运行时系统,主要包括以下几个方面:
+
+1. reflect.Type和reflect.Value
+  - reflect.Type表示一个Go类型,可以通过reflect.TypeOf()函数获取任意值的类型信息
+  - reflect.Value表示一个Go值,可以通过reflect.ValueOf()函数获取任意值的值信息 
+  - reflect.Type和reflect.Value是reflect包的两个核心类型,很多反射操作都是基于它们进行的
+2. 类型描述符(type descriptor)
+  - 每个类型在编译期都会生成一个唯一的类型描述符,里面包含了该类型的所有信息,如类型名称、类型种类、方法集等
+  - 类型描述符以只读的形式存储在可执行文件的类型信息区,运行时通过指针可以访问到
+  - reflect.Type内部持有一个指向类型描述符的指针,所以可以获取到类型的全部信息
+3. 接口(interface)
+  - 在Go中,接口是一个两个字长度的结构,第一个字包含指向类型描述符的指针,第二个字包含指向实际数据的指针
+  - 当把一个具体值赋值给接口时,会将类型描述符指针和数据指针作为接口的两部分存储起来
+  - reflect.Type和reflect.Value内部其实也是一个接口结构,分别持有类型信息和值信息
+4. 指针和内存布局
+  - 对于指针类型,reflect.Type持有的是指针所指向的元素类型信息,而reflect.Value同时持有指针地址和指针所指向的元素值信息
+  - 对于复合类型如结构体,reflect可以递归地获取每个字段的类型信息和内存偏移,从而实现对结构体的读写
+  - 利用unsafe包可以绕过Go的类型系统,直接对内存进行操作,与reflect结合可以实现很多高级功能
+5. 方法集(method set)
+  - 每个类型都有一个与之对应的方法集,包含了该类型的所有方法
+  - 类型描述符中也保存了方法集的信息,reflect可以动态地调用类型的方法
+  - 对于接口类型,reflect可以获取到接口的动态类型和动态值,并且可以进行类型断言
+
+总的来说,Go的reflect包通过与运行时系统紧密配合,实现了对类型和值的自省能力。在编译期生成类型描述符,运行时通过接口和指针机制获取类型和值信息,配合unsafe包可以实现对任意值的读写和操作。reflect虽然功能强大,但是也有一定的性能开销,需要谨慎使用。
 
 
 #### 如何获取一个结构体的所有 tag？ 
 利用反射： 
+```Go
 import reflect 
 type Author struct {
     Name         int      `json:Name`
@@ -2605,23 +2741,25 @@ func main() {
         fmt.Println(name, s.Tag)
     } 
 }
+```
 上述例子中，reflect.TypeOf 方法获取对象的类型，之后 NumField()获取结构体成员的数量。 
 通过 Field(i)获取第 i 个成员的名字。 再通过其 Tag 方法获得标签。
 
 
 ## rpc
 Remote Procedure Call，远程过程调用
+
 grpc 使用了 Google 开源的 Protocol Buffers 作为数据格式，这种数据格式比 JSON 和 XML 更加高效，更加紧凑。 
+
 grpc 的主要特点是高效、可靠、跨平台、易于扩展。它使用 HTTP/2 协议进行通信，可以在客户端和服务器之间建立长连接，从而提高通信的效率。
-它还支持 TLS加密，可以保证通信的安全性。另外，grpc 还支持流式传输和双向流式传输，可
-以在客户端和服务器之间进行大规模的数据交换。
+它还支持 TLS加密，可以保证通信的安全性。另外，grpc 还支持流式传输和双向流式传输，可以在客户端和服务器之间进行大规模的数据交换。
 
 
 在 Go 语言中使用 grpc 非常简单。
-首先需要安装 grpc 和 protobuf 的 Go 语言库。
-然后，定义一个 protobuf 文件，用于描述 RPC 接口和数据类型。
-接下来，使用 protobuf 的编译器将 protobuf 文件编译成 Go 语言代码。
-最后，使用 Go 语言代码 实现 RPC 服务端和客户端。 
+1. 首先需要安装 grpc 和 protobuf 的 Go 语言库。
+2. 然后，定义一个 protobuf 文件，用于描述 RPC 接口和数据类型。
+3. 接下来，使用 protobuf 的编译器将 protobuf 文件编译成 Go 语言代码。
+4. 最后，使用 Go 语言代码 实现 RPC 服务端和客户端。 
 
 
 ### RPC 工作原理
@@ -2650,6 +2788,147 @@ rpc 的一般使用的编解码协议更加高效，比如 grpc 使用 protobuf 
 rpc 一般用在服务内部的相互调用，而 http 则用于和用户交互； 
 相似点： 都有类似的机制， 例如 grpc 的 metadata 机制和 http 的头机制作用相似，
 而且 web 框架，和 rpc 框 架中都有拦截器的概念。grpc 使用的是 http2.0 协议。  
+
+
+### 流式传输和双向流式传输
+好的,我来用Go语言举例说明GRPC的服务端流式传输和双向流式传输。
+
+**服务端流式传输**
+
+假设我们有一个获取股票价格的服务,客户端可以请求获取某只股票的实时价格流。
+
+服务端代码:
+
+```go
+// stockprice.proto
+service StockPriceService {
+  rpc GetStockPriceStream(StockRequest) returns (stream StockPriceResponse) {}
+}
+
+// stockprice.go
+func (s *StockPriceService) GetStockPriceStream(req *StockRequest, stream StockPriceService_GetStockPriceStreamServer) error {
+  // 模拟实时获取股票价格并推送到流中
+  for {
+    price := getStockPrice(req.Symbol)
+    stream.Send(&StockPriceResponse{Symbol: req.Symbol, Price: price})
+    time.Sleep(1 * time.Second)
+  }
+}
+```
+
+客户端代码:
+
+```go
+// 创建 gRPC 客户端连接
+conn, err := grpc.Dial("address:port", grpc.WithInsecure())
+defer conn.Close()
+client := NewStockPriceServiceClient(conn)
+
+// 调用服务端流式 RPC 方法
+stream, err := client.GetStockPriceStream(context.Background(), &StockRequest{Symbol: "AAPL"})
+if err != nil {
+  // 错误处理
+}
+
+// 从流中读取数据
+for {
+  resp, err := stream.Recv()
+  if err == io.EOF {
+    break
+  }
+  if err != nil {
+    // 错误处理
+  }
+  fmt.Printf("Stock price for %s is: %f\n", resp.Symbol, resp.Price)
+}
+```
+
+**双向流式传输**
+
+假设我们有一个聊天应用,客户端和服务端可以互相发送和接收消息。
+
+服务端代码:
+
+```go
+// chat.proto
+service ChatService {
+  rpc ChatStream(stream ChatRequest) returns (stream ChatResponse) {}
+}
+
+// chat.go
+func (s *ChatService) ChatStream(stream ChatService_ChatStreamServer) error {
+  for {
+    req, err := stream.Recv()
+    if err == io.EOF {
+      return nil
+    }
+    if err != nil {
+      return err
+    }
+    // 处理客户端发送的消息
+    resp := &ChatResponse{Message: "Server: " + req.Message}
+    if err := stream.Send(resp); err != nil {
+      return err
+    }
+  }
+}
+```
+
+客户端代码:
+
+```go
+// 创建 gRPC 客户端连接
+conn, err := grpc.Dial("address:port", grpc.WithInsecure())
+defer conn.Close()
+client := NewChatServiceClient(conn)
+
+// 调用双向流式 RPC 方法
+stream, err := client.ChatStream(context.Background())
+if err != nil {
+  // 错误处理
+}
+
+// 发送消息到服务端
+stream.Send(&ChatRequest{Message: "Client: Hello"})
+resp, err := stream.Recv()
+if err != nil {
+  // 错误处理
+}
+fmt.Println(resp.Message) // 输出: Server: Client: Hello
+
+// 从服务端接收消息
+stream.Send(&ChatRequest{Message: "Client: How are you?"})
+resp, err = stream.Recv()
+if err != nil {
+  // 错误处理
+}
+fmt.Println(resp.Message) // 输出: Server: Client: How are you?
+```
+
+GRPC 的流式传输机制在以下场景中非常适用:
+
+1. **大数据量传输**:
+   - 当客户端需要获取大量数据时,使用流式传输可以避免一次性返回所有数据,从而提高传输效率。
+   - 例如,获取实时股票价格、监控系统中的大量监控数据等。
+
+2. **实时交互**:
+   - 在需要客户端和服务端实时交互的场景中,双向流式传输非常适用。
+   - 例如,聊天应用、协作编辑、实时监控和控制等。
+
+3. **数据推送**:
+   - 服务端可以主动将数据推送到客户端,而无需客户端重复请求。
+   - 例如,推送实时天气信息、推送系统状态变更等。
+
+4. **数据处理管道**:
+   - 流式传输可以构建数据处理管道,将数据从一个服务流式传输到另一个服务。
+   - 例如,将数据从数据源流式传输到数据分析服务,再流式传输到可视化服务等。
+
+5. **异步处理**:
+   - 双向流式传输允许客户端和服务端异步地发送和接收数据,无需等待对方响应。
+   - 这在一些耗时的操作中很有用,例如文件上传/下载、视频流传输等。
+
+总的来说,GRPC 的流式传输机制提高了传输效率和实时性,适用于各种需要大量数据传输或实时交互的场景。开发者可以根据具体需求选择合适的流式传输方式。
+
 
 
 ### grpc使用
@@ -2685,8 +2964,44 @@ protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=p
 
 
 ## 微服务 
-微服务是一种开发软件的架构和组织方法，其中软件由通过明确定义的 API进行通信的小型独立服务组成。
-微服务架构使应用程序更易于扩展和更快地开发，从而加速创新并缩短新功能的上市时间。 
+微服务是一种软件架构模式,它将单一应用程序划分成一组小型服务,每个服务都运行在自己的进程中,服务之间通过轻量级通信机制（如 HTTP/HTTPS 或 GRPC）进行通信。这种架构模式具有以下特点:
+
+1. **独立部署**:
+   - 每个微服务都是独立部署和运行的,可以使用不同的编程语言和技术栈。
+   - 这使得团队可以更灵活地选择合适的技术,并独立地对各个服务进行扩展和迭代。
+
+2. **高内聚低耦合**:
+   - 每个微服务都专注于单一的业务功能,内部高度内聚。
+   - 服务之间通过定义良好的 API 进行松耦合通信,降低了系统的复杂度。
+
+3. **可扩展性**:
+   - 由于各个微服务是独立部署和运行的,可以针对性地对高负载的服务进行水平扩展,提高系统的整体性能。
+
+4. **技术异构性**:
+   - 每个微服务可以使用不同的编程语言、框架和数据存储技术,根据业务需求选择最合适的技术栈。
+   - 这种技术异构性提高了系统的灵活性和可扩展性。
+
+5. **敏捷性和可维护性**:
+   - 微服务架构将单一应用拆分成多个独立的服务,降低了系统的复杂度。
+   - 这使得团队能够更快地开发、部署和迭代各个服务,提高了系统的敏捷性和可维护性。
+
+6. **故障隔离**:
+   - 微服务之间通过网络通信,一个服务的故障不会直接影响其他服务的运行。
+   - 这种故障隔离提高了系统的可靠性和可用性。
+
+微服务架构的实现通常会涉及以下关键技术:
+
+1. **服务注册与发现**: 使用服务注册中心(如 Consul、Zookeeper、Etcd 等)来管理和发现服务。
+2. **API 网关**: 提供统一的 API 入口,负责请求路由、负载均衡、认证授权等功能。
+3. **服务间通信**: 常用的通信协议包括 HTTP/HTTPS、GRPC 等。
+4. **配置管理**: 使用分布式配置中心管理微服务的配置信息。
+5. **日志收集与监控**: 采用集中式日志收集和监控系统,如 ELK、Prometheus 等。
+6. **容器化与编排**: 使用 Docker 容器化微服务,并采用 Kubernetes 等容器编排系统进行管理。
+7. **持续集成与部署**: 建立自动化的 CI/CD 流水线,实现快速迭代和部署。
+
+总的来说,微服务架构通过将单一应用拆分成多个独立的服务,提高了系统的灵活性、可扩展性和可维护性。但同时也增加了系统的复杂度,需要解决服务发现、通信、配置管理、监控等问题。因此,在采用微服务架构时,需要综合考虑业务需求和技术实现的平衡。
+
+
 
 #### 如何设计一个高并发系统
 保证整体可用的同时，能够处理很高的并发用户请求，能够承受很大的流量冲击；
@@ -2720,21 +3035,48 @@ protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=p
 
 
 #### 服务发现是怎么做的？
-主要有两种服务发现机制：客户端发现和服务端发现。 
-客户端发现模式：当我们使用客户端发现的时候，客户端负责决定可用服务实例的网络地址并且在集群中对请求负载均衡, 客户端访问服务登记表，
-也就是一个可用服务的数据库，然后客户端使用一种负载均衡算法选择一个可用的服务实例然后发起请求。
-服务端发现模式：客户端通过负载均衡器向某个服务提出请求，负载均衡器查
-询服务注册表，并将请求转发到可用的服务实例。如同客户端发现，服务实例在服务注册表中注册或注销。
+在微服务架构中,服务发现是一个非常重要的功能。服务发现主要解决以下两个问题:
 
-中间件用过吗？
+1. **服务注册**: 当一个微服务启动时,如何将自己的信息(如 IP 地址、端口号等)注册到服务注册中心。
+2. **服务查找**: 当一个微服务需要调用其他服务时,如何从服务注册中心查找到对应服务的地址信息。
+
+常见的服务发现方式包括:
+
+1. **基于 DNS 的服务发现**:
+   - 服务提供者将自己的信息注册到 DNS 服务器上。
+   - 服务消费者通过 DNS 查询获取服务地址。
+   - 优点是简单易用,缺点是缺乏动态注册和健康检查等高级功能。
+
+2. **基于服务注册中心的服务发现**:
+   - 服务提供者将自己的信息注册到服务注册中心(如 Consul、Etcd、Zookeeper 等)。
+   - 服务消费者通过服务注册中心的 API 查找服务地址。
+   - 注册中心通常提供服务注册、健康检查、负载均衡等功能。
+
+3. **基于 Kubernetes 的服务发现**:
+   - 在 Kubernetes 中,每个 Pod 都有一个唯一的 DNS 名称,可以通过 DNS 查询获取 Pod 的 IP 地址。
+   - Kubernetes 还提供了 Service 资源,可以为一组 Pod 提供稳定的访问入口。
+   - 服务消费者可以通过 Kubernetes 的 API 或内置的 DNS 服务发现服务。
+
+4. **基于服务网格的服务发现**:
+   - 服务网格(如 Istio、Linkerd)提供了更高级的服务发现和流量管理功能。
+   - 服务提供者和消费者都通过服务网格中的 sidecar 代理进行通信。
+   - 服务网格负责服务注册、服务发现、负载均衡、熔断等功能。
+
+无论采用哪种服务发现方式,其核心思想都是将服务提供者的信息注册到某个中心化的服务注册中心,并让服务消费者能够动态地查找和访问这些服务。
+
+在实际应用中,开发者需要结合具体的业务需求和技术栈选择合适的服务发现方式。例如,在 Kubernetes 环境中,基于 Kubernetes 的服务发现方式通常是首选;在其他环境中,则可以选择基于服务注册中心的方式。服务网格则提供了更加智能和可观察的服务发现机制。
+
+
+#### 中间件用过吗？
 Middleware 是 Web 的重要组成部分，中间件（通常）是一小段代码，它们接受一个请求，对其进行处理，
 每个中间件只处理一件事情，完成后将其传递给另一个中间件或最终处理程序，这样就做到了程序的解耦。 
 
-持久化怎么做的？ 
+
+#### 持久化怎么做的？ 
 所谓持久化就是将要保存的字符串写到硬盘等设备。 
- 最简单的方式就是采用 ioutil 的 WriteFile()方法将字符串写到磁盘上，这种方法面临格式化方面的问题。 
- 更好的做法是将数据按照固定协议进行组织再进行读写，比如 JSON，XML，Gob，csv 等。 
- 如果要考虑高并发和高可用，必须把数据放入到数据库中，比如 MySQL，PostgreDB，MongoDB 等。 
+1. 最简单的方式就是采用 ioutil 的 WriteFile()方法将字符串写到磁盘上，这种方法面临格式化方面的问题。 
+2. 更好的做法是将数据按照固定协议进行组织再进行读写，比如 JSON，XML，Gob，csv 等。 
+3. 如果要考虑高并发和高可用，必须把数据放入到数据库中，比如 MySQL，PostgreDB，MongoDB 等。 
 
 
 #### 介绍下服务熔断
@@ -2751,13 +3093,12 @@ Middleware 是 Web 的重要组成部分，中间件（通常）是一小段代�
 
 #### Go 中发生熔断怎么做的 
 在 Go 中，熔断通常是由于一段服务的连续失败引起的，为避免故障扩散，需要使用熔断机制保护底层资源。
-Go 语言提供了一些库和框架来实现熔断机制，例如：
-Hystrix：Hystrix 是 Netflix 开源的一款熔断器组件，可以在 Go 程序中使用。
+
+Go 语言提供了一些库和框架来实现熔断机制
+1. Hystrix：Hystrix 是 Netflix 开源的一款熔断器组件，可以在 Go 程序中使用。
 它通过统计系统的服务指标（如请求成功率、平均响应时间等）来观察是否需要进行熔断，一旦达到设定的阈值就会执行熔断操作。 
-Gobreaker：Gobreaker 是一个 Go 实现的熔断器库，支持自定义熔断器状态存
-储和熔断器策略等功能，可以用于保护底层服务或资源不被过度使用。 
-Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支持多种熔断
-器策略和监控方式，可以帮助开发者实现高可用的服务治理。 
+2. Gobreaker：Gobreaker 是一个 Go 实现的熔断器库，支持自定义熔断器状态存储和熔断器策略等功能，可以用于保护底层服务或资源不被过度使用。 
+3. Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支持多种熔断器策略和监控方式，可以帮助开发者实现高可用的服务治理。 
 总之，Go 提供了多种熔断器库和框架，开发者可以根据具体情况选择并使用这些库来实现熔断机制，保障程序稳定性和可靠性。 
 
 
@@ -2776,22 +3117,19 @@ Resilience4j：Resilience4j 是一个面向函数式编程的熔断器库，支�
 #### 服务降级怎么搞
 当 Go 服务发生压力剧增时，为了保证核心业务的正常高效运行，需要采取服务降级措施。
 下面是一些具体做法：
-针对不同服务和页面进行策略性地降级：通过对实际业务使用情况和流量的分析，针对不同服务和页面进行策略性地降级，从而释放服务器资源，提高服务可用性。 
-对某些服务和页面采用简单的处理方式：对于一些重要但非核心的服务和页
-面，可以采用一些简单的处理方式，如缓存数据、使用轻量级组件等，从而减轻服务器压力。 
-通过技术手段实现服务降级：可以通过技术手段实现服务降级，例如使用
-Hystrix 等熔断框架，当系统出现故障或超负荷时，自动切换到备份或降级服务，避免发生系统瘫痪。 
+1. 针对不同服务和页面进行策略性地降级：通过对实际业务使用情况和流量的分析，针对不同服务和页面进行策略性地降级，从而释放服务器资源，提高服务可用性。 
+2. 对某些服务和页面采用简单的处理方式：对于一些重要但非核心的服务和页面，可以采用一些简单的处理方式，如缓存数据、使用轻量级组件等，从而减轻服务器压力。 
+3. 通过技术手段实现服务降级：可以通过技术手段实现服务降级，例如使用Hystrix 等熔断框架，当系统出现故障或超负荷时，自动切换到备份或降级服务，避免发生系统瘫痪。 
 总之，针对不同的场景和业务需求，开发人员需要根据实际情况采取适当的服务降级措施，确保系统稳定运行。 
 
 
 #### 负载均衡
-集群化部署的架构，也就是把一个软件应用同事部署在多个服务器上。 
+集群化部署的架构，也就是把一个软件应用同时部署在多个服务器上。 
 负载均衡机制的核心目的是让客户端的请求合理均匀的分发到多台目标服务器，由于请求被多个节点分发，使得服务端的性能得到有效提升。 
 1. 基于 DNS 实现负载均衡；
 客户端用户请求 www.xxx.com，DNS 服务器进行域名的解析，返回域名对应的IP 地址，然后请求实际的 IP 地址； 
 DNS 服务器上去针对某个域名做多个 IP 映射，可以随机分配个 IP 地址进行访问，这样就可以实现目标服务器集群的请求分发；
-DNS 服务器也可以根据不同的地域分配就近机房的 IP，比如一个来自长沙的客户端请求，可能会得到一个湖南范围内最近的机房的 IP，
-在这个模式下可以实现就近原则的一个请求分发，这样可以缩短通信距离，从而提升网站的访问速率。
+DNS 服务器也可以根据不同的地域分配就近机房的 IP，比如一个来自长沙的客户端请求，可能会得到一个湖南范围内最近的机房的 IP，在这个模式下可以实现就近原则的一个请求分发，这样可以缩短通信距离，从而提升网站的访问速率。
 
 2. 基于硬件的负载均衡
 可以理解为一个网络设备，类似于物理交换机，性能比较好，每秒可以处理百万级的请求；
@@ -2799,15 +3137,16 @@ DNS 服务器也可以根据不同的地域分配就近机房的 IP，比如一�
 
 3. 基于软件的负载均衡
 通过一些开源软件或者商业软件来完成负载均衡的功能。常用的有 Nginx、LVS、Haproxy； 
-负载均衡是作用在网络通信上来实现请求的分发；由于网络架构分成 7 层模型，
-根据这一特性，负载均衡根据作用范围分为二层负载、三层负载、四层负载、七层负载；
-二层负载：根据 MAC 地址来实现请求的分发，一般采用虚拟 MAC 的方式实现；
-当服务器收到请求后，可以通过动态分配后的服务器的 MAC 地址来进行响应。 
-三层负载：基于 IP 层负载，一般通过虚拟 IP 来实现；外部的请求去访问虚拟 IP
-时，服务器收到请求，根据后端的实际 IP 地址进行转发； 
+
+负载均衡是作用在网络通信上来实现请求的分发；由于网络架构分成 7 层模型，根据这一特性，负载均衡根据作用范围分为二层负载、三层负载、四层负载、七层负载；
+
+二层负载：根据 MAC 地址来实现请求的分发，一般采用虚拟 MAC 的方式实现；当服务器收到请求后，可以通过动态分配后的服务器的 MAC 地址来进行响应。 
+
+三层负载：基于 IP 层负载，一般通过虚拟 IP 来实现；外部的请求去访问虚拟 IP 时，服务器收到请求，根据后端的实际 IP 地址进行转发；
+
 四层负载：将用户请求转发给后端，通过修改请求报文中的目标地址和源地址进行转发。
-七层负载：基于应用层的负载。服务器端可以根据 http 协议中的请求的报文信息
-来决定将请求分发到哪个服务器；比如 cookie，消息体以及 Requestheader 等等； 
+
+七层负载：基于应用层的负载。服务器端可以根据 http 协议中的请求的报文信息来决定将请求分发到哪个服务器；比如 cookie，消息体以及 Request header 等等； 
 
 
 ## go 里用过哪些设计模式? 
@@ -2879,6 +3218,7 @@ func getLogistics(means string) (i iLogistics, err error){
 }
 ```
 客户端使用，直接调用 getLogistics 就好。 
+
 
 #### 抽象工厂模式 
 抽象工厂模式是一种创建型设计模式，它能创建一系列相关的对象，而无需指定其具体类。 
@@ -2959,10 +3299,11 @@ func (s *shoe) getSize() int {
 } 
 ```
 adidas 工厂必须能生产鞋子： 
+```Go
 type adidasShoe struct { 
     shoe 
 } 
-客户端代码： 
+// 客户端代码： 
 func main() { 
     adidasFactory, _ := getSportsFactory("adidas") 
     nikeFactory, _ := getSportsFactory("nike") 
@@ -2973,6 +3314,7 @@ func main() {
     adidasShoe := adidasFactory.makeShoe() 
     adidasShirt := adidasFactory.makeShirt() 
 } 
+```
 工厂方法模式和抽象工厂模式的区别在于：前者实例化具体的产品，后者实例化具体的工厂，每个工厂再实例化同样的产品系列。 
 
 
@@ -3036,6 +3378,7 @@ func NewInstance2() *Foo {
 现在有两种类型的房屋 normal 和 igloo（木制）。 
 解决方案：我们需要考虑两个问题：1.如何确保全局唯一，2.如何保证并发控制。 
 定义生成器接口： 
+```Go
 type iBuilder interface { 
     setWindowType() 
     setDoorType() 
@@ -3053,7 +3396,9 @@ func getBuilder(builderType string) iBuilder {
     } 
     return nil 
 } 
+```
 具体的房屋生成器（以 normal 为例子）： 
+```Go
 type normalBuilder struct { 
     windowType string 
     doorType   string 
@@ -3083,13 +3428,17 @@ func (b *normalBuilder) getHouse() house {
         floor:      b.floor, 
     } 
 } 
+```
 房屋（产品）： 
+```Go
 type house struct { 
     windowType string 
     doorType   string 
     floor      int 
 } 
+```
 定义一个主管，他手下有可以修建所有类型房屋的工人。 
+```Go
 type director struct { 
     builder iBuilder 
 } 
@@ -3110,7 +3459,9 @@ func (d *director) buildHouse() house {
     d.builder.setNumFloor() 
     return d.builder.getHouse() 
 } 
+```
 客户端代码： 
+```Go
 func main() { 
     normalBuilder := getBuilder("normal") 
     iglooBuilder := getBuilder("igloo") 
@@ -3118,23 +3469,19 @@ func main() {
     director := newDirector(normalBuilder) 
     normalHouse := director.buildHouse() 
  
-    fmt.Printf("Normal House Door Type: %s\n", 
-normalHouse.doorType) 
-    fmt.Printf("Normal House Window Type: %s\n", 
-normalHouse.windowType) 
-    fmt.Printf("Normal House Num Floor: %d\n", 
-normalHouse.floor) 
+    fmt.Printf("Normal House Door Type: %s\n", normalHouse.doorType) 
+    fmt.Printf("Normal House Window Type: %s\n", normalHouse.windowType) 
+    fmt.Printf("Normal House Num Floor: %d\n", normalHouse.floor) 
  
     director.setBuilder(iglooBuilder) 
     iglooHouse := director.buildHouse() 
  
-    fmt.Printf("\nIgloo House Door Type: %s\n", 
-iglooHouse.doorType) 
-    fmt.Printf("Igloo House Window Type: %s\n", 
-iglooHouse.windowType) 
-    fmt.Printf("Igloo House Num Floor: %d\n", 
-iglooHouse.floor) 
-} 
+    fmt.Printf("\nIgloo House Door Type: %s\n", iglooHouse.doorType) 
+    fmt.Printf("Igloo House Window Type: %s\n", iglooHouse.windowType) 
+    fmt.Printf("Igloo House Num Floor: %d\n", iglooHouse.floor) 
+}
+```
+
 
 #### 原型模式 
 原型模式使你能够复制已有对象，无需使代码依赖它们所属的类。 
@@ -3144,13 +3491,11 @@ iglooHouse.floor)
 让我们尝试通过基于操作系统文件系统的示例来理解原型模式。 操作
 系统的文件系统是递归的： 文件夹中包含文件和文件夹， 其中又包
 含文件和文件夹， 以此类推。 
-每个文件和文件夹都可用一个 inode 接口来表示。  inode 接口中同
-样也有 clone 克隆功能。 
+每个文件和文件夹都可用一个 inode 接口来表示。  inode 接口中同 样也有 clone 克隆功能。 
 file 文件和 folder 文件夹结构体都实现了 print 打印和 clone 方
 法， 因为它们都是 inode 类型。 同时， 注意 file 和 folder 中
 的 clone 方法。 这两者的 clone 方法都会返回相应文件或文件夹的
-副本。 同时在克隆过程中， 我们会在其名称后面添加 “_clone” 
-字样。 
+副本。 同时在克隆过程中， 我们会在其名称后面添加 “_clone” 字样。 
 ```Go
 
 原型接口： 
@@ -3220,10 +3565,10 @@ func main() {
  
 ## go 的调试/分析工具用过哪些 
 go 的自带工具链相当丰富，
- go cover : 测试代码覆盖率； 
- godoc: 用于生成 go 文档； 
- pprof：用于性能调优，针对 cpu，内存和并发； 
- race：用于竞争检测； 
+1. go cover : 测试代码覆盖率； 
+2. godoc: 用于生成 go 文档； 
+3. pprof：用于性能调优，针对 cpu，内存和并发； 
+4. race：用于竞争检测； 
 
 
 ## 进程被 kill，如何保证所有 goroutine 顺利退出 
@@ -3243,6 +3588,7 @@ func main() {
     fmt.Printf("all groutine done!\n") 
 }
 ```
+
 
 ## 1 亿条数据动态增长，取 top10，怎么实现
 处理 1 亿条数据动态增长并取 TOP10 可以使用堆的方法。具体的做法如下： 
@@ -3289,48 +3635,84 @@ func priority_select(ch1, ch2 <-chan string) {
 #### select 的实现原理
 select 源码位于 src\runtime\select.go
 最重要的 scase 数据结构为： 
+```Go
 type scase struct {  
     c    *hchan         // chan
     elem unsafe.Pointer // data element 
 }
+```
 scase.c 为当前 case 语句所操作的 channel 指针，这也说明了一个 case 语句只能操作一个 channel。 
-scase.elem 表示缓冲区地址：
-caseRecv ： scase.elem 表示读出 channel 的数据存放地址； 
-caseSend ： scase.elem 表示将要写入 channel 的数据存放地址； 
-select 的主要实现位于：select.go 函数：其主要功能如下： 
-\1. 锁定 scase 语句中所有的 channel 
-\2. 按照随机顺序检测 scase 中的 channel 是否 ready 
-2.1 如果 case 可读，则读取 channel 中数据，解锁所有的 channel，然后返回(case 
-index, true) 
-2.2 如果 case 可写，则将数据写入 channel，解锁所有的 channel，然后返回(case 
-index, false) 
-2.3 所有 case 都未 ready，则解锁所有的 channel，然后返回（default index, false） 
-\3. 所有 case 都未 ready，且没有 default 语句 
-3.1 将当前协程加入到所有 channel 的等待队列 
-3.2 当将协程转入阻塞，等待被唤醒 
-\4. 唤醒后返回 channel 对应的 case index 
-4.1 如果是读操作，解锁所有的 channel，然后返回(case index, true) 
-4.2 如果是写操作，解锁所有的 channel，然后返回(case index, false) 
 
- 
+scase.elem 表示缓冲区地址：
+
+caseRecv ： scase.elem 表示读出 channel 的数据存放地址； 
+
+caseSend ： scase.elem 表示将要写入 channel 的数据存放地址； 
+
+
+select 的主要实现位于：select.go 函数：其主要功能如下： 
+1. 锁定 scase 语句中所有的 channel 
+2. 按照随机顺序检测 scase 中的 channel 是否 ready 
+a. 如果 case 可读，则读取 channel 中数据，解锁所有的 channel，然后返回(case index, true) 
+b. 如果 case 可写，则将数据写入 channel，解锁所有的 channel，然后返回(case index, false) 
+c. 所有 case 都未 ready，则解锁所有的 channel，然后返回（default index, false） 
+3. 所有 case 都未 ready，且没有 default 语句 
+a. 将当前协程加入到所有 channel 的等待队列 
+b. 当将协程转入阻塞，等待被唤醒
+4. 唤醒后返回 channel 对应的 case index 
+a. 如果是读操作，解锁所有的 channel，然后返回(case index, true)
+b. 如果是写操作，解锁所有的 channel，然后返回(case index, false) 
+
+select 是 Go 语言中用于实现并发控制的一个重要语法,它的实现原理比较复杂,涉及 Go 运行时的诸多细节。我们可以通过分析 Go 语言的源码来了解 select 的实现原理。
+
+1. **选择逻辑**:
+   - `selectgo` 函数是 select 语句的核心实现。它会遍历所有 case,找到可以执行的 case,并随机选择一个执行。
+   - 如果没有可执行的 case,`selectgo` 会将当前 goroutine 挂起,直到有 case 可以执行。
+
+2. **Channel 操作**:
+   - 对于 channel 的发送和接收操作,`selectgo` 会调用 `chanrecv` 和 `chansend` 函数来完成。
+   - 这些函数会尝试与 channel 的发送方或接收方进行同步,如果没有对应的发送方或接收方,则会将当前 goroutine 挂起。
+
+3. **超时机制**:
+   - 如果 select 语句包含了超时 case,`selectgo` 会创建一个定时器 goroutine,并将当前 goroutine 加入到定时器的等待队列中。
+   - 当定时器超时时,它会唤醒等待的 goroutine,让 select 语句返回超时结果。
+   
+4. **随机选择**:
+   - 如果多个 case 都可以执行,`selectgo` 会随机选择一个执行。这是为了防止某些 case 永远得不到执行。
+   - 随机选择的实现依赖于 Go 运行时中的伪随机数生成器。
+
+5. **Goroutine 调度**:
+   - `selectgo` 函数会调用 `gopark` 和 `goready` 函数来挂起和唤醒 goroutine。
+   - 这些函数会与 Go 运行时的调度器进行交互,确保 goroutine 能够正确地被调度执行。
+
+总的来说,select 的实现原理涉及 Go 运行时中的诸多机制,包括 channel 操作、定时器、随机数生成、Goroutine 调度等。通过分析 Go 语言的源码,我们可以更深入地理解 select 语句的工作原理。
+
+
 
 ## recover
 
 #### recover 的执行时机 
 recover 必须在 defer 函数中运行。recover 捕获的是祖父级调用时的异常，直接调用时无效。 
+
+```Go
 func main() { 
     recover() 
     panic(1) 
 } 
 // panic: 1 
+```
+
 直接 defer 调用也是无效。 
+```Go
 func main() { 
     defer recover() 
     panic(1) 
 } 
 // panic: 1
+```
 
 defer 调用时多层嵌套依然无效。 
+```Go
 func main() {  
     defer func() {
         func() {
@@ -3342,8 +3724,10 @@ func main() {
 }
 // recover... 
 // panic: 1 
+```
 
 必须在 defer 函数中直接调用才有效。 
+```Go
 func main() {  
     defer func() {
         recover()
@@ -3352,6 +3736,7 @@ func main() {
     panic("") 
 }
 //recover... 
+```
 
 
 #### 为什么有协程泄露(Goroutine Leak)？ 
@@ -3363,13 +3748,11 @@ func main() {
 
 
 #### Go 可以限制运行时操作系统线程的数量吗？ 常见的 goroutine 操作函数有哪些？ 
-可以，使用 runtime.GOMAXPROCS(num int)可以设置线程数目。该值默认为 CPU
-逻辑核数，如果设的太大，会引起频繁的线程切换，降低性能。 
-runtime.Gosched()，用于让出 CPU 时间片，让出当前 goroutine 的执行权限，调
-度器安排其它等待的任务运行，并在下次某个时候从该位置恢复执行。 
-runtime.Goexit()，调用此函数会立即使当前的 goroutine 的运行终止（终止协程），
-而其它的 goroutine 并不会受此影响。runtime.Goexit 在终止当前 goroutine 前会先
-执行此 goroutine 的还未执行的 defer 语句。
+可以，使用 runtime.GOMAXPROCS(num int)可以设置线程数目。该值默认为 CPU 逻辑核数，如果设的太大，会引起频繁的线程切换，降低性能。 
+
+runtime.Gosched()，用于让出 CPU 时间片，让出当前 goroutine 的执行权限，调度器安排其它等待的任务运行，并在下次某个时候从该位置恢复执行。 
+
+runtime.Goexit()，调用此函数会立即使当前的 goroutine 的运行终止（终止协程），而其它的 goroutine 并不会受此影响。runtime.Goexit 在终止当前 goroutine 前会先执行此 goroutine 的还未执行的 defer 语句。
 请注意千万别在主函数调用runtime.Goexit，因为会引发 panic。 
 
 
@@ -3378,13 +3761,15 @@ The GOMAXPROCS variable limits the number of operating system threads
 that can execute user-level Go code simultaneously. There is no limit to the 
 number of threads that can be blocked in system calls on behalf of Go code; 
 those do not count against the GOMAXPROCS limit. 
-从官方文档的解释可以看到，GOMAXPROCS 限制的是同时执行用户态 Go 代
-码的操作系统线程的数量，但是对于被系统调用阻塞的线程数量是没有限制的。
-GOMAXPROCS 的默认值等于 CPU 的逻辑核数，同一时间，一个核只能绑定
-一个线程，然后运行被调度的协程。因此对于 CPU 密集型的任务，若该值过大，
-例如设置为 CPU 逻辑核数的 2 倍，会增加线程切换的开销，降低性能。对于 
-I/O 密集型应用，适当地调大该值，可以提高 I/O 吞吐率。 
+
+从官方文档的解释可以看到，GOMAXPROCS 限制的是同时执行用户态 Go 代码的操作系统线程的数量，但是对于被系统调用阻塞的线程数量是没有限制的。
+
+GOMAXPROCS 的默认值等于 CPU 的逻辑核数，同一时间，一个核只能绑定一个线程，然后运行被调度的协程。
+因此对于 CPU 密集型的任务，若该值过大，例如设置为 CPU 逻辑核数的 2 倍，会增加线程切换的开销，降低性能。
+对于I/O 密集型应用，适当地调大该值，可以提高 I/O 吞吐率。 
+
 另外对于协程，可以用带缓冲区的 channel 来控制，下面的例子是协程数为 1024的例子 
+```Go
 var wg sync.WaitGroup 
 ch := make(chan struct{}, 1024) 
 for i:=0; i<20000; i++{ 
@@ -3396,15 +3781,111 @@ for i:=0; i<20000; i++{
     } 
 } 
 wg.Wait() 
+```
 
-此外还可以用协程池：其原理无外乎是将上述代码中通道和协程函数解耦，并封
-装成单独的结构体。常见第三方协程池库，比如 tunny 等。 
+此外还可以用协程池：其原理无外乎是将上述代码中通道和协程函数解耦，并封装成单独的结构体。常见第三方协程池库，比如 tunny 等。 
+
+在 Go 语言中,可以使用协程池来管理和复用协程资源,提高程序的并发性能。下面是一个简单的 Go 协程池的实现:
+
+```go
+package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+type Task func() error
+
+type WorkerPool struct {
+    taskQueue chan Task
+    wg        sync.WaitGroup
+    quit      chan struct{}
+}
+
+func NewWorkerPool(size int) *WorkerPool {
+    wp := &WorkerPool{
+        taskQueue: make(chan Task, size),
+        quit:      make(chan struct{}),
+    }
+    wp.run(size)
+    return wp
+}
+
+func (wp *WorkerPool) Submit(task Task) {
+    wp.taskQueue <- task
+}
+
+func (wp *WorkerPool) Shutdown() {
+    close(wp.quit)
+    wp.wg.Wait()
+}
+
+func (wp *WorkerPool) run(size int) {
+    for i := 0; i < size; i++ {
+        wp.wg.Add(1)
+        go func() {
+            defer wp.wg.Done()
+            for {
+                select {
+                case task, ok := <-wp.taskQueue:
+                    if !ok {
+                        return
+                    }
+                    task()
+                case <-wp.quit:
+                    return
+                }
+            }
+        }()
+    }
+}
+
+func main() {
+    wp := NewWorkerPool(10)
+    for i := 0; i < 100; i++ {
+        wp.Submit(func() error {
+            fmt.Println("Task", i, "executed")
+            return nil
+        })
+    }
+    wp.Shutdown()
+}
+```
+
+这个实现包含以下几个主要部分:
+
+1. **WorkerPool 结构体**:
+   - 包含一个任务队列 `taskQueue`、一个 `sync.WaitGroup` 用于等待所有协程结束,以及一个退出信号 `quit` 用于关闭协程池。
+
+2. **NewWorkerPool 函数**:
+   - 创建一个新的协程池,并启动指定数量的工作协程。
+
+3. **Submit 方法**:
+   - 将任务添加到任务队列中,供工作协程执行。
+
+4. **Shutdown 方法**:
+   - 关闭协程池,等待所有工作协程退出。
+
+5. **run 方法**:
+   - 启动指定数量的工作协程,每个协程从任务队列中取出任务执行,同时监听退出信号。
+
+在 `main` 函数中,我们创建了一个大小为 10 的协程池,提交了 100 个任务。当所有任务执行完毕后,协程池会自动关闭。
+
+这个协程池的主要特点是:
+
+1. 使用 `sync.WaitGroup` 确保所有协程都执行完毕后才退出。
+2. 使用 `quit` 通道来通知工作协程退出。
+3. 工作协程从任务队列中取出任务并执行,提高了并发性能。
+
+在实际应用中,可以根据需求对这个协程池的实现进行扩展,比如添加任务超时机制、任务优先级等功能。
 
 
 #### defer 可以捕获 goroutine 的子 goroutine 吗？ 
 不可以。它们处于不同的调度器 P 中。对于子 goroutine，必须通过 recover() 机
 制来进行恢复，然后结合日志进行打印（或者通过 channel 传递 error），下面是一个例子： 
 // 心跳函数 
+```Go
 func Ping(ctx context.Context) error { 
     ... code ...
     go func() {
@@ -3418,13 +3899,19 @@ func Ping(ctx context.Context) error {
     ... code ...
     return nil
 } 
+```
 
 
 #### go 竞态条件了解吗？ 
 所谓竞态竞争，就是当两个或以上的 goroutine 访问相同资源时候，对资源进行读/写。 
-比如 var a int = 0，有两个协程分别对 a+=1，我们发现最后 a 不一定为 2.这就是竞态竞争。 
+
+比如 var a int = 0，有两个协程分别对 a+=1，我们发现最后 a 不一定为 2，这就是竞态竞争。 
+
 通常我们可以用 go run -race xx.go 来进行检测。
+
 解决方法是，对临界区资源上锁，或者使用原子操作(atomics)，原子操作的开销小于上锁。 
+
+
  
 #### 有三个函数，分别打印"cat", "fish","dog"要求每一个函数都用一个 goroutine，按照顺序打印 100 次。 
 此题目考察 channel，用三个无缓冲 channel，如果一个 channel 收到信号则通知下一个。 
@@ -3557,25 +4044,45 @@ func main() {
     time.Sleep(time.Second * 5) 
 }
 ```
+
  
-#### Go 什么时候发生阻塞？阻塞时，调度器会怎么做。 
-用于原子、互斥量或通道操作导致 goroutine 阻塞，调度器将把当前阻塞的goroutine 从本地运行队列 LRQ 换出，
-并重新调度其它 goroutine； 
+#### Go 什么时候发生阻塞？阻塞时，调度器会怎么做 
+用于原子、互斥量或通道操作导致 goroutine 阻塞，调度器将把当前阻塞的goroutine 从本地运行队列 LRQ 换出，并重新调度其它 goroutine； 
+
 由于网络请求和 IO 导致的阻塞，Go 提供了网络轮询器（Netpoller）来处理，后台用 epoll 等技术实现 IO 多路复用。 
-其它回答： 
-channel 阻塞：当 goroutine 读写 channel 发生阻塞时，会调用 gopark 函数，
-该 G 脱离当前的 M 和 P，调度器将新的 G 放入当前 M。 
-系统调用：当某个 G 由于系统调用陷入内核态，该 P 就会脱离当前 M，此时 P
-会更新自己的状态为 Psyscall，M 与 G 相互绑定，进行系统调用。
-结束以后，若该 P 状态还是 Psyscall，则直接关联该 M 和 G，否则使用闲置的处理器处理该G。 
-系统监控：当某个 G 在 P 上运行的时间超过 10ms 时候，或者 P 处于 Psyscall 状
-态过长等情况就会调用 retake 函数，触发新的调度。 
-主动让出：由于是协作式调度，该 G 会主动让出当前的 P（通过 GoSched），更
-新状态为 Grunnable，该 P 会调度队列中的 G 运行。 
+
+其它回答：
+channel 阻塞：当 goroutine 读写 channel 发生阻塞时，会调用 gopark 函数，该 G 脱离当前的 M 和 P，调度器将新的 G 放入当前 M。 
+系统调用：当某个 G 由于系统调用陷入内核态，该 P 就会脱离当前 M，此时 P 会更新自己的状态为 Psyscall，M 与 G 相互绑定，进行系统调用。结束以后，若该 P 状态还是 Psyscall，则直接关联该 M 和 G，否则使用闲置的处理器处理该G。 
+系统监控：当某个 G 在 P 上运行的时间超过 10ms 时候，或者 P 处于 Psyscall 状态过长等情况就会调用 retake 函数，触发新的调度。 
+主动让出：由于是协作式调度，该 G 会主动让出当前的 P（通过 GoSched），更新状态为 Grunnable，该 P 会调度队列中的 G 运行。
+
+
+在 Go 中，阻塞通常发生在以下几种情况：
+1. 当一个 Goroutine 在一个无缓冲的 channel 上进行发送或接收操作时，如果没有其他 Goroutine 准备好进行相应的接收或发送操作，该 Goroutine 将会阻塞。
+
+2. 当一个 Goroutine 在一个有缓冲的 channel 上进行发送操作时，如果 channel 的缓冲区已满，该 Goroutine 将会阻塞。
+
+3. 当一个 Goroutine 在一个有缓冲的 channel 上进行接收操作时，如果 channel 的缓冲区为空，该 Goroutine 将会阻塞。
+
+4. 当一个 Goroutine 调用一些阻塞式的系统调用（如文件 I/O、网络操作等）时，该 Goroutine 将会阻塞，直到系统调用返回。
+
+5. 当一个 Goroutine 调用 `time.Sleep()` 函数时，该 Goroutine 将会阻塞指定的时间段。
+
+当阻塞发生时，Go 的调度器会执行以下操作：
+
+1. 将当前阻塞的 Goroutine 从处理器的运行队列中移除，使其进入等待状态，并将其加入到相应的等待队列中（如 channel 的等待队列）。
+
+2. 调度器会从运行队列中选择另一个处于就绪状态的 Goroutine，将其分配给空闲的处理器继续执行。
+
+3. 当阻塞的条件满足时（如 channel 有数据可接收、系统调用完成等），调度器会将等待的 Goroutine 从等待队列中移除，并将其加入到运行队列中，等待下一次被调度执行。
+
+通过这种方式，Go 的调度器能够高效地管理和调度 Goroutine，使得在某些 Goroutine 阻塞的情况下，其他 Goroutine 仍然能够继续执行，从而实现了高并发和高效的任务处理。同时，由于 Go 的调度器在用户层面实现，切换的开销相对较小，使得 Go 能够支持大量的 Goroutine 并发执行。
 
 
 ## 指针
 一个指针可以指向任意变量的地址，它所指向的地址在 32 位或 64 位机器上分别固定占 4 或 8 个字节。
+
 #### 指针的作用 
 指针的作用有： 
 1. 获取变量的值 
@@ -4418,6 +4925,7 @@ kubectl get pod_name container   ## 查看 pod 中容器输出的 log 信息
 kubectl get replicationController -o wide   ## 查看 replication controller 的基本信息 
 kubectl get service   ## 查看创建的 service 
 kubectl get services   ## 查看创建的 services 
+kubectl cp a.png -n dxns test-hd-79c89c889d-h6lst:/home/workspace           # 将主机上的文件a.png拷贝到pod中指定路径
 
 
 ### kube-apiserver

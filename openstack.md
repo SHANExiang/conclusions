@@ -467,15 +467,116 @@ KVM 是一个虚拟机管理程序，它是基于虚拟化扩展的 x86 硬件�
 KVM 本身只关注虚拟机调度和内存管理这两个方面，IO 的虚拟化，比如存储和网络设备交给 Linux 内核和 QUMU 实现。 
 除了 KVM 虚拟化外，目前的虚拟化产品还有 Xen VMWare VirtualBox Hyper-V等。
 
-KVM 的管理工具 Libvirt
-Libvirt 是一套对平台虚拟化技术进行管理的管理工具和 Linux API 作为连接底
-层多种虚拟机管理器（Hypervisor）与上层应用的中间适配层，它可以支持 KVM 
-Xen QEMU VirtualBox 等多种虚拟机管理器。 
-Libvirt 包含 3 个东西，后台 daemon 程序 libvirtd、API 库和命令行工具 virsh； 
-libvirtd 是服务程序，接受和处理 API 请求； 
-API 库使得其他人可以开发基于 Libvirt 的高级工具，比如 virt-manager，这个是
-图形化的 KVM 管理工具，可以用来启动虚拟，对虚机进行各种管理操作； 
+#### libvirt
+KVM 的管理工具 Libvirt。
+Libvirt 是一套对平台虚拟化技术进行管理的管理工具和 Linux API 作为连接底层多种虚拟机管理器（Hypervisor）与上层应用的中间适配层，它可以支持 KVM Xen QEMU VirtualBox 等多种虚拟机管理器。
+
+OpenStack 的各个组件,如 Nova、Cinder 和 Neutron,都依赖于 libvirt 来实现底层的虚拟化管理。
+
+Libvirt 包含 3 个东西，后台 daemon 程序 libvirtd、API 库和命令行工具 virsh；
+
+libvirtd 是服务程序，接受和处理 API 请求；
+
+API 库使得其他人可以开发基于 Libvirt 的高级工具，比如 virt-manager，这个是图形化的 KVM 管理工具，可以用来启动虚拟，对虚机进行各种管理操作； 
+
 virsh 是常用的 KVM 命令行工具； 
+
+
+##### 在 OpenStack 中,创建虚拟机时主要涉及以下几个步骤,并调用 libvirt 库进行相应的操作:
+
+1. **虚拟机映像管理**:
+   - OpenStack 使用 libvirt 的 `virStorageVol` 和 `virStoragePool` 接口来管理虚拟机映像。
+   - 当用户请求创建虚拟机时,OpenStack 会检查映像是否存在,并使用 libvirt 将映像加载到存储池中。
+
+2. **虚拟机配置**:
+   - OpenStack 使用 libvirt 的 `virDomainDef` 接口来定义虚拟机的配置,包括 CPU、内存、网络、存储等。
+   - 这些配置信息最终会被转换成 libvirt 的 XML 格式,用于创建虚拟机。
+
+3. **虚拟机创建**:
+   - 使用 libvirt 的 `virDomainCreate` 接口,OpenStack 可以根据前面定义的配置信息创建虚拟机。
+   - 在创建过程中,libvirt 会为虚拟机分配资源,如 CPU、内存和设备。
+
+4. **虚拟机网络配置**:
+   - OpenStack 使用 libvirt 的 `virNetworkDef` 和 `virNetworkCreate` 接口来配置虚拟机的网络。
+   - 这包括创建虚拟网络、虚拟交换机和虚拟网卡,并将其与虚拟机关联。
+
+5. **虚拟机存储配置**:
+   - OpenStack 使用 libvirt 的 `virStorageVol` 和 `virStorageDef` 接口来配置虚拟机的存储。
+   - 这包括创建虚拟磁盘、挂载到虚拟机,并设置相应的存储池。
+
+6. **虚拟机启动**:
+   - 最后,OpenStack 使用 libvirt 的 `virDomainStart` 接口来启动虚拟机。
+   - 在启动过程中,libvirt 会为虚拟机分配 CPU 和内存资源,并启动虚拟机的操作系统。
+
+在这个过程中,OpenStack 通过调用 libvirt 的各种接口来完成虚拟机的创建和配置。libvirt 提供了一个统一的虚拟化管理接口,使 OpenStack 能够支持多种虚拟化技术,并提供了丰富的虚拟机管理功能。
+
+总的来说,OpenStack 利用 libvirt 的功能来实现虚拟机的生命周期管理,包括创建、启动、停止和删除等操作。这种架构使 OpenStack 能够与多种虚拟化技术进行集成,提高了系统的可扩展性和灵活性。
+
+
+##### OpenStack 与 libvirt 之间的交互是通过一种更加紧密的集成方式实现的。
+
+具体来说,OpenStack 中与 libvirt 交互的主要方式如下:
+
+1. **Python 绑定**:
+   - OpenStack 使用 libvirt Python 绑定库来与 libvirt 进行交互。
+   - 这些绑定库提供了一个 Python 接口,可以直接调用 libvirt 的 C 语言 API。
+   - 这种方式可以更高效地访问 libvirt 的功能,而无需通过 REST 接口进行转换和解析。
+
+2. **RPC 调用**:
+   - OpenStack 中的某些组件(如 Nova 计算服务)会通过 RPC 调用的方式与 libvirt 进行交互。
+   - 这种方式使用了 OpenStack 自身的 RPC 机制,可以在同一个进程或不同进程之间进行高效的通信。
+   - 这种方式也避免了 REST 接口的开销和复杂性。
+
+3. **进程间通信**:
+   - OpenStack 中的某些组件(如 Nova 计算服务)会直接与 libvirt 守护进程进行进程间通信。
+   - 这种方式可以更直接地访问 libvirt 的功能,减少了通信开销。
+
+总的来说,OpenStack 与 libvirt 之间的交互并不是通过 REST 接口,而是采用了更加紧密和高效的集成方式,包括 Python 绑定、RPC 调用和进程间通信等。这种集成方式可以更好地利用 libvirt 的功能,提高 OpenStack 的性能和可靠性。
+
+
+##### 与ceph交互
+在 OpenStack 中,对 Ceph 的交互是通过多个组件协作完成的,其中既有直接与 Ceph 交互的组件,也有通过 libvirt 间接与 Ceph 交互的组件。具体如下:
+
+1. **直接与 Ceph 交互的 OpenStack 组件**:
+   - **Cinder 卷管理服务**: Cinder 负责管理虚拟机的块存储卷,它会直接与 Ceph 的 RADOS 客户端库交互,创建和管理 Ceph RBD 卷。
+   - **Glance 镜像服务**: Glance 负责管理虚拟机镜像,它也会直接与 Ceph 的 RADOS 客户端库交互,将镜像存储在 Ceph 对象存储中。
+
+2. **通过 libvirt 与 Ceph 交互的 OpenStack 组件**:
+   - **Nova 计算服务**: Nova 负责管理虚拟机的生命周期,它会调用 libvirt 来与 Ceph 进行交互,如将 Ceph RBD 卷挂载到虚拟机。
+   - **Neutron 网络服务**: Neutron 负责管理虚拟机的网络,它也会通过 libvirt 来管理 Ceph 提供的虚拟网络设备。
+
+具体来说,Cinder 和 Glance 这两个 OpenStack 组件会直接与 Ceph 的 RADOS 客户端库交互,以管理块存储卷和镜像。而 Nova 和 Neutron 这两个 OpenStack 组件则是通过调用 libvirt 来间接与 Ceph 进行交互,利用 libvirt 提供的 Ceph 支持功能。
+
+这种分工合作的方式可以更好地利用 Ceph 的存储能力,同时也简化了 OpenStack 组件的实现,提高了系统的可扩展性和可维护性。Cinder 和 Glance 负责与 Ceph 的直接交互,而 Nova 和 Neutron 则专注于虚拟机和网络的管理,通过调用 libvirt 来间接利用 Ceph 的存储功能。
+
+
+##### libvirt、QEMU 和 KVM 之间的关系
+
+1. **libvirt**:
+   - libvirt 是一个开源的虚拟化管理 API、守护进程和管理工具集合。
+   - 它为上层虚拟化管理软件(如 OpenStack)提供了一个统一的虚拟化管理接口,支持多种虚拟化技术,如 KVM、Xen、LXC 等。
+   - libvirt 负责虚拟机的生命周期管理,包括创建、启动、停止和删除等操作。它还管理虚拟机的网络、存储和安全等方面。
+   - libvirt 通过与底层虚拟化技术(如 QEMU/KVM)进行交互来实现这些功能。
+
+2. **QEMU**:
+   - QEMU 是一个开源的通用机器模拟器和虚拟化工具。
+   - QEMU 可以模拟多种硬件平台,如 x86、ARM、MIPS 等,并提供了虚拟机的基本功能,如虚拟 CPU、内存和设备。
+   - QEMU 本身不提供直接的虚拟化能力,而是需要与 KVM 等虚拟化技术结合使用。
+
+3. **KVM**:
+   - KVM(Kernel-based Virtual Machine)是 Linux 内核中的一个虚拟化模块,提供了 CPU 虚拟化的能力。
+   - KVM 利用 CPU 的硬件虚拟化扩展(如 Intel VT-x 和 AMD-V)来实现高性能的虚拟化。
+   - KVM 与 QEMU 结合使用,QEMU 提供了虚拟机的模拟和管理功能,而 KVM 提供了底层的 CPU 虚拟化支持。
+
+这三者之间的关系可以概括如下:
+
+- libvirt 是一个上层的虚拟化管理框架,为虚拟化管理软件提供了统一的接口。
+- QEMU 是一个通用的机器模拟器,提供了虚拟机的基本功能。
+- KVM 是 Linux 内核中的一个虚拟化模块,为 QEMU 提供了 CPU 虚拟化的支持。
+
+在实际使用中,libvirt 会调用 QEMU 和 KVM 的功能来管理虚拟机。libvirt 提供了一个抽象层,使得上层软件(如 OpenStack)可以无需关注底层的虚拟化技术细节,而是专注于虚拟化资源的管理和调度。这种分层设计提高了系统的可扩展性和可维护性。
+
+总之,libvirt、QEMU 和 KVM 是 Linux 虚拟化中三个重要的组件,它们协同工作,为上层的虚拟化管理软件提供了强大的虚拟化能力。
 
 
 
