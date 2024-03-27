@@ -1719,6 +1719,7 @@ M 的状态：
 自旋线程：处于运行状态但是没有可执行 goroutine 的线程，数量最多为GOMAXPROC，若是数量大于 GOMAXPROC 就会进入休眠。 
 非自旋线程：处于运行状态有可执行 goroutine 的线程。
 
+
 #### GMP 能不能去掉 P 层？会怎么样？ 
 P 层的作用
 每个 P 有自己的本地队列，大幅度的减轻了对全局队列的直接依赖，所带来的效果就是锁竞争的减少。
@@ -1728,8 +1729,7 @@ P 层的作用
 
 
 #### 如果有一个 G 一直占用资源怎么办？什么是 work stealing 算法？ 
-如果有个 goroutine 一直占用资源，那么 GMP 模型会从正常模式转变为饥饿模
-式（类似于 mutex），允许其它 goroutine 使用 work stealing 抢占（禁用自旋锁）。 
+如果有个 goroutine 一直占用资源，那么 GMP 模型会从正常模式转变为饥饿模式（类似于 mutex），允许其它 goroutine 使用 work stealing 抢占（禁用自旋锁）。 
 work stealing 算法指，一个线程如果处于空闲状态，则帮其它正在忙的线程分担压力，从全局队列取一个 G 任务来执行，可以极大提高执行效率。 
 
 
@@ -1853,26 +1853,58 @@ channel 可以阻塞发送方直到接收者准备好接收数据，并且可以
 13. 使用锁的情景：1. 访问共享数据结构中的缓存信息；2. 保存应用程序上下文和状态信息数据。
 14. 使用通道的情景：1. 与异步操作的结果进行交互; 2. 分发任务; 3. 传递数据所有权
 
-#### channel底层结构
-用来保存goroutine之间传递数据的循环链表。=====> buf。
-用来记录此循环链表当前发送或接收数据的下标值。=====> sendx和recvx。
-用于保存向该chan发送和从该chan接收数据的goroutine的队列。=====> sendq 和 recvq
-保证channel写入和读取数据时线程安全的锁。 =====> lock
+### channel底层结构
+Channel是Go语言中用于在goroutine之间传递数据的重要数据结构。
 
-#### 向 channel 写数据的流程： 
-如果等待接收队列 recvq 不为空，说明缓冲区中没有数据或者没有缓冲区，此时直接从 recvq 取出 G,并把数据写入，最后把该 G 唤醒，结束发送过程；
-如果缓冲区中有空余位置，将数据写入缓冲区，结束发送过程；
-如果缓冲区中没有空余位置，将待发送数据写入 G，将当前 G 加入 sendq，进入睡眠，等待被读 goroutine 唤醒；
+hchan结构体
+在Go的运行时(runtime)中，channel是通过hchan结构体来表示的。hchan结构体的定义如下：
 
-#### 向 channel 读数据的流程： 
-如果等待发送队列 sendq 不为空，且没有缓冲区，直接从 sendq 中取出 G，把 G 中数据读出，最后把 G 唤醒，结束读取过程； 
-如果等待发送队列 sendq 不为空，此时说明缓冲区已满，从缓冲区中首部读出数据，把 G 中数据写入缓冲区尾部，把 G 唤醒，结束读取过程；
-如果缓冲区中有数据，则从缓冲区取出数据，结束读取过程；将当前 goroutine 加入 recvq，进入睡眠，等待被写 goroutine 唤醒；
+```go
+type hchan struct {
+    qcount   uint           // 当前队列中剩余元素个数
+    dataqsiz uint           // 环形队列长度，即可以存放的元素个数
+    buf      unsafe.Pointer // 环形队列指针
+    elemsize uint16         // 每个元素的大小
+    closed   uint32         // 标识关闭状态
+    elemtype *_type         // 元素类型
+    sendx    uint           // 队列下标，指示元素写入时存放到队列中的位置
+    recvx    uint           // 队列下标，指示元素从队列的该位置读出
+    recvq    waitq          // 等待读消息的goroutine队列
+    sendq    waitq          // 等待写消息的goroutine队列
+    lock mutex              // 互斥锁，保证每个读写操作的原子性
+}
+```
+
+- qcount：表示队列中当前剩余元素的个数。
+- dataqsiz：表示环形队列的长度，即可以存放的元素个数。
+- buf：指向环形队列的指针。
+- elemsize：表示每个元素的大小。
+- closed：标识channel是否已关闭。
+- elemtype：代表channel中元素的类型。
+- sendx：表示下一个待发送元素在环形队列中的位置。
+- recvx：表示下一个待接收元素在环形队列中的位置。
+- recvq：表示等待从channel接收数据的goroutine队列。
+- sendq：表示等待向channel发送数据的goroutine队列。
+- lock：互斥锁，保证channel的并发安全性。
+
+环形队列
+Channel内部使用环形队列作为其缓冲区，队列的大小在创建channel时指定。环形队列可以高效利用空间，避免了频繁的内存分配和释放。
+
+发送和接收操作
+- 对于一个空的channel，发送操作会将goroutine加入sendq队列并阻塞，直到有其他goroutine执行接收操作。
+- 对于带缓冲的channel，发送操作首先会尝试将元素写入环形队列，如果队列已满，则将goroutine加入sendq并阻塞。
+- 如果等待接收队列 recvq 不为空，说明缓冲区中没有数据或者没有缓冲区，此时直接从 recvq 取出 G,并把数据写入，最后把该 G 唤醒，结束发送过程；
+- 接收操作与发送类似，若channel为空，goroutine会加入recvq并阻塞，直到有数据可读。若channel已有数据，则直接从队列读取。
+
+关闭channel
+当调用close函数关闭channel时，会将closed字段设置为1。之后的发送操作会直接panic，但接收操作仍可以继续从channel读取数据，直到channel为空。
+
+总之，Go语言中的channel通过hchan结构体、环形队列和goroutine等待队列等机制，实现了goroutine之间的通信和同步。Channel的设计充分考虑了并发安全性和性能，是Go并发编程的核心。
 
 使用场景： 消息传递、消息过滤，信号广播，事件订阅与广播，请求、响应转发，任务分发，结果汇总，并发控制，限流，同步与异步
 
 
-#### 对已经关闭的的 chan 进行读写，会怎么样？为什么？
+### 对已经关闭的的 chan 进行读写，会怎么样？为什么？
 1. 读已经关闭的 chan 能一直读到东西，但是读到的内容根据通道内关闭前是否有元素而不同。
     如果 chan 关闭前，buffer 内有元素还未读, 会正确读到 chan 内的值，且返回的第二个 bool 值（是否读成功）为 true。
     如果 chan 关闭前，buffer 内有元素已经被读完，chan 内无值，接下来所有接收的值都会非阻塞直接成功，返回 channel 元素的零值，但是第二个 bool 值一直为 false。
@@ -2034,7 +2066,8 @@ func NewBlockingQueue(n int) *BlockingQueue {
 
 func (bq *BlockingQueue) Push(item interface{}) {  
     bq.mutex.Lock() 
-    defer bq.mutex.Unlock() 
+    defer bq.mutex.Unlock()
+
     for len(bq.queue) == bq.capacity {
         bq.notFull.Wait()
     }
@@ -2044,7 +2077,8 @@ func (bq *BlockingQueue) Push(item interface{}) {
  
 func (bq *BlockingQueue) Pop() interface{} { 
     bq.mutex.Lock()
-    defer bq.mutex.Unlock() 
+    defer bq.mutex.Unlock()
+ 
     for len(bq.queue) == 0 {
         bq.notEmpty.Wait() 
     }
@@ -2070,70 +2104,83 @@ func main() {
     } 
 }
 ```
-在上述代码中，使用了一个 slice 来存放队列元素，同时通过 mutex 来保证线程安全，
-当队列满时生产者需要等待，当队列空时消费者需要等待。
-使用 sync.Cond实现等待通知机制，当队列满时，生产者调用 notFull.Wait()方法进行等待，当队列非满时，
-生产者调用 notEmpty.Signal()方法通知消费者；
+在上述代码中，使用了一个 slice 来存放队列元素，同时通过 mutex 来保证线程安全，当队列满时生产者需要等待，当队列空时消费者需要等待。
+使用 sync.Cond实现等待通知机制，当队列满时，生产者调用 notFull.Wait()方法进行等待，当队列非满时，生产者调用 notEmpty.Signal()方法通知消费者；
 当队列为空时，消费者调用 notEmpty.Wait()方法进行等待，当队列非空时，消费者调用 notFull.Signal()方法通知生产者。 
 该阻塞队列可以用于多线程环境下的任务分发、消息传递等场景。
 
-#### channel 为什么需要两个队列实现？
-在 Go 中，每个 channel 都包含两个队列：发送队列和接收队列。
-这是因为channel 的发送和接收操作是异步进行的，发送方和接收方可能会以不同的顺序执行。 
-当发送方向一个未满的 channel 发送数据时，该数据会被添加到发送队列中。
-如果接收方正在等待从 channel 接收数据，则该数据将从发送队列中移除并发送给接收方。
-否则，该数据将一直留在发送队列中，直到有接收方准备好接收。 
 
-类似地，当接收方从一个非空的 channel 接收数据时，该数据会从接收队列中取出并发送给接收方。
-如果发送方正在等待向该 channel 发送数据，则该数据将直接从发送方传递给接收方，而不会先放入接收队列。 
-因此，通过使用这两个队列，channel 可以有效地实现多个 goroutine 之间的同步和通信。
+#### channel 为什么需要两个队列实现？
+在 Go 的 channel 实现中，使用了两个队列（recvq 和 sendq）分别存储等待接收数据的 goroutine 和等待发送数据的 goroutine。这样设计的主要原因有以下几点：
+
+1. 解耦发送和接收操作
+   使用两个独立的队列可以将发送和接收操作解耦，使得它们可以独立进行，不会相互干扰。当一个 goroutine 尝试从一个空的 channel 接收数据时，它会被放入 recvq 队列并阻塞，而不会影响其他尝试发送数据的 goroutine。类似地，当一个 goroutine 尝试向一个已满的 channel 发送数据时，它会被放入 sendq 队列并阻塞，而不会影响其他尝试接收数据的 goroutine。
+
+2. 实现非阻塞的发送和接收操作
+   当使用带缓冲的 channel 时，发送和接收操作可以是非阻塞的，直到 channel 的缓冲区满或空。两个队列的设计允许发送和接收操作在缓冲区未满或未空时直接进行，而不需要阻塞。只有当缓冲区满或空时，相应的 goroutine 才会被放入 sendq 或 recvq 队列中等待。
+
+3. 公平性和避免饥饿
+   两个队列的设计有助于实现公平性，避免某些 goroutine 长时间等待而导致饥饿。当多个 goroutine 同时尝试发送或接收数据时，它们会按照先来先服务的顺序排队。这样可以保证每个 goroutine 最终都有机会完成发送或接收操作，不会出现某些 goroutine 一直占用 channel 而其他 goroutine 无法进行操作的情况。
+
+4. 简化实现逻辑
+   将发送和接收操作分别维护在两个队列中，可以简化 channel 的实现逻辑。发送和接收操作可以独立处理，不需要在同一个队列中进行复杂的同步和协调。这样可以提高 channel 的性能和可维护性。
+
+总之，使用两个队列（recvq 和 sendq）实现 channel 的设计是为了解耦发送和接收操作，实现非阻塞的操作，确保公平性，避免饥饿，并简化实现逻辑。这种设计使得 Go 的 channel 成为一种高效、可靠的并发通信机制。
 
 
 #### go 通道和锁的使用场景？ 
-在 Go 语言中，协程（Goroutine）之间的通信通常使用通道（Channel）来实现，
-而不需要显式地加锁。这是因为通道本身就是一种并发安全的数据结构，它可以
-保证在多个协程之间进行数据传递时不会出现竞态条件（Race Condition）。 
-通道的实现方式是基于消息传递的模型，即一个协程向通道中发送消息，另一个
-协程从通道中接收消息。在这个过程中，通道会自动进行同步和互斥操作，保证
-每个消息只能被一个协程接收，从而避免了竞态条件的发生。 
+在 Go 语言中，协程（Goroutine）之间的通信通常使用通道（Channel）来实现，而不需要显式地加锁。这是因为通道本身就是一种并发安全的数据结构，它可以保证在多个协程之间进行数据传递时不会出现竞态条件（Race Condition）。 
+
+通道的实现方式是基于消息传递的模型，即一个协程向通道中发送消息，另一个协程从通道中接收消息。在这个过程中，通道会自动进行同步和互斥操作，保证每个消息只能被一个协程接收，从而避免了竞态条件的发生。 
+
 通道适用于以下场景： 
 1. 协程之间需要进行数据传递和同步操作。 
 2. 多个协程需要共享数据，但是不需要进行复杂的同步和互斥操作。 
 3. 协程之间的数据传递是单向的，即一个协程只负责发送数据，另一个协程只负责接收数据。 
 
+
 而锁适用于以下场景： 
 1. 多个协程需要共享数据，并且需要进行复杂的同步和互斥操作。 
 2. 协程之间的数据传递是双向的，即一个协程既可以发送数据，也可以接收数据。 
 3. 需要对共享数据进行读写操作，而通道只能进行单向的数据传递。 
-总之，在 Go 语言中，通道是一种更加高效、安全和简单的并发编程方式，通常
-优先考虑使用通道来进行协程之间的数据传递和同步操作。而锁则适用于一些复
-杂的同步和互斥操作，或者需要进行读写操作的场景。 
 
+总之，在 Go 语言中，通道是一种更加高效、安全和简单的并发编程方式，通常优先考虑使用通道来进行协程之间的数据传递和同步操作。而锁则适用于一些复杂的同步和互斥操作，或者需要进行读写操作的场景。 
 
 
 
 ## context
-主要应用：1：上下文控制，2：多个 goroutine 之间的数据交互等，3：超时控制：到某个时间点超时，过多久超时。
+主要应用：
+1. 上下文控制；
+2. 多个 goroutine 之间的数据交互等；
+3. 超时控制：到某个时间点超时，过多久超时。
 
 Context通常被称为上下文，在go中，理解为goroutine的运行状态、现场，存在上下层goroutine context的传递，上层goroutine会把context传递给下层goroutine。
 每个goroutine在运行前，都要事先知道程序当前的执行状态，通常将这些状态封装在一个 context变量，传递给要执行的goroutine中。
 对于goroutine，他们的创建和调用关系总是像层层调用进行的，就像一个树状结构，而更靠顶部的context应该有办法主动关闭下属的goroutine的执行。
+
 context.Background()函数的返回值就是一个根节点；
+
 func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {}
+
 func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {}
+
 func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {}
+
 func WithValue(parent Context, key, val interface{}) Context {}
+
 以上WithXXX就是获得子节点；
+
 子节点通过如下判断是否已经结束，并退出goroutine
+```Go
 select {
 case <- ctx.Done():
     fmt.Println("do some clean work ...... ")
 }
-
+```
 1. context包通过构建树形关系的context，来达到上一层goroutine对下一层goroutine的控制。
-    对于处理一个request请求操作，需要通过goroutine来层层控制goroutine，以及传递一些变量来共享。
+对于处理一个request请求操作，需要通过goroutine来层层控制goroutine，以及传递一些变量来共享。
 2. context变量的请求周期一般为一个请求的处理周期。即针对一个请求创建context对象；在请求处理结束后，撤销此ctx变量，释放资源。
-3. 每创建一个goroutine，要不将原有context传递给子goroutine，要么创建一个子context传递给goroutine.
+3. 每创建一个goroutine，要不将原有context传递给子goroutine，要么创建一个子context传递给goroutine。
 4. Context能灵活地存储不同类型、不同数目的值，并且使多个Goroutine安全地读写其中的值。
 5. 当通过父 Context对象创建子Context时，可以同时获得子Context的撤销函数，这样父goroutine就获得了子goroutine的撤销权。
 
@@ -2144,9 +2191,11 @@ case <- ctx.Done():
 4. 同样的context可以传递到多个goroutine中，Context在多个goroutine中是安全的
 5. 在子context传入goroutine中后，应该在子goroutine中对该子context的Done channel进行监控，一旦该channel被关闭，应立即终止对当前请求的处理，并释放资源。
 
+
 #### withCancel
 WithCancel 返回带有新 Done 通道的父级副本。当调用返回的 cancel 函数或关闭父上下文的 Done 通道时，返回的 ctx 的 Done 通道将关闭。
 取消此上下文会释放与其关联的资源，因此在此上下文中运行的操作完成后，代码应立即调用 cancel。
+
 
 #### withDeadline
 WithDeadline 返回父上下文的副本，并将截止日期调整为不晚于 d。如果父级的截止日期已经早于 d，则 WithDeadline(parent, d) 在语义上等同于 parent。
@@ -2154,10 +2203,12 @@ WithDeadline 返回父上下文的副本，并将截止日期调整为不晚于 
 取消此上下文会释放与其关联的资源，因此在此上下文中运行的操作完成后，代码应立即调用取消。
 其实就是设置过期时间；
 
+
 #### withTimeout
 WithTimeout 返回 WithDeadline(parent, time.Now().Add(timeout))。
 取消此上下文会释放与其关联的资源，因此在此上下文中运行的操作完成后，代码应立即调用取消。
 其实就是设置超时时间；
+
 
 #### withValue
 WithValue 返回父级的副本，其中与 key 关联的值为 val。
@@ -2180,8 +2231,7 @@ func NewContextWithTraceID() context.Context {
 } 
  
 func PrintLog(ctx context.Context, message string)  { 
- fmt.Printf("%s|info|trace_id=%s|%s",time.Now().Format("2006-01-02 15:04:05") , 
-GetContextValue(ctx, KEY), message) 
+ fmt.Printf("%s|info|trace_id=%s|%s",time.Now().Format("2006-01-02 15:04:05") , GetContextValue(ctx, KEY), message) 
 } 
  
 func GetContextValue(ctx context.Context,k string)  string{ 
@@ -2270,71 +2320,12 @@ STW   Stop The Word
 删除屏障：被删除的对象，如果自身为灰色或者白色，那么被标记为灰色。
 
 混合写屏障：
-1、GC开始将栈上的对象全部扫描并标记为黑色(之后不再进行第二次重复扫描，无需STW)，
-2、GC期间，任何在栈上创建的新对象，均为黑色。
-3、被删除的对象标记为灰色。
-4、被添加的对象标记为灰色。
+1. GC开始将栈上的对象全部扫描并标记为黑色(之后不再进行第二次重复扫描，无需STW)，
+2. GC期间，任何在栈上创建的新对象，均为黑色。
+3. 被删除的对象标记为灰色。
+4. 被添加的对象标记为灰色。
 
 
-#### 知道golang的内存逃逸吗？什么情况下会发生内存逃逸？
-golang程序变量会携带有一组校验数据，用来证明它的整个生命周期是否在运行时完全可知。如果变量通过了这些校验，它就可以在栈上分配。否则就说它逃逸了，必须在堆上分配。
-
-能引起变量逃逸到堆上的典型情况：
-1、在方法内把局部变量指针返回 局部变量原本应该在栈中分配，在栈中回收。但是由于返回时被外部引用，因此其生命周期大于栈，则溢出。
-2、发送指针或带有指针的值到 channel 中。 在编译时，是没有办法知道哪个 goroutine 会在 channel 上接收数据。所以编译器没法知道变量什么时候才会被释放。
-3、在一个切片上存储指针或带指针的值。 一个典型的例子就是 []*string 。这会导致切片的内容逃逸。尽管其后面的数组可能是在栈上分配的，但其引用的值一定是在堆上。
-4、slice 的背后数组被重新分配了，因为 append 时可能会超出其容量( cap )。 
-    slice 初始化的地方在编译时是可以知道的，它最开始会在栈上分配。如果切片背后的存储要基于运行时的数据进行扩充，就会在堆上分配。
-5、在 interface 类型上调用方法。 在 interface 类型上调用方法都是动态调度的 —— 方法的真正实现只能在运行时知道。
-    想像一个 io.Reader 类型的变量 r , 调用 r.Read(b) 会使得 r 的值和切片b 的背后存储都逃逸掉，所以会在堆上分配。
-
-
-#### 你是否主动关闭过 http 连接，为啥要这样做？ok 
-有关闭，不关闭会程序可能会消耗完 socket 描述符。有如下 2 种关闭方式： 
-1. 直接设置请求变量的 Close 字段值为 true，每次请求结束后就会主动关闭连接。
-设置 Header 请求头部选项 Connection: close，然后服务器返回的响应头部也会有这个选项，此时 HTTP 标准库会主动断开连接 
-// 主动关闭连接
-```Go
-func main() { 
- req, err := http.NewRequest("GET", "http://golang.org", nil) 
- checkError(err) 
- 
- req.Close = true 
- //req.Header.Add("Connection", "close") // 等效的关闭方式 
- 
- resp, err := http.DefaultClient.Do(req) 
- if resp != nil { 
-  defer resp.Body.Close() 
- } 
- checkError(err) 
- 
- body, err := ioutil.ReadAll(resp.Body) 
- checkError(err) 
- 
- fmt.Println(string(body)) 
-}
-```
-2. 你可以创建一个自定义配置的 HTTP transport 客户端，用来取消 HTTP 全局的复用连接。 
-```Go
-func main() {
- tr := http.Transport{DisableKeepAlives: true} 
- client := http.Client{Transport: &tr} 
- 
- resp, err := client.Get("https://golang.google.cn/") 
- if resp != nil { 
-  defer resp.Body.Close() 
- } 
- checkError(err) 
- 
- fmt.Println(resp.StatusCode) // 200 
- 
- body, err := ioutil.ReadAll(resp.Body) 
- checkError(err) 
- 
- fmt.Println(len(string(body))) 
-} 
-```
- 
 #### Go GC 有几个阶段 
 目前的 go GC 采用三色标记法和混合写屏障技术。 
 Go GC 有四个阶段: 
@@ -2345,10 +2336,11 @@ Go GC 有四个阶段:
 3. STW，关闭混合写屏障； 
 4. 在后台进行 GC（并发）。 
  
-1.标记阶段（Marking Phase）：标记阶段是垃圾收集器的第一个阶段，主要任务是识别不再使用的对象并将其标记为“垃圾”。 
-2.清扫阶段（Sweeping Phase）：清扫阶段是垃圾收集器的第二个阶段，主要任务是回收被标记为“垃圾”的对象所占用的内存。 
-3.整理阶段（Compacting Phase）：整理阶段是垃圾收集器的最后一个阶段，主要任务是对已经回收的空间进行整理，以便在之后的内存分配中可以更容易地找到
-连续的可用内存块。请注意，整理阶段只有在使用“压缩式垃圾回收”时才会发生。
+标记阶段（Marking Phase）：标记阶段是垃圾收集器的第一个阶段，主要任务是识别不再使用的对象并将其标记为“垃圾”。 
+
+清扫阶段（Sweeping Phase）：清扫阶段是垃圾收集器的第二个阶段，主要任务是回收被标记为“垃圾”的对象所占用的内存。 
+
+整理阶段（Compacting Phase）：整理阶段是垃圾收集器的最后一个阶段，主要任务是对已经回收的空间进行整理，以便在之后的内存分配中可以更容易地找到 连续的可用内存块。请注意，整理阶段只有在使用“压缩式垃圾回收”时才会发生。
 
 
 #### golang 的内存管理的原理清楚吗？简述 go 内存管理机制。 
@@ -2423,6 +2415,65 @@ go build -gcflags '-m -m -l' xxx.go.
 关于逃逸的可能情况：变量大小不确定，变量类型不确定，变量分配的内存超过
 用户栈最大值，暴露给了外部指针。 
 
+
+#### 知道golang的内存逃逸吗？什么情况下会发生内存逃逸？
+golang程序变量会携带有一组校验数据，用来证明它的整个生命周期是否在运行时完全可知。如果变量通过了这些校验，它就可以在栈上分配。否则就说它逃逸了，必须在堆上分配。
+
+能引起变量逃逸到堆上的典型情况：
+1. 在方法内把局部变量指针返回 局部变量原本应该在栈中分配，在栈中回收。但是由于返回时被外部引用，因此其生命周期大于栈，则溢出。
+2. 发送指针或带有指针的值到 channel 中。 在编译时，是没有办法知道哪个 goroutine 会在 channel 上接收数据。所以编译器没法知道变量什么时候才会被释放。
+3. 在一个切片上存储指针或带指针的值。 一个典型的例子就是 []*string 。这会导致切片的内容逃逸。尽管其后面的数组可能是在栈上分配的，但其引用的值一定是在堆上。
+4. slice 的背后数组被重新分配了，因为 append 时可能会超出其容量( cap )。 
+    slice 初始化的地方在编译时是可以知道的，它最开始会在栈上分配。如果切片背后的存储要基于运行时的数据进行扩充，就会在堆上分配。
+5. 在 interface 类型上调用方法。 在 interface 类型上调用方法都是动态调度的 —— 方法的真正实现只能在运行时知道。
+    想像一个 io.Reader 类型的变量 r , 调用 r.Read(b) 会使得 r 的值和切片b 的背后存储都逃逸掉，所以会在堆上分配。
+
+
+#### 你是否主动关闭过 http 连接，为啥要这样做？ok 
+有关闭，不关闭会程序可能会消耗完 socket 描述符。有如下 2 种关闭方式： 
+1. 直接设置请求变量的 Close 字段值为 true，每次请求结束后就会主动关闭连接。
+设置 Header 请求头部选项 Connection: close，然后服务器返回的响应头部也会有这个选项，此时 HTTP 标准库会主动断开连接 
+// 主动关闭连接
+```Go
+func main() { 
+ req, err := http.NewRequest("GET", "http://golang.org", nil) 
+ checkError(err) 
+ 
+ req.Close = true 
+ //req.Header.Add("Connection", "close") // 等效的关闭方式 
+ 
+ resp, err := http.DefaultClient.Do(req) 
+ if resp != nil { 
+  defer resp.Body.Close() 
+ } 
+ checkError(err) 
+ 
+ body, err := ioutil.ReadAll(resp.Body) 
+ checkError(err) 
+ 
+ fmt.Println(string(body)) 
+}
+```
+2. 你可以创建一个自定义配置的 HTTP transport 客户端，用来取消 HTTP 全局的复用连接。 
+```Go
+func main() {
+ tr := http.Transport{DisableKeepAlives: true} 
+ client := http.Client{Transport: &tr} 
+ 
+ resp, err := client.Get("https://golang.google.cn/") 
+ if resp != nil { 
+  defer resp.Body.Close() 
+ } 
+ checkError(err) 
+ 
+ fmt.Println(resp.StatusCode) // 200 
+ 
+ body, err := ioutil.ReadAll(resp.Body) 
+ checkError(err) 
+ 
+ fmt.Println(len(string(body))) 
+} 
+```
 
 ## jwt 
 JWT就是一种基于Token的轻量级认证模式，服务端认证通过后，会生成一个JSON对象，经过签名后得到一个Token（令牌）再发回给用户，
@@ -4163,10 +4214,8 @@ Go 中声明一个函数内局部变量时，当编译器发现变量的作用�
     3. 导包时，只初始化包，不使用包中的功能；
 
 map，slice，chan 是引用拷贝；引用拷贝是浅拷贝,其余的，都是值拷贝；值拷贝是深拷贝
-    深浅拷贝的本质区别：是否真正获取对象实体，而不是引用
-    深拷贝： 拷贝的是数据本身，创造一个新的对象，并在内存中开辟一个新的内存地址，与原对象是完全独立的，不共享内存，
-    修改新对象时不会影响原对象的值。释放内存时，也没有任何关联。
-    如果切片传递后进行了扩容，函数内的修改不会影响到函数外的切片。 
+深浅拷贝的本质区别：是否真正获取对象实体，而不是引用
+深拷贝： 拷贝的是数据本身，创造一个新的对象，并在内存中开辟一个新的内存地址，与原对象是完全独立的，不共享内存，修改新对象时不会影响原对象的值。释放内存时，也没有任何关联。如果切片传递后进行了扩容，函数内的修改不会影响到函数外的切片。 
 
 
 #### 数字类型
@@ -4215,29 +4264,31 @@ byte 其实被 alias 到 uint8 上了;
 
  
 #### strconv 
-strconv.Itoa(num)数字转字符串；strconv.Atoi(str)字符串转数字
+strconv.Itoa(num)数字转字符串；
+
+strconv.Atoi(str)字符串转数字
+
 
 
 
 #### 如何高效地拼接字符串 ok 
 拼接字符串的方式有：+ , fmt.Sprintf , strings.Builder, bytes.Buffer, strings.Join 
-1、"+" 
-使用+操作符进行拼接时，会对字符串进行遍历，计算并开辟一个新的空间来存
-储原来的两个字符串。 
-2、fmt.Sprintf 
+1. "+" 
+使用+操作符进行拼接时，会对字符串进行遍历，计算并开辟一个新的空间来存储原来的两个字符串。 
+2. fmt.Sprintf 
 由于采用了接口参数，必须要用反射获取值，因此有性能损耗。 
-3、strings.Builder： 
-用 WriteString()进行拼接，内部实现是指针+切片，同时 String()返回拼接后的字
-符串，它是直接把[]byte 转换为 string，从而避免变量拷贝。 
-4、bytes.Buffer 
+3. strings.Builder： 
+用 WriteString()进行拼接，内部实现是指针+切片，同时 String()返回拼接后的字符串，它是直接把[]byte 转换为 string，从而避免变量拷贝。 
+4. bytes.Buffer 
 bytes.Buffer 是一个一个缓冲 byte 类型的缓冲器，这个缓冲器里存放着都是 byte， 
 bytes.buffer 底层也是一个[]byte 切片。 
-5、strings.join 
+5. strings.join 
 strings.join 也是基于 strings.builder 来实现的，并且可以自定义分隔符，在 join 方
 法内调用了 b.Grow(n)方法，这个是进行初步的容量分配，而前面计算的 n 的长
 度就是我们要拼接的 slice 的长度，因为我们传入切片长度固定，所以提前进行
-容量分配可以减少内存分配，很高效。 
-性能比较： 
+容量分配可以减少内存分配，很高效。
+
+性能比较：
 strings.Join ≈ strings.Builder > bytes.Buffer > "+" > fmt.Sprintf 
 5 种拼接方法的实例代码 
 func main(){
@@ -4275,13 +4326,14 @@ func main(){
 
 #### 什么是 rune 类型
 ASCII 码只需要 7 bit 就可以完整地表示，但只能表示英文字母在内的 128 个字符，
-为了表示世界上大部分的文字系统，发明了 Unicode，它是 ASCII 的超集，
-包含世界上书写系统中存在的所有字符，并为每个代码分配一个标准编号（称为 Unicode CodePoint），在 Go 语言中称之为 rune，是 int32 类型的别名。 
+为了表示世界上大部分的文字系统，发明了 Unicode，它是 ASCII 的超集，包含世界上书写系统中存在的所有字符，并为每个代码分配一个标准编号（称为 Unicode CodePoint），在 Go 语言中称之为 rune，是 int32 类型的别名。 
+
 Go 语言中，字符串的底层表示是 byte (8 bit) 序列，而非 rune (32 bit) 序列。 
 golang 中 string 底层是通过 byte 数组实现的。中文字符在 unicode 下占 2 个字节，
 在 utf-8 编码下占 3 个字节，而 golang 默认编码正好是 utf-8。
 byte 等同于int8，常用来处理ascii字符
 rune 等同于int32,常用来处理unicode或utf-8字符
+```Go
 func main() {
     var str = "Go 编程语言"
     for i := 0;i < len(str);i++ {
@@ -4296,17 +4348,18 @@ func main() {
 打印： 
 G o ç ¼ –  ç ¨ ‹  è ¯  - è ¨ 
 Go 编程语言
+```
 
 为什么会出现这种情况呢，原因就是 UTF-8 编码的中文它不是只占一个字节。因此
 我们试图打印字符，假设每个代码点都是一个字节长，这是错误的。 
 在 UTF-8 编码中，一个代码点可以占用 1 个以上的字节。
-rune 是 Go 中的内置类型，它是 int32 的别名。rune 代表 Go 中的 unicode 代码点。
-代码点占用多少字节并不重要，可以用一个符文来表示。 
+rune 是 Go 中的内置类型，它是 int32 的别名。rune 代表 Go 中的 unicode 代码点。代码点占用多少字节并不重要，可以用一个符文来表示。 
 
 
 #### Go 支持默认参数或可选参数吗？ 
 不支持。但是可以利用结构体参数，或者...传入参数切片数组。 
 // 这个函数可以传入任意数量的整型参数 
+```Go
 func sum(nums ...int) { 
   total := 0 
   for _, num := range nums { 
@@ -4314,6 +4367,7 @@ func sum(nums ...int) {
   } 
   fmt.Println(total) 
 }
+```
 
 
 #### Go 语言 tag 的用处？ 
@@ -4332,6 +4386,7 @@ tag 可以为结构体成员提供属性。常见的：
  
 #### Go 语言中如何表示枚举值(enums)？ 
 在常量中用 iota 可以表示枚举。iota 从 0 开始。 
+```Go
 const (
     B = 1 << (10 * iota)
     KiB
@@ -4341,7 +4396,7 @@ const (
     PiB
     EiB
 )
-
+```
 
 #### 空 struct{} 的用途 ok 
 1、用 map 模拟一个 set，那么就要把值置为 struct{}，struct{}本身不占任何空间，
@@ -4376,6 +4431,7 @@ func main() {
 3、仅有方法的结构体 
 type Lamp struct{} 
 
+
 #### go 里面的 int 和 int32 是同一个概念吗？ 
 不是一个概念！千万不能混淆。go 语言中的 int 的大小是和操作系统位数相关的，
 如果是 32 位操作系统，int 类型的大小就是 4 字节。如果是 64 位操作系统，int 类型的大小就是 8 个字节。除此之外 uint 也与操作系统有关。 
@@ -4384,12 +4440,15 @@ int8 占 1 个字节，int16 占 2 个字节，int32 占 4 个字节，int64 占
 
 #### init() 函数是什么时候执行的？ 
 简答： 在 main 函数之前执行。
-详细：init()函数是 go 初始化的一部分，由 runtime 初始化每个导入的包，初始化不是按照从上到下的导入顺序，
-而是按照解析的依赖关系，没有依赖的包最先初始化。
+
+详细：init()函数是 go 初始化的一部分，由 runtime 初始化每个导入的包，初始化不是按照从上到下的导入顺序，而是按照解析的依赖关系，没有依赖的包最先初始化。
+
 每个包首先初始化包作用域的常量和变量（常量优先于变量），然后执行包的 init()函数。
 同一个包，甚至是同一个源文件可以有多个 init()函数。
 init()函数没有入参和返回值，不能被其他函数调用，同一个包内多个 init()函数的执行顺序不作保证。
+
 执行顺序：import –> const –> var –>init()–>main() 
+
 一个文件可以有多个 init()函数！ 
 init 函数非常特殊： 
 • 初始化不能采用初始化表达式初始化的变量； 
@@ -4411,7 +4470,8 @@ fmt.Println(math.MinInt, uint(math.MaxInt * 2)) //-9223372036854775808
 uint 范围：32 位系统 4 个字节--0~2^32-1；64 位系统 8 个字节—0~2^64-1。 
 
 
-下面这句代码是什么作用，为什么要定义一个空值？
+#### 下面这句代码是什么作用，为什么要定义一个空值？
+```Go
 type GobCodec struct{
     conn io.ReadWriteCloser 
     buf *bufio.Writer 
@@ -4427,6 +4487,7 @@ type Codec interface {
 }
 
 var _ Codec = (*GobCodec)(nil) 
+```
 答：将 nil 转换为 GobCodec 类型，然后再转换为 Codec 接口，如果转换失败，说明 GobCodec 没有实现 Codec 接口的所有方法。 
 
 
@@ -4465,6 +4526,7 @@ func main() {
 #### nil 
 nil 只能赋值给指针、chan、func、interface、map 或 slice 类型的变量，也可以赋给 error； 
 
+
 #### iota
 1、 iota 只能在常量的表达式中使用； 
 2、 每次 const 出现时，都会让 iota 初始化为 0.【自增长】； 
@@ -4477,6 +4539,7 @@ Go 语言支持 label（标签）语法：分别是 break label 和 goto label �
 break label 
 break 一般用来跳出当前所在的循环，但是我们有业务场景，需要使用到跳出带外层循环怎么办？
 break label 跳出循环不再执行 for 循环里的代码。 
+```Go
 func main() { 
     LABEL1:
         for i := 0;i < 3;i++ {
@@ -4486,12 +4549,14 @@ func main() {
             fmt.Println("i==", i)
         }
     } 
-//i== 0 
-//i== 1 
+//i== 0
+//i== 1
+```
 break 标签只能用于 for 循环，不能和 switch 使用，在其他语言里 switch 与 break 是搭档； 
 
 goto label
 goto 可以无条件的跳转执行的位置，但是不能跨函数，需要配合标签使用。 
+```Go
 func main() {
      fmt.Println("start")
      goto LABEL1
@@ -4505,9 +4570,11 @@ func main() {
 //label1 
 //label1 
 //...  一直循环 label1 
+```
 
 continue label 
 continue 是继续循环下一个迭代，继续的是最外层循环。 
+```Go
 func main() {
     LABEL1:
         for i := 0;i < 3;i++{
@@ -4522,17 +4589,21 @@ func main() {
 //i==0, j==0 
 //i==1, j==0 
 //i==2, j==0 
- 
- 
+``` 
+
+
 ## Go 有异常类型吗？ 
 有。Go 用 error 类型代替 try...catch 语句，这样可以节省资源。同时增加代码可读性： 
+```Go
 _, err := funcDemo() 
 if err != nil { 
   fmt.Println(err) 
   return 
 }
+```
 也可以用 errors.New()来定义自己的异常。errors.Error()会返回异常的字符串表示。
 只要实现 error 接口就可以定义自己的异常， 
+```Go
 type errorString struct { 
     s string 
 } 
@@ -4545,6 +4616,7 @@ func (e *errorString) Error() string {
 func New(text string) error { 
     return &errorString{text} 
 }
+```
 
 
 ## Go Convey
@@ -4641,6 +4713,7 @@ sc query etcd
 
 第一次请求时将一些耗时操作的结果暂存，以后遇到相同的请求，直接返回暂存的数据，缓存不存在时，调用回调函数获取源数据； 
 
+
 #### 缓存用map键值对有什么问题？
 1）内存不够了怎么办？
 那就随机删掉几条数据好了。随机删掉好呢？还是按照时间顺序好呢？或者是有没有其他更好的淘汰策略呢？
@@ -4658,13 +4731,13 @@ sc query etcd
 
 
 #### 缓存淘汰算法 
-1.1 FIFO(First In First Out) 
+1. FIFO(First In First Out) 
 先进先出，也就是淘汰缓存中最老(最早添加)的记录。FIFO 认为，最早添加的记录，其不再被使用的可能性比刚添加的可能性大。
 这种算法的实现也非常简单，创建一个队列，新增记录添加到队尾，每次内存不够时，淘汰队首。
 但是很多场景下，部分记录虽然是最早添加但也最常被访问，而不得不因为呆的时间太长而被淘汰。
 这类数据会被频繁地添加进缓存，又被淘汰出去，导致缓存命中率降低。
 
-1.2 LFU(Least Frequently Used) 
+2. LFU(Least Frequently Used)
 最少使用，也就是淘汰缓存中访问频率最低的记录。
 LFU 认为，如果数据过去被访问多次，那么将来被访问的频率也更高。
 LFU 的实现需要维护一个按照访问次数排序的队列，每次访问，访问次数加 1，队列重新排序，淘汰时选择访问次数最少的即可。
@@ -4672,7 +4745,7 @@ LFU 算法的命中率是比较高的，但缺点也非常明显，维护每个�
 另外，如果数据的访问模式发生变化，LFU需要较长的时间去适应，也就是说 LFU 算法受历史数据的影响比较大。
 例如某个数据历史上访问次数奇高，但在某个时间点之后几乎不再被访问，但因为历史访问次数过高，而迟迟不能被淘汰。
 
-1.3 LRU(Least Recently Used) 
+3. LRU(Least Recently Used) 
 最近最少使用，相对于仅考虑时间因素的 FIFO 和仅考虑访问频率 LFU，LRU 算法可以认为是相对平衡的一种淘汰算法。
 LRU 认为，如果数据最近被访问过，那么将来被访问的概率也会更高。
 LRU 算法的实现非常简单，维护一个队列，如果某条记录被访问了，则移动到队尾，那么队首则是最近最少访问的数据，淘汰该条记录即可。
@@ -4765,6 +4838,7 @@ func (l *LRU) Put(key string, value Value) {
 缓存在同一时刻全部失效，造成瞬时DB请求量大、压力骤增，引起雪崩。缓存雪崩通常因为缓存服务器宕机、缓存的 key 设置了相同的过期时间等引起。
 
 发生缓存雪崩有两个原因：
+
 原因一：大量数据同时过期。
 解决方式：
 1. 均匀设置过期时间：如果要给缓存数据设置过期时间，应该避免将大量的数据设置成同一个过期时间。
@@ -4786,9 +4860,11 @@ func (l *LRU) Put(key string, value Value) {
 
 #### 缓存击穿
 一个存在的key，在缓存过期的一刻，同时有大量的请求，这些请求都会击穿到 DB ，造成瞬时DB请求量大、压力骤增。
-解决：
+
 有两种方案可以解决：
+
 1）方案一，使用互斥锁。请求发现缓存不存在后，去查询DB前，使用分布式锁，保证有且只有一个线程去查询DB ，并更新到缓存。
+
 2）方案二，手动过期。缓存上从不设置过期时间，功能上将过期时间存在KEY对应的VALUE里。流程如下：
  1、获取缓存。通过VALUE的过期时间，判断是否过期。如果未过期，则直接返回；如果已过期，继续往下执行。
  2、通过一个后台的异步线程进行缓存的构建，也就是“手动”过期。通过后台的异步线程，保证有且只有一个线程去查询DB。
@@ -4797,40 +4873,56 @@ func (l *LRU) Put(key string, value Value) {
 
 #### 缓存穿透
 查询一个不存在的数据，因为不存在则不会写到缓存中，所以每次都会去请求 DB，如果瞬间流量过大，穿透到 DB，导致宕机。
+
 解决方案：
+
 方案一，缓存空对象。
 当从 DB 查询数据为空，我们仍然将这个空结果进行缓存，具体的值需要使用特殊的标识，能和真正缓存的数据区分开。另外，需要设置较短的过期时间， 一般建议不要超过5分钟。
+
 方案二，BloomFilter布隆过滤器。
 在缓存服务的基础上，构建BloomFilter数据结构，在BloomFilter中存储对应的KEY是否存在，如果存在，说明该KEY对应的值不为空。
 
+将访问过的 key 添加到布隆过滤器中。当有新的请求过来时,先检查布隆过滤器,如果不存在该 key,说明这个 key 肯定不在缓存和数据库中,直接返回空结果,避免了对数据库的无谓查询。
+
+对于查询结果为空的 key,也将其添加到布隆过滤器中。这样可以防止攻击者反复发起无效请求。
+
+定期清理布隆过滤器,删除一些长时间未访问的 key。因为布隆过滤器是概率性数据结构,有一定的误判概率,所以需要定期清理。
+
+
+
 #### 布隆过滤器原理是什么？
 布隆过滤器由「初始值都为 0 的位图数组」和「 N 个哈希函数」两部分组成。
-当我们在写入数据库数据时，在布隆过滤器里做个标记，这样下次查询数据是否在数据库时，只需要查询布隆过滤器，
-如果查询到数据没有被标记，说明不在数据库中。
+当我们在写入数据库数据时，在布隆过滤器里做个标记，这样下次查询数据是否在数据库时，只需要查询布隆过滤器，如果查询到数据没有被标记，说明不在数据库中。
 
 布隆过滤器会通过 3 个操作完成标记：
 
 第一步，使用 N 个哈希函数分别对数据做哈希计算，得到 N 个哈希值；
+
 第二步，将第一步得到的 N 个哈希值对位图数组的长度取模，得到每个哈希值在位图数组的对应位置。
+
 第三步，将每个哈希值在位图数组的对应位置的值设置为 1；
+
 举个例子，假设有一个位图数组长度为 8，哈希函数 3 个的布隆过滤器。
 ![](static/img_16.png)
 在数据库写入数据 x 后，把数据 x 标记在布隆过滤器时，数据 x 会被 3 个哈希函数分别计算出 3 个哈希值，然后在对这 3 个哈希值对 8 取模，
 假设取模的结果为 1、4、6，然后把位图数组的第 1、4、6 位置的值设置为 1。
 当应用要查询数据 x 是否数据库时，通过布隆过滤器只要查到位图数组的第 1、4、6 位置的值是否全为 1，只要有一个为 0，就认为数据 x 不在数据库中。
 
-布隆过滤器由于是基于哈希函数实现查找的，高效查找的同时存在哈希冲突的可能性，比如数据 x 和数据 y 可能都落在第 1、4、6 位置，
-而事实上，可能数据库中并不存在数据 y，存在误判的情况。
+布隆过滤器由于是基于哈希函数实现查找的，高效查找的同时存在哈希冲突的可能性，比如数据 x 和数据 y 可能都落在第 1、4、6 位置，而事实上，可能数据库中并不存在数据 y，存在误判的情况。
 
 所以，查询布隆过滤器说数据存在，并不一定证明数据库中存在这个数据，但是查询到数据不存在，数据库中一定就不存在这个数据。
 
+布隆过滤器常用于以下场景：
+1. 判断元素是否在大型数据集合中，如判断 URL 是否在黑名单中。
+2. 去重大型数据集合，快速判断元素是否已经存在。
+3. 缓存穿透防护，避免查询不存在的数据导致缓存失效。
 
 
 #### 一致性hash
 一致性哈希算法将 key 映射到 2^32 的空间中，将这个数字首尾相连，形成一个环。
 1. 计算节点/机器(通常使用节点的名称、编号和 IP 地址)的哈希值，放置在环上。
 2. 计算 key 的哈希值，放置在环上，顺时针寻找到的第一个节点，就是应选取的节点/机器。
-3. 
+
 数据倾斜问题
 如果服务器的节点过少，容易引起 key 的倾斜。例如上面例子中的 peer2，peer4，peer6 分布在环的上半部分，下半部分是空的。那么映射到环下半部分的 key 都会被分配给 peer2，key 过度向 peer2 倾斜，缓存节点间负载不均。
 为了解决这个问题，引入了虚拟节点的概念，一个真实节点对应多个虚拟节点。
@@ -4870,6 +4962,7 @@ routingKey：用来绑定交换器和队列的路由键。
 在镜像集群模式下，你创建的 queue，无论是元数据还是 queue 里的消息都会存在于多个实例上，
 就是说，每个 RabbitMQ 节点都有这个 queue 的一个完整镜像，包含 queue 的全部数据的意思。
 然后每次你写消息到 queue 的时候，都会自动把消息同步到多个实例的 queue 上。
+
 
 #### rocketmq
 
@@ -4957,7 +5050,7 @@ kubectl run kubernetes-bootcamp --image=docker.io/jocatalin/kubernetes-bootcamp:
     进程间通信IPC；
     容器间的网络通信；通过localhost通信；需要为在pod中的接收连接的容器分配不通的端口；
 13. pod之间的通信------IP；
-14. 查看pod的label kubectl get pod <pod-name> --show-labels
+14. 查看pod的label：kubectl get pod <pod-name> --show-labels
 15. 
 
 
@@ -5020,6 +5113,23 @@ kubernetes运行容器和访问容器，两项任务分别由controller和servic
 5. port是ClusterIp上监听的端口；
 6. targetPort是Pod监听的端口；
 
+
+#### Kubernetes 中有 4 种主要的 Service 模式:
+
+1. **ClusterIP**：这是默认的 Service 模式。它为 Service 分配一个集群内部的虚拟 IP 地址,只能在集群内部访问。
+
+2. **NodePort**：在每个节点上开放一个端口,客户端可以通过访问任意节点的该端口来访问服务。
+
+3. **LoadBalancer**：在云环境下,会自动创建一个云负载均衡器,将流量分发到 Service 的 Pods。
+
+4. **ExternalName**：将服务映射到集群外部的 DNS 名称,不需要创建任何类型的代理。
+
+除了这 4 种主要模式外,还有一些变种:
+
+- **Headless Service**：没有 ClusterIP 的 Service,用于与StatefulSet配合使用。
+- **Ingress**：通过定义路由规则,将外部流量引导到集群内部的 Service。
+
+这些 Service 模式可以根据实际需求进行选择和组合使用,满足不同的访问场景。选择合适的 Service 模式对于构建可靠的 Kubernetes 应用非常重要。
 
 
 ### Namespace
@@ -5238,7 +5348,7 @@ container networking interface
 2. 打车的时候，在规定时间没有车主接单，平台会取消你的单并提醒你暂时没有车主接单；
 3. 点外卖的时候，如果商家在10分钟还没接单，就会自动取消订单；
 在 Redis 可以使用有序集合（ZSet）的方式来实现延迟消息队列的，ZSet 有一个 Score 属性可以用来存储延迟执行的时间。
-使用 zadd score1 value1 命令就可以一直往内存中生产消息。再利用 zrangebysocre 查询符合条件的所有待处理的任务， 通过循环执行队列任务即可。
+使用 zadd score1 value1 命令就可以一直往内存中生产消息。再利用 zrangebysocre 查询符合条件的所有待处理的任务，通过循环执行队列任务即可。
 
 
 ### zset使用场景？
@@ -5273,10 +5383,10 @@ L2 层级只有 1 个节点，也就是节点 3 。
 
 
 ### Redis为什么这么快？
-单线程的 Redis 吞吐量可以达到 10W/每秒
+单线程的 Redis 吞吐量可以达到 10W/每秒。
+
 之所以 Redis 采用单线程（网络 I/O 和执行命令）那么快，有如下几个原因：
-1. Redis 的大部分操作都在内存中完成，并且采用了高效的数据结构，因此 Redis 瓶颈可能是机器的内存或者网络带宽，而并非 CPU，
-既然 CPU 不是瓶颈，那么自然就采用单线程的解决方案了；
+1. Redis 的大部分操作都在内存中完成，并且采用了高效的数据结构，因此 Redis 瓶颈可能是机器的内存或者网络带宽，而并非 CPU，既然 CPU 不是瓶颈，那么自然就采用单线程的解决方案了；
 2. Redis 采用单线程模型可以避免了多线程之间的竞争，省去了多线程切换带来的时间和性能上的开销，而且也不会导致死锁问题。
 3. Redis 采用了 I/O 多路复用机制处理大量的客户端 Socket 请求，IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。
 简单来说，在 Redis 只运行单线程的情况下，该机制允许内核中，同时存在多个监听 Socket 和已连接 Socket。
@@ -5298,26 +5408,54 @@ Redis 在 6.0 版本之后，采用了多个 I/O 线程来处理网络请求，�
 Redis 的读写操作都是在内存中，所以 Redis 性能才会高，但是当 Redis 重启后，内存中的数据就会丢失。
 那为了保证内存中的数据不会丢失，Redis 实现了数据持久化的机制，这个机制会把数据存储到磁盘，这样在 Redis 重启就能够从磁盘中恢复原有的数据。
 
+
 #### AOF日志
+AOF 的全称 Append-Only File 描述了它的工作原理:
+
+Append-Only：Redis 会将每一个写命令按照发生的时间顺序追加到 AOF 文件中。
+
+File：AOF 文件是一个普通的文本文件,里面记录了所有的写命令。
+
 每执行一条写操作命令，就把该命令以追加的方式写入到一个文件中；
 然后 Redis 重启时，会读取该文件记录的命令，然后逐一执行命令的方式来进行数据恢复。
 
 Redis 提供了 3 种写回硬盘的策略， 在 Redis.conf 配置文件中的 appendfsync 配置项可以有以下 3 种参数可填：
 
 Always，这个单词的意思是「总是」，所以它的意思是每次写操作命令执行完后，同步将 AOF 日志数据写回硬盘；
+
 Everysec，这个单词的意思是「每秒」，所以它的意思是每次写操作命令执行完后，先将命令写入到 AOF 文件的内核缓冲区，然后每隔一秒将缓冲区里的内容写回到硬盘；
+
 No，意味着不由 Redis 控制写回硬盘的时机，转交给操作系统控制写回的时机，也就是每次写操作命令执行完后，先将命令写入到 AOF 文件的内核缓冲区，再由操作系统决定何时将缓冲区内容写回硬盘。
 
 
-1. AOF重写机制，在AOF文件达到设定的阈值后，就会进行重写。 
-在重写过程中，读取当前数据库中的所有键值对，然后将每一个键值对用一条命令记录到「新的 AOF 文件」，等到全部记录完后，就将新的 AOF 文件替换掉现有的 AOF 文件。
-老命令会用新命令覆盖；
+AOF重写机制
+在AOF文件达到设定的阈值后，就会进行重写。 
+
+在重写过程中，读取当前数据库中的所有键值对，然后将每一个键值对用一条命令记录到「新的 AOF 文件」，等到全部记录完后，就将新的 AOF 文件替换掉现有的 AOF 文件。老命令会用新命令覆盖；
 
 
 #### RDB快照
-将某一时刻的内存数据，以二进制的方式写入磁盘；
+Redis database snapshot。
 
-RDB 快照就是记录某一个瞬间的内存数据，记录的是实际数据。在 Redis 恢复数据时，直接将 RDB 文件读入内存就可以。
+RDB 持久化的工作原理如下:
+
+在指定的时间间隔内(例如每隔 5 分钟)，Redis 会自动创建当前数据库的快照(Snapshot)。
+
+快照会被写入一个 RDB 格式的二进制文件中。这个文件就是 RDB 文件。
+
+当 Redis 重启时，会自动加载 RDB 文件中保存的数据。
+
+
+与 AOF 持久化相比，RDB 持久化有以下优点:
+
+RDB 文件更加紧凑，占用的磁盘空间更少。
+RDB 的数据恢复速度更快。
+RDB 可以用于备份和灾难恢复。
+但 RDB 也有一些缺点:
+
+数据可能会丢失。因为 RDB 是定期生成快照，所以最近的数据可能会丢失。
+生成 RDB 文件的过程中，Redis 会阻塞所有客户端请求。
+
 
 
 ### 分布式锁的实现和四个特性
