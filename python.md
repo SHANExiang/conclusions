@@ -4006,6 +4006,129 @@ mage.say_hello()    ## Output: "I'm a mage!"
 ```
 
 
+###### 抽象工厂模式
+答：抽象工厂模式是在简单工厂的基础上将未来可能需要修改的代码抽象出来，通过继承的方式让子类去做决定。 
+比如，以上面的咖啡工厂为例，某天我的口味突然变了，不想喝咖啡了想喝啤酒，这个时候如果直接修改简单工厂里面的代码，这种做法不但不够优雅，也不符合软件设计的“开闭原则”，因为每次新增品 类都要修改原来的代码。
+这个时候就可以使用抽象工厂类了，抽象工厂里只声明方法，具体的实现交给子类（子工厂）去实现，这个时候再有新增品类的需求，只需要新创建代码即可。
+
+抽象工厂模式包含以下几个核心角色：
+抽象工厂（Abstract Factory）：声明了一组用于创建产品对象的方法，每个方法对应一种产品类型。抽象工厂可以是接口或抽象类。
+具体工厂（Concrete Factory）：实现了抽象工厂接口，负责创建具体产品对象的实例。
+抽象产品（Abstract Product）：定义了一组产品对象的共同接口或抽象类，描述了产品对象的公共方法。
+具体产品（Concrete Product）：实现了抽象产品接口，定义了具体产品的特定行为和属性。
+
+```python
+## Python原生默认不支持接口，默认多继承，所有的方法都必须不能实现
+from abc import  abstractmethod,ABCMeta
+
+## 创建一个接口Shape
+class Shape(metaclass=ABCMeta):
+    @abstractmethod
+    def draw(self):
+        pass
+##创建Shape的实体类
+class Rectangle(Shape):
+    def draw(self):
+        print("Inside Rectangel:draw() method.")
+
+class Square(Shape):
+    def draw(self):
+        print("Inside Square:draw() method.")
+
+class Circle(Shape):
+    def draw(self):
+        print("Inside Circle:draw() method.")
+
+## 创建一个接口Color
+class Color(metaclass=ABCMeta):
+    @abstractmethod
+    def fill(self):
+        pass
+## 创建Color的实体类
+class Red(Color):
+    def fill(self):
+        print("Inside Red.fill() method.")
+
+class Green(Color):
+    def fill(self):
+        print("Inside Green.fill() method.")
+
+class Blue(Color):
+    def fill(self):
+        print("Inside Blue.fill() method.")
+
+##创建抽象工厂
+class AbstractFactory(metaclass=ABCMeta):
+    @abstractmethod
+    def getColor(self,color):
+        pass
+
+    @abstractmethod
+    def getShape(self,shape):
+        pass
+
+##创建抽象工厂实例 ShapeFactory,ColorFactory
+class ShapeFactory(AbstractFactory):
+    def getShape(self,shapeType):
+        if shapeType == None :
+            return None
+        elif shapeType.upper() == "CIRCLE":
+            return Circle()
+        elif shapeType.upper() == "RECTANGLE":
+            return Rectangle()
+        elif shapeType.upper() == "SQUARE":
+            return Square()
+        return None
+    def getColor(self,colorType):
+        pass
+
+class ColorFactory(AbstractFactory):
+    def getShape(self,shapeType):
+        pass
+    def getColor(self,colorType):
+        if colorType == None:
+            return None
+        elif colorType.upper() == "RED":
+            return Red()
+        elif colorType.upper() == "GREEN":
+            return Green()
+        elif colorType.upper() == "BLUE":
+            return Blue()
+        return None
+
+## 创建工厂创造器/生产器类
+class FactoryProducer(object):
+    @staticmethod
+    ## 这里不能写成 def getFactory(self,choiceType): 否则会报错
+    ## 因为是静态方法，被直接调用，所以不能带self参数
+    ## 如果不是静态方法，必须加self参数，且需要先实例化对象，再用实例化的对象调用方法
+    def getFactory(choiceType):
+        if choiceType.upper() == "SHAPE":
+            return ShapeFactory()
+        elif choiceType.upper() == "COLOR":
+            return ColorFactory()
+        return None
+
+## 调用输出
+if __name__ == '__main__':
+    shapeFactory = FactoryProducer.getFactory('SHAPE')
+    shape1 = shapeFactory.getShape("CIRCLE")
+    shape1.draw()
+    shape2 = shapeFactory.getShape("RECTANGLE")
+    shape2.draw()
+    shape3 = shapeFactory.getShape("SQUARE")
+    shape3.draw()
+
+    colorFactory = FactoryProducer.getFactory("COLOR")
+    color1 = colorFactory.getColor("RED")
+    color1.fill()
+    color2 = colorFactory.getColor("Green")
+    color2.fill()
+    color3 = colorFactory.getColor("BLUE")
+    color3.fill()
+```
+
+
 ###### 策略模式
 在 Python 中实现策略模式，可以通过定义抽象策略类和具体策略类，以及包含策略对象的上下文类来完成。
 具体代码实现如下：
@@ -4136,128 +4259,6 @@ if __name__ == "__main__":
 当我们创建完元素对象并添加到对象结构中后，可以通过调用 accept() 方法接受访问者的访问，这个过程中通过动态多态性调用相应的 visit_concrete_element_a() 和 visit_concrete_element_b() 方法，实现了访问者对元素的操作。
 在这个示例中，我们创建了两个不同的访问者对象 visitor1 和 visitor2，它们分别对相同的元素对象进行不同的操作。最后我们通过调用 accept() 方法，分别接受两个访问者的访问，并输出结果。
 
-
-###### 抽象工厂模式
-答：抽象工厂模式是在简单工厂的基础上将未来可能需要修改的代码抽象出来，通过继承的方式让子类去做决定。 
-比如，以上面的咖啡工厂为例，某天我的口味突然变了，不想喝咖啡了想喝啤酒，这个时候如果直接修改简单工厂里面的代码，这种做法不但不够优雅，也不符合软件设计的“开闭原则”，因为每次新增品 类都要修改原来的代码。
-这个时候就可以使用抽象工厂类了，抽象工厂里只声明方法，具体的实现交给子类（子工厂）去实现，这个时候再有新增品类的需求，只需要新创建代码即可。
-
-抽象工厂模式包含以下几个核心角色：
-抽象工厂（Abstract Factory）：声明了一组用于创建产品对象的方法，每个方法对应一种产品类型。抽象工厂可以是接口或抽象类。
-具体工厂（Concrete Factory）：实现了抽象工厂接口，负责创建具体产品对象的实例。
-抽象产品（Abstract Product）：定义了一组产品对象的共同接口或抽象类，描述了产品对象的公共方法。
-具体产品（Concrete Product）：实现了抽象产品接口，定义了具体产品的特定行为和属性。
-
-```python
-## Python原生默认不支持接口，默认多继承，所有的方法都必须不能实现
-from abc import  abstractmethod,ABCMeta
-
-## 创建一个接口Shape
-class Shape(metaclass=ABCMeta):
-    @abstractmethod
-    def draw(self):
-        pass
-##创建Shape的实体类
-class Rectangle(Shape):
-    def draw(self):
-        print("Inside Rectangel:draw() method.")
-
-class Square(Shape):
-    def draw(self):
-        print("Inside Square:draw() method.")
-
-class Circle(Shape):
-    def draw(self):
-        print("Inside Circle:draw() method.")
-
-## 创建一个接口Color
-class Color(metaclass=ABCMeta):
-    @abstractmethod
-    def fill(self):
-        pass
-## 创建Color的实体类
-class Red(Color):
-    def fill(self):
-        print("Inside Red.fill() method.")
-
-class Green(Color):
-    def fill(self):
-        print("Inside Green.fill() method.")
-
-class Blue(Color):
-    def fill(self):
-        print("Inside Blue.fill() method.")
-
-##创建抽象工厂
-class AbstractFactory(metaclass=ABCMeta):
-    @abstractmethod
-    def getColor(self,color):
-        pass
-
-    @abstractmethod
-    def getShape(self,shape):
-        pass
-
-##创建抽象工厂实例 ShapeFactory,ColorFactory
-class ShapeFactory(AbstractFactory):
-    def getShape(self,shapeType):
-        if shapeType == None :
-            return None
-        elif shapeType.upper() == "CIRCLE":
-            return Circle()
-        elif shapeType.upper() == "RECTANGLE":
-            return Rectangle()
-        elif shapeType.upper() == "SQUARE":
-            return Square()
-        return None
-    def getColor(self,colorType):
-        pass
-
-class ColorFactory(AbstractFactory):
-    def getShape(self,shapeType):
-        pass
-    def getColor(self,colorType):
-        if colorType == None:
-            return None
-        elif colorType.upper() == "RED":
-            return Red()
-        elif colorType.upper() == "GREEN":
-            return Green()
-        elif colorType.upper() == "BLUE":
-            return Blue()
-        return None
-
-## 创建工厂创造器/生产器类
-class FactoryProducer(object):
-    @staticmethod
-    ## 这里不能写成 def getFactory(self,choiceType): 否则会报错
-    ## 因为是静态方法，被直接调用，所以不能带self参数
-    ## 如果不是静态方法，必须加self参数，且需要先实例化对象，再用实例化的对象调用方法
-    def getFactory(choiceType):
-        if choiceType.upper() == "SHAPE":
-            return ShapeFactory()
-        elif choiceType.upper() == "COLOR":
-            return ColorFactory()
-        return None
-
-## 调用输出
-if __name__ == '__main__':
-    shapeFactory = FactoryProducer.getFactory('SHAPE')
-    shape1 = shapeFactory.getShape("CIRCLE")
-    shape1.draw()
-    shape2 = shapeFactory.getShape("RECTANGLE")
-    shape2.draw()
-    shape3 = shapeFactory.getShape("SQUARE")
-    shape3.draw()
-
-    colorFactory = FactoryProducer.getFactory("COLOR")
-    color1 = colorFactory.getColor("RED")
-    color1.fill()
-    color2 = colorFactory.getColor("Green")
-    color2.fill()
-    color3 = colorFactory.getColor("BLUE")
-    color3.fill()
-```
 
 ###### 装饰器模式
 装饰器模式是指动态地给一个对象增加一些额外的功能，同时又不改变其结构。 优点：装饰类和被装饰类可以独立发展，不会相互耦合，装饰模式是继承的一个替代模式，装饰模式可以动态扩展一个实现类的功能。 
@@ -4746,31 +4747,75 @@ MNIST 数据集的特点如下：
 
 
 ### 概念
-epoch
+
+#### epoch
 当一个完整的数据集通过了神经网络一次并且返回了一次，这个过程称为一次>epoch。（也就是说，所有训练样本在神经网络中都 进行了一次正向传播 和一次反向传播 ）
 再通俗一点，一个Epoch就是将所有训练样本训练一次的过程。
 
 
-Batch
+#### Batch
 将整个训练样本分成若干个Batch。
 batch_size，每批样本的大小。
 
 
-iteration
+#### iteration
 iteration同样指的是次数，iteration = 10 指的是把整个数据集分成10次扔进神经网络。
 
 
-向前传播
+#### 向前传播
 上一层的输出作为下一层的输入，并计算下一层的输出，一直到运算到输出层为止。
 输入数据 -> 神经网络各层的计算 -> 输出预测结果
 
-反向传播
+#### 反向传播
 前向传播是为反向传播准备好要用到的数值，反向传播本质上是一种求梯度的高效方法。
 反向传播其实就是将复杂函数（尽管例子中的函数并不复杂）的求导，分解成一个个小步骤。
 损失函数 -> 计算梯度 -> 更新权重
 
-损失函数
-评估预测结果与真实标签的差异
+
+#### 卷积神经网络（CNN）
+卷积神经网络（Convolutional Neural Network，简称CNN）是一种专门用于处理具有网格拓扑结构（如图像）的深度学习模型。它在图像识别、分类和处理等领域取得了巨大成功。
+
+卷积神经网络的主要特点是利用卷积操作来提取图像的局部特征，并通过多层卷积和池化操作来逐步提取更高级别的特征。下面是卷积神经网络的一些关键概念：
+
+1. 卷积层（Convolutional Layer）：
+   - 卷积层使用一组可学习的卷积核（也称为过滤器）对输入图像进行卷积操作。
+   - 每个卷积核在图像上滑动，对局部区域进行卷积计算，提取局部特征。
+   - 卷积操作可以有效地捕捉图像的空间结构和局部模式。
+
+2. 池化层（Pooling Layer）：
+   - 池化层用于降低特征图的空间维度，同时保留最重要的特征信息。
+   - 常见的池化操作有最大池化（Max Pooling）和平均池化（Average Pooling）。
+   - 池化操作可以减少特征图的大小，降低计算复杂度，并提供一定程度的平移不变性。
+
+3. 激活函数（Activation Function）：
+   - 激活函数在卷积层和全连接层之后使用，用于引入非线性变换。
+   - 常见的激活函数有 ReLU（Rectified Linear Unit）、Sigmoid、Tanh 等。
+   - 激活函数可以增加模型的表达能力，帮助网络学习复杂的特征表示。
+
+4. 全连接层（Fully Connected Layer）：
+   - 全连接层通常位于卷积神经网络的末尾，用于对提取的特征进行分类或回归。
+   - 全连接层将前面层的输出展平为一维向量，并通过权重矩阵进行线性变换。
+   - 最后一层全连接层的输出通常与任务相关，如分类任务中的类别数。
+
+5. 损失函数（Loss Function）和优化器（Optimizer）：
+   - 损失函数用于衡量模型的预测结果与真实标签之间的差异。
+   - 优化器根据损失函数的梯度更新模型的参数，以最小化损失函数的值。
+   - 常见的损失函数有交叉熵损失（Cross-entropy Loss）、均方误差（Mean Squared Error）等。
+   - 常见的优化器有梯度下降（Gradient Descent）、Adam、RMSprop 等。
+
+卷积神经网络通过卷积层提取局部特征，池化层降低空间维度，全连接层进行分类或回归。通过多层的堆叠和端到端的训练，卷积神经网络可以自动学习图像中的层次化特征，从低级特征到高级语义特征。
+
+卷积神经网络在图像分类、目标检测、语义分割等任务中取得了显著的成功，并且在其他领域如自然语言处理、语音识别等方面也有广泛的应用。
+
+卷积层（Convolutional Layer）:
+   - 作用: 卷积层利用卷积运算提取输入数据的局部特征。它通过使用一组可学习的卷积核(滤波器)来对输入数据进行卷积操作,从而生成特征映射。
+   - 原理: 卷积层将输入数据(如图像)与卷积核进行二维卷积运算,得到一个特征映射。卷积核的每个元素都是可学习的参数,在训练过程中会自动调整以提取有意义的特征。
+   - 优点: 卷积层可以有效地捕捉局部特征,并且参数共享机制减少了模型参数的数量,提高了模型的泛化能力。
+
+池化层（Pooling Layer）:
+   - 作用: 池化层用于对特征映射进行下采样,以减少特征维度,同时保留最重要的特征。
+   - 原理: 池化层将输入数据划分为多个子区域,然后对每个子区域应用一个池化函数(如最大值池化或平均值池化),得到一个新的特征映射。
+   - 优点: 池化操作可以减少参数数量,降低过拟合风险,同时保留输入数据的重要特征。
 
 
 
@@ -4787,11 +4832,70 @@ horovodrun -np 16 -H server1:4,server2:4,server3:4,server4:4 python train.py
 
 训练代码 train.py 需要手动拷贝到各个节点上，且目录相同。
 
+#### Ring-allreduce
+Ring-allreduce是一种用于分布式深度学习中梯度聚合的通信算法。在数据并行训练中,每个设备(GPU)都有一份完整的模型副本,并使用不同的数据子集进行训练。在每个训练步骤结束时,需要将所有设备上计算得到的梯度进行聚合,以更新全局模型参数。Ring-allreduce算法可以高效地完成这一任务。
+
+算法流程:
+1. 将N个设备排列成一个逻辑环。
+2. 每个设备将其本地梯度划分为N个大小相等的分块。
+3. 在N-1轮通信中,每个设备都将其中一个梯度分块发送给下一个设备,同时从上一个设备接收一个梯度分块。
+4. 每个设备在接收到梯度分块后,将其与本地对应的梯度分块相加。
+5. 在第N轮通信中,每个设备将最后一个梯度分块发送给下一个设备,并从上一个设备接收第一个梯度分块。
+6. 每个设备将接收到的第一个梯度分块与本地的第一个梯度分块相加,得到完整的聚合梯度。
+
+优点:
+1. 通信次数少:仅需要N轮通信即可完成梯度聚合。
+2. 通信量小:每个设备在每轮通信中只需发送和接收1/N的梯度数据。
+3. 负载均衡:每个设备的通信和计算负载相同。
+
+示例:
+假设有4个设备(GPU0-GPU3),每个设备有一个大小为12的梯度向量。Ring-allreduce的过程如下:
+
+1. 将梯度向量划分为4个分块,每个分块大小为3。
+2. 第1轮通信:
+   - GPU0将分块0发送给GPU1,从GPU3接收分块3
+   - GPU1将分块1发送给GPU2,从GPU0接收分块0
+   - GPU2将分块2发送给GPU3,从GPU1接收分块1
+   - GPU3将分块3发送给GPU0,从GPU2接收分块2
+3. 每个设备将接收到的分块与本地对应的分块相加。
+4. 重复步骤2和步骤3,共进行3轮通信。
+5. 第4轮通信:
+   - GPU0将分块3发送给GPU1,从GPU3接收分块0
+   - GPU1将分块0发送给GPU2,从GPU0接收分块1
+   - GPU2将分块1发送给GPU3,从GPU1接收分块2
+   - GPU3将分块2发送给GPU0,从GPU2接收分块3
+6. 每个设备将接收到的分块与本地对应的分块相加,得到完整的聚合梯度。
+
+通过Ring-allreduce算法,每个设备最终都得到了完整的聚合梯度,可以用于更新本地模型参数。该算法充分利用了设备间的通信带宽,减少了通信次数和通信量,提高了分布式训练的效率。
+
+
+#### 训练流程
+1. 获取可用的CPU/GPU，与计算节点上的进程进行绑定；
+2. 每个进程加载不同的数据切片；
+这种方式确保了每个进程处理不同的数据子集,实现了数据并行。在训练过程中,每个进程独立计算自己的梯度,然后通过Horovod进行梯度聚合和同步,更新全局模型参数。
+3. 为图像数据添加了一个新的通道维度,将形状从(num_samples, 28, 28)变为(num_samples, 28, 28, 1)。这是因为卷积神经网络通常需要通道维度。
+之后将图像像素值从[0, 255]范围缩放到[0, 1]范围,以便于训练。
+4. 通过 repeat() 将数据集重复无限次，以便在多个 epoch 中重复使用数据集进行训练。
+通过 shuffle(10000) 对数据集进行随机打乱，减少数据顺序对模型训练的影响，提高模型的泛化能力。
+通过 batch(128) 将数据集分批次，每个批次包含 128 个样本，以更有效地利用计算资源，加速模型的训练过程。
+5. 定义了一个卷积神经网络（CNN）模型；
+6. 
+
 
 ### tensorflow
 
+#### 训练CNN过程
+1. 载入数据。 tf.keras.datasets.mnist.load_data()
+2. 改变数据维度。train_data.reshape(-1, 28, 28, 1)。tensorflow中，做卷积的时候需要把数据变成4维的格式。这4个维度分别是：数据数量，图片高度，图片宽度，图片通道数。
+3. 归一化；
+4. 搭建CNN模型；
+5. 模型编译。设置优化器、损失函数、标签。 
+6. 训练。model.fit()
+7. 保存模型。model.save()
 
-查看checkpoints
+
+
+#### 查看checkpoints
 tensorboard --logdir /workspace --bind_all
 
 
