@@ -1566,7 +1566,7 @@ WaitGroup 主要维护了2 个计数器，一个是请求计数器 v，一个是
    - 当调用`Wait`方法时，如果计数器的值不为0，当前Goroutine会阻塞等待。
    - 当计数器的值变为0时，表示所有Goroutine都已完成，阻塞的Goroutine会被唤醒并继续执行。
 
-`sync.WaitGroup`的实现利用了原子操作和信号量机制，通过计数器来跟踪未完成的Goroutine数量，并通过信号量来阻塞和唤醒等待的Goroutine。它提供了一种简单而有效的方式来同步多个Goroutine的执行，确保所有Goroutine都完成后再继续执行后
+`sync.WaitGroup`的实现利用了原子操作和信号量机制，通过计数器来跟踪未完成的Goroutine数量，并通过信号量来阻塞和唤醒等待的Goroutine。它提供了一种简单而有效的方式来同步多个Goroutine的执行，确保所有Goroutine都完成后再继续执行后续操作。
 
 
 #### 原子操作和锁的区别
@@ -1669,7 +1669,9 @@ func main() {
 
 ## GMP模型
 G--->goroutine，拥有自己的栈空间，定时器，初始化时栈空间大小为2k，可随着需求增长；
+
 M--->machine，操作系统线程，当一个 Goroutine 需要执行时，M 将会将其放入自己的执行队列中，并不断地从队列中取出 Goroutine 进行执行。
+
 P--->processor，处理器，Go 运行时系统通常为每个可用的 CPU 核心分配一个 P。P 负责从全局的 Goroutine 队列中获取 Goroutine，并将其分配给可用的 M 执行。
 
 M代表一个工作线程，在M上有一个P和G，P是绑定到M上的，G是通过P的调度获取的，在某一时刻，一个M上只有一个G（g0除外）。
@@ -1698,26 +1700,43 @@ M：线程想运行任务就得获取 P，从 P 的本地队列获取 G，P 队�
 
 #### Go 中 GMP 有哪些状态？
 G 的状态： 
+
 _Gidle：刚刚被分配并且还没有被初始化，值为 0，为创建 goroutine 后的默认值 
+
 _Grunnable： 没有执行代码，没有栈的所有权，存储在运行队列中，可能在某个P 的本地队列或全局队列中。
+
 _Grunning： 正在执行代码的 goroutine，拥有栈的所有权。 
+
 _Gsyscall：正在执行系统调用，拥有栈的所有权，与 P 脱离，但是与某个 M 绑定，会在调用结束后被分配到运行队列。
+
 _Gwaiting：被阻塞的 goroutine，阻塞在某个 channel 的发送或者接收队列。 
-_Gdead： 当前 goroutine 未被使用，没有执行代码，可能有分配的栈，分布在空闲列表 gFree，
-可能是一个刚刚初始化的 goroutine，也可能是执行了 goexit 退出的 goroutine。 
+
+_Gdead： 当前 goroutine 未被使用，没有执行代码，可能有分配的栈，分布在空闲列表 gFree，可能是一个刚刚初始化的 goroutine，也可能是执行了 goexit 退出的 goroutine。 
+
 _Gcopystac：栈正在被拷贝，没有执行代码，不在运行队列上，执行权在
+
 _Gscan ： GC 正在扫描栈空间，没有执行代码，可以与其他状态同时存在。
 
+
 P 的状态： 
+
 _Pidle ：处理器没有运行用户代码或者调度器，被空闲队列或者改变其状态的结构持有，运行队列为空 
+
 _Prunning ：被线程 M 持有，并且正在执行用户代码或者调度器(如上图) 
+
 _Psyscall：没有执行用户代码，当前线程陷入系统调用(如上图) 
+
 _Pgcstop ：被线程 M 持有，当前处理器由于垃圾回收被停止 
+
 _Pdead ：当前处理器已经不被使用 
 
+
 M 的状态： 
+
 自旋线程：处于运行状态但是没有可执行 goroutine 的线程，数量最多为GOMAXPROC，若是数量大于 GOMAXPROC 就会进入休眠。 
+
 非自旋线程：处于运行状态有可执行 goroutine 的线程。
+
 
 #### GMP 能不能去掉 P 层？会怎么样？ 
 P 层的作用
