@@ -3840,3 +3840,27 @@ class Solution:
 
 ```
 
+
+#### 84. 用rand7实现rand10
+给定方法 rand7 可生成 [1,7] 范围内的均匀随机整数，试写一个方法 rand10 生成 [1,10] 范围内的均匀随机整数。
+
+你只能调用 rand7() 且不能调用其他方法。请不要使用系统的 Math.random() 方法。
+```Python
+class Solution:
+    def rand10(self):
+        x = float('inf')
+        while x > 10 * (7 * 7 // 10):
+            x = (rand7() - 1) * 7 + rand7() 
+        return x % 10 + 1
+
+
+# 如何a > b，则一定可以通过randa实现randb，一般公式如下：
+x = float("inf")
+while x > b * (a // b):
+    x = randa() 
+return x % b + 1
+
+# 如果a < b使，构造a * a，randa*a() = a * (randa() - 1 ) + randa()
+```
+
+
